@@ -1,390 +1,190 @@
 ---
 project: 'Household Treasurer'
-version: 3
+version: 4
 status: draft
 created: 2026-11-02
-updated: 2026-11-12
-prd_version: 3
+updated: 2026-11-14
+prd_version: —
 main_goal: quality
 top_blocker: decisions
-milestone_id: category-list-rhythms-reports
-milestone_seq: 3
-milestone_status: done
+milestone_id: categories-across-years-and-atrament-views
+milestone_seq: 4
+milestone_status: open
 ---
 
 # Roadmap: Household Treasurer
 
-> Derived from `context/foundation/prd-v3.md` (v3) + codebase baseline from `context/foundation/health-check.md` and `context/foundation/stack-assessment.md` (2026-11-08), re-checked in the repo.
+> Derived from the user's description (2026-11-14) and the cards `PageReportsYears`, `PageReports`, `PageCategories` and `Sidebar` in the Atrament design system (claude.ai artifact „Domowy Skarbnik”), + codebase baseline re-checked in the repo.
 > Edit-in-place; the next milestone continues this file. Archive only when an independent roadmap replaces it.
 > Slices below are listed in dependency order. The "At a glance" table is the index.
-> Identyfikatory kontynuują numerację: M-1 to F-01 i S-01…S-10 (w `## Done`), porzucony M-2 to F-02 i S-11…S-17 (w `## Milestone History`), więc M-3 zaczyna od F-03 i S-18.
+> Identyfikatory kontynuują numerację: M-1 to F-01 i S-01…S-10, porzucony M-2 to F-02 i S-11…S-17, M-3 to F-03…F-06 i S-18…S-33 (w `## Done` i `## Milestone History`), więc M-4 zaczyna od F-07 i S-34.
 
 ## Milestone
 
-**M-3: Jedna lista kategorii, rytmy i raporty** — Status: done
+**M-4: Kategorie przez lata i widoki Atramentu** — Status: open
 
-- **Intent:** Użytkownik prowadzi jedną listę kategorii przez lata (grupy, rytm, opis, archiwum), na którą migracja przepina istniejące budżety i operacje bez zmiany kwot. Na tej liście plan miesiąca liczy wydatki płacone kilka razy w roku przez stałą stawkę i „zebrane”, a raporty pokazują, ile i na co idzie w miesiącu i w roku, z porównaniem lat.
-- **Source materials:** `context/foundation/prd-v3.md` (v3), z blokiem przekazania dla mapy drogowej z `context/foundation/shape-notes.md` (sesja 2026-11-07).
-- **Done when:** każdy element F-NN i S-NN poniżej ma status `done`, a użytkownik przeszedł pięć kroków głównego kryterium sukcesu z PRD v3.
-- **Zamknięty (2026-11-12):** wszystkie elementy są `done`; kod wdrożony na produkcję (`scripts/deploy.sh` przy `legacy-budget-import`), pary kategorii scalone na produkcji (S-21, po F-06), a pięć kroków kryterium sukcesu przeszło na produkcji (potwierdzenie użytkownika).
-- **Scope anchors:** FR-001 do FR-025, US-01 i US-02.
+- **Intent:** Użytkownik widzi, jak każda kategoria zmieniała się od 2020 roku, porównując lata do tego samego dnia, i dochodzi od raportu roku do szczegółu jednej kategorii. Przy okazji Raporty, Kategorie i menu roku dostają układ wybrany w design systemie Atrament.
+- **Source materials:** opis użytkownika z 2026-11-14 („w ogóle brakuje mi widoku porównania kategorii na przestrzeni lat; jest tylko porównanie lat sąsiednich, a nie ma większych trendów”) i jego wybory w design systemie: `PageReportsYears` (wariant A), `PageReports` (C), `PageCategories` (B), menu roku w `Sidebar` (B). Bez PRD.
+- **Done when:** każdy element F-NN i S-NN poniżej ma status `done`, a użytkownik na produkcji porównał co najmniej jedną kategorię przez lata 2020–2026 w widoku „Lata” i doszedł z niej do panelu tej kategorii.
+- **Scope anchors:**
+  - MS-01: Raporty mają piątą pozycję okresu „Lata”: tabela kategorie × lata 2020–2026, każdy rok liczony do tego samego dnia (przełącznik „Pełne lata”), zmiana od 2020 (albo od pierwszego roku kategorii), mini-wykres w wierszu, grupy z sumami, zarchiwizowane kategorie, zakładki Wydatki | Przychody (`PageReportsYears`).
+  - MS-02: Raport roku pokazuje kategorie od największych, z paskiem udziału, różnicą do poprzedniego roku i panelem wybranej kategorii (2026, 2025, różnica, udział, miesiące roku, przejście do Operacji); przełącznik Kategorie | Grupy (`PageReports`).
+  - MS-03: Panel kategorii w Raporcie ma zakładkę „Lata” z latami 2020–2026 tej kategorii, a nazwa kategorii w tabeli „Lata” otwiera ją w tym panelu.
+  - MS-04: „Kategorie” mają zakładki Wydatki | Przychody | Archiwum z licznikami, szukajkę po nazwie i opisie, filtr rytmu i lata w budżecie jako pasek komórek (`PageCategories`).
+  - MS-05: Menu „Rok budżetu” w sidebarze pokazuje stan roku (bieżący, szkic), dzieli lata na Ostatnie i Starsze i podpisuje „Dodaj rok N” jako szkic z planem roku N−1 (`Sidebar`).
 
 ## Vision recap
 
-Kategoria należy dziś do jednego roku, a lata łączy zapytanie po nazwie i typie, więc nie ma jednego miejsca, w którym użytkownik porządkuje kategorie, ani pewnego porównania lat. Arkusz Excela obok aplikacji wciąż trzyma grupy, domyślne kwoty i tabelę wydatków nieregularnych, a stawki na prąd czy OC użytkownik przelewa na osobne konto. Zmiana daje jedną zarządzaną listę kategorii używaną w całej aplikacji, rytm kategorii w planie miesiąca (ze „zebranym” dla wydatków nieregularnych, bez przelewów) i raporty okresu na tej liście.
+Raporty porównują dziś tylko okres z tym samym okresem rok wcześniej (ADR-0074), a Trend pokazuje miesiące jednego roku (ADR-0077). Od wczytania arkusza (ADR-0085, ADR-0096) aplikacja ma budżety 2020–2027 na jednej liście kategorii (ADR-0063), ale nie ma miejsca, w którym widać dłuższy trend kategorii, np. że Wakacje urosły prawie czterokrotnie, a Czynsz o 29%. Ten kamień dodaje taki odczyt i łączy go z raportem roku, a przy okazji wdraża w aplikacji projekty Kategorii i menu roku, które użytkownik wybrał w design systemie.
 
 ## North star
 
-**S-18: użytkownik może otworzyć „Kategorie” i zobaczyć jedną listę kategorii przez lata, na którą migracja przepięła istniejące budżety i operacje bez zmiany kwot** — PRD v3 nazywa ten krok najmniejszym przyrostem, który dowodzi zmiany; przy celu „jakość” to także miejsce największego ryzyka (pierwsza nieodwracalna migracja na danych produkcyjnych), więc stoi tak wcześnie, jak pozwalają kroki przygotowawcze.
+**S-34: użytkownik może otworzyć Raporty → „Lata” i porównać każdą kategorię w latach 2020–2026, licząc każdy rok do tego samego dnia** — to dokładnie brak, który użytkownik nazwał, i pierwszy odczyt w aplikacji obejmujący więcej niż dwa lata, więc przy celu „jakość” stoi zaraz po decyzjach, na których się opiera.
 
-> Gwiazda przewodnia (north star) to najmniejszy wycinek od początku do końca, którego dostarczenie dowodzi, że zmiana działa. Stoi tak wcześnie, jak pozwalają warunki wstępne, bo reszta ma sens tylko wtedy, gdy on działa.
+> Gwiazda przewodnia (north star) to najmniejszy wycinek od początku do końca, którego dostarczenie dowodzi, że kamień milowy działa. Stoi tak wcześnie, jak pozwalają warunki wstępne, bo reszta ma sens tylko wtedy, gdy on działa.
 
 ## At a glance
 
-| ID   | Change ID                            | Outcome (user can …)                                                                                              | Prerequisites | PRD refs                                 | Status   |
-| ---- | ------------------------------------ | ----------------------------------------------------------------------------------------------------------------- | ------------- | ---------------------------------------- | -------- |
-| F-03 | category-list-domain-decisions       | (foundation) ADR i słownik opisują kategorię przez lata, grupę kategorii i regułę migracji                         | —             | Wymogi istniejącego systemu, Decyzje strukturalne 1 i 4, FR-006 | done     |
-| F-04 | safe-first-data-migration            | (foundation) wdrożenie robi kopię bazy przed migracją, a reguły migracji danych, kategorii i snapshotu są w repo   | —             | Migracja danych (wskazane przez użytkownika), Guardrails | done     |
-| F-05 | rhythm-and-irregular-decisions       | (foundation) ADR i słownik opisują cztery rytmy, stawkę, „zebrane” i przejście zebranego przez 31 grudnia          | —             | Business Logic Changes, Decyzje strukturalne 2, 3 i 5–9, FR-007, FR-010 | done     |
-| F-06 | restore-import-identity-accounts     | (foundation) `user:restore` wczytuje snapshot także na użytkownika z danymi (id kont w tożsamości importu)          | —             | Guardrails, FR-023                       | done |
-| S-18 | category-list-after-migration        | użytkownik może otworzyć „Kategorie” i zobaczyć jedną listę przez lata, na którą migracja przepięła dane            | F-03, F-04    | US-01, FR-001, FR-006, FR-022            | done |
-| S-19 | category-edit-and-archive            | użytkownik może edytować kategorię z opisem, zarchiwizować ją i przywrócić                                          | S-18          | FR-002, FR-003, FR-019, FR-022           | done |
-| S-20 | new-budget-from-category-list        | użytkownik może utworzyć budżet z aktywnych kategorii listy z kwotami podpowiedzianymi z poprzedniego roku          | S-18          | FR-005                                   | done |
-| S-21 | category-merge                       | użytkownik może scalić dwie kategorie listy po podglądzie liczb                                                     | S-18          | FR-023                                   | done |
-| S-22 | category-groups                      | użytkownik może grupować kategorie i widzieć sumy grup w Budżecie i w selektorze kategorii                          | S-18          | FR-004, FR-019, FR-021, FR-022           | done |
-| S-23 | import-suggestions-on-category-list  | użytkownik może importować z podpowiedziami wskazującymi kategorię listy, trafnymi co najmniej jak przed zmianą     | S-18          | FR-020                                   | done |
-| S-24 | category-rhythm                      | użytkownik może zobaczyć i poprawić rytm kategorii, a propozycja planu miesiąca liczy kwotę z rytmu                 | F-05, S-18    | FR-007, FR-009, FR-022                   | done     |
-| S-25 | month-plan-groups                    | użytkownik może zobaczyć plan miesiąca w zwijanych grupach z sumą i sygnałem przekroczenia                          | S-22, S-24    | FR-008                                   | done |
-| S-26 | irregular-expense-collected          | użytkownik może oznaczyć wydatek jako nieregularny i widzieć stawkę oraz „zebrane”, które zużywa rachunek           | F-05, S-24    | US-02, FR-010, FR-011, FR-013, FR-022    | done |
-| S-27 | collected-carry-over-new-year        | użytkownik może zobaczyć w nowym budżecie zebrane startowe przeniesione z 31 grudnia                               | S-20, S-26    | FR-012                                   | done        |
-| S-28 | period-report-by-group               | użytkownik może zobaczyć raport miesiąca albo roku po grupach i kategoriach, jako wykres i tabelę                   | S-22          | FR-014, FR-015                           | done     |
-| S-29 | year-over-year-report                | użytkownik może porównać okres raportu z tym samym okresem rok wcześniej na tej samej kategorii listy               | S-28          | FR-016                                   | done     |
-| S-30 | report-trend-by-month                | użytkownik może zobaczyć kwoty grup i kategorii w kolejnych miesiącach roku                                         | S-28          | FR-017                                   | done     |
-| S-31 | report-to-operations                 | użytkownik może przejść z kategorii w raporcie do jej operacji w wybranym okresie                                   | S-28          | FR-018                                   | done        |
-| S-32 | rolling-twelve-month-report          | użytkownik może wybrać okres raportu „ostatnie 12 miesięcy”                                                         | S-28          | FR-025                                   | done     |
-| S-33 | default-set-aside-percent            | użytkownik może ustawić domyślny procent przychodów, który propozycja planu wpisuje jako „odkładam”                 | S-24          | FR-024                                   | done     |
+| ID   | Change ID                          | Outcome (user can …)                                                                                                   | Prerequisites | PRD refs            | Status   |
+| ---- | ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------- | ------------- | ------------------- | -------- |
+| F-07 | report-redesign-decisions          | (foundation) ADR i słownik opisują odczyt „Lata”, „Pełne lata”, ranking zamiast wykresu słupkowego i kolory wykresów Raportów | —             | MS-01, MS-02, MS-03 | ready    |
+| S-34 | report-categories-across-years     | użytkownik może porównać każdą kategorię w latach 2020–2026 w widoku Raportów „Lata”                                   | F-07          | MS-01               | proposed |
+| S-35 | report-ranking-and-category-panel  | użytkownik może zobaczyć raport roku jako ranking kategorii i otworzyć panel jednej kategorii z jej miesiącami          | F-07          | MS-02               | proposed |
+| S-36 | report-panel-years-tab             | użytkownik może przejść z tabeli „Lata” do panelu kategorii i zobaczyć w nim jej lata 2020–2026                         | S-34, S-35    | MS-03               | proposed |
+| S-37 | categories-tabs-and-filters        | użytkownik może przeglądać „Kategorie” w zakładkach z archiwum, szukać ich, filtrować po rytmie i widzieć lata w budżecie | —             | MS-04               | ready    |
+| S-38 | budget-year-menu-state             | użytkownik może zobaczyć w menu „Rok budżetu”, który rok jest bieżący, a który jest szkicem                            | —             | MS-05               | ready    |
 
 ## Streams
 
 Navigation aid — groups items that share a Prerequisites chain. Canonical ordering still lives in the dependency graph below; this table is the proposed reading order across parallel tracks.
 
-| Stream | Theme                        | Chain                                                    | Note                                                                                                                       |
-| ------ | ---------------------------- | -------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| A      | Lista kategorii i migracja   | `F-03` + `F-04` → `S-18` → `S-19` → `S-20` → `S-21` + `F-06` → `S-23` | Kroki 1–2 z PRD; przy celu „jakość” najpierw siatka bezpieczeństwa migracji. `F-06` daje drogę powrotu dla scalania par na produkcji, a pomiar trafności Importu w `S-23` idzie po tych porządkach. Po `S-18` wycinki `S-19`…`S-23` są od siebie niezależne. |
-| B      | Grupy i raporty              | `S-22` → `S-28` → `S-29` → `S-30` → `S-31` → `S-32`       | Dołącza do A przy `S-18`. Krok 5 z PRD; `S-30`…`S-32` to elementy opcjonalne.                                               |
-| C      | Rytm i wydatki nieregularne  | `F-05` → `S-24` → `S-25` → `S-26` → `S-27` → `S-33`       | Kroki 3–4 z PRD, jedyna zmiana reguły „do wydania”. Dołącza do A przy `S-18`; `S-25` łączy się z B przy `S-22`, `S-27` z A przy `S-20`. |
+| Stream | Theme                    | Chain                                      | Note                                                                                                   |
+| ------ | ------------------------ | ------------------------------------------ | ------------------------------------------------------------------------------------------------------ |
+| A      | Raporty przez lata       | `F-07` → `S-34` → `S-35` → `S-36`          | Przy celu „jakość” najpierw decyzje; `S-34` i `S-35` mogą iść równolegle, `S-36` łączy oba.             |
+| B      | Kategorie                | `S-37`                                     | Samodzielny widok bez warunków wstępnych; decyzja o archiwum (ADR-0067) zapada w planie wycinka.       |
+| C      | Menu roku                | `S-38`                                     | Samodzielny; zmienia wspólny props sidebara, więc najlepiej nie w tym samym czasie co inne zmiany `shell`. |
 
 ## Baseline
 
-What's already in place in the codebase as of `2026-11-08` (auto-researched in `/10x-health-check` and `/10x-stack-assess`, re-checked in the repo, user-confirmed).
+What's already in place in the codebase as of `2026-11-14` (re-checked in the repo; zastępuje stan z 2026-11-08 z M-3).
 Foundations below assume these are present and do NOT re-scaffold them.
 
-- **Frontend:** present — strony Inertia/Vue w `resources/js/pages`, design system Atrament. Nie ma widoków „Kategorie” ani „Raporty” ani biblioteki wykresów (`.ai/rules/reports.md` wymaga decyzji w planie i ADR).
-- **Backend / API:** present — trasy sesyjne w `routes/web.php`. Lata łączy nazwa i typ kategorii w kopiowaniu budżetu, propozycji planu (grudzień → styczeń), filtrze Operacji i podpowiedziach Importu.
-- **Data:** partial — PostgreSQL, 20 migracji, wszystkie schematowe: brak wzorca migracji danych i testów migracji. Kategoria należy do budżetu i ma flagi `is_paced` i `month_item_kind` (czytane w około 50 plikach, w tym w parach kalkulatorów PHP/TS). Snapshot w wersji 5. `DemoHouseholdSeeder` tworzy tylko bieżący rok; mocka 2025 nie ma.
-- **Auth:** present — Fortify, 2FA, passkeys, polityki w `app/Policies`, bez samodzielnej rejestracji.
-- **Deploy / infra:** partial — `docker-compose.prod.yml` i ręczne `scripts/deploy.sh`, które robi `migrate --force` bez kopii bazy (kopia tylko nocna o 03:00). CI testuje na PostgreSQL, nie wdraża i nie uruchamia E2E.
-- **Observability:** partial — log plikowy, `/up`, `backup:monitor`. PRD v3 nic tu nie wymaga.
-
-Różnice względem dokumentów, istotne dla wycinków: Earmark, Reserve, Year Close i Cash Expectation są opisane w słowniku, ale nie istnieją w `app/`; ich definicje opierają się na kategorii należącej do budżetu. Reguł kompensacyjnych z oceny stosu (migracje, tożsamość kategorii, konwersja snapshotu) nie ma jeszcze w `.ai/rules`.
+- **Frontend:** present — strony Inertia/Vue, w tym `Categories.vue` i `Reports.vue` (Rok, Miesiąc, 12 miesięcy, Trend), wykresy przez shadcn-vue chart i Unovis (ADR-0071), menu roku `BudgetYearSwitcher.vue` (ADR-0087), design system Atrament z kartami docelowych widoków.
+- **Backend / API:** present — `ReportController` z `PeriodReport`, `ReportTrend`, `ReportTwelveMonthWindow` i `ReportComparisonPeriod`, który już liczy okres do tego samego dnia rok wcześniej (ADR-0074).
+- **Data:** present — jedna lista kategorii przez lata (ADR-0063), scalanie z przeniesieniem historii (ADR-0078), budżety 2020–2027 wczytane z arkusza (ADR-0085, ADR-0096), wzorzec migracji danych z kopią przed wdrożeniem (ADR-0064).
+- **Auth:** present — Fortify, 2FA, passkeys, polityki w `app/Policies`.
+- **Deploy / infra:** partial — ręczne `scripts/deploy.sh` z kopią bazy; CI testuje na PostgreSQL, nie wdraża i nie uruchamia E2E.
+- **Observability:** partial — log plikowy, `/up`, `backup:monitor`. Ten kamień nic tu nie wymaga.
 
 ## Foundations
 
-### F-03: Decyzje domenowe listy kategorii
+### F-07: Decyzje widoków Raportów
 
-- **Outcome:** (foundation) nowy ADR zastępuje ADR-0014 i zmienia ADR-0016 i ADR-0034, a wpisy w `context/foundation/glossary.md` opisują kategorię przez lata (bez terminu _Avoid_ „a Category identity that spans years”), grupę kategorii, archiwum globalne i regułę migracji (nazwa + typ → jedna kategoria listy).
-- **Change ID:** category-list-domain-decisions
-- **PRD refs:** Wymogi istniejącego systemu, Decyzje strukturalne 1 i 4, FR-006
-- **Unlocks:** S-18 (AGENTS.md wymaga ADR i wpisu w słowniku przed zmianą terminu _Avoid_), S-20 (zastąpienie ADR-0014), S-22 (termin grupy kategorii), S-23 (zmiana ADR-0034); rozstrzyga Otwarte pytanie 3 (Earmark, Reserve, Year Close).
+- **Outcome:** (foundation) ADR opisuje piątą pozycję okresu „Lata” (lata liczone do tego samego dnia, „Pełne lata” z rokiem w toku, zmiana od pierwszego roku kategorii), ranking z panelem kategorii w miejsce wykresu słupkowego z ADR-0071 i ADR-0084 oraz kolory wykresów (tokeny `chart-1`/`chart-2` albo `brand-text`/`success` w design systemie), a `context/foundation/glossary.md` nazywa nowy odczyt po polsku i angielsku.
+- **Change ID:** report-redesign-decisions
+- **PRD refs:** MS-01, MS-02, MS-03
+- **Unlocks:** S-34, S-35 (i przez nie S-36); rozstrzyga pytania 1 i 2 z `## Open Roadmap Questions`.
 - **Prerequisites:** —
-- **Parallel with:** F-04, F-05
+- **Parallel with:** S-37, S-38
 - **Blockers:** —
 - **Unknowns:** —
-- **Risk:** Stoi przed kodem, bo zmienia podstawową zasadę słownika; musi jasno powiedzieć, co dzieje się z planem rocznym (zostaje per budżet) i z kategoriami archiwalnymi, inaczej migracja w S-18 utrwali złą decyzję.
-- **Status:** done
-
-### F-04: Bezpieczna pierwsza migracja danych
-
-- **Outcome:** (foundation) wdrożenie robi kopię bazy przed migracją, przywrócenie z niej jest raz sprawdzone na kopii lokalnej, a reguły migracji danych, tożsamości kategorii i konwersji starszego snapshotu (poprawki 1 i 2 z health-check) ładują się agentowi z `.ai/rules`.
-- **Change ID:** safe-first-data-migration
-- **PRD refs:** Migracja danych (wskazane przez użytkownika), Guardrails
-- **Unlocks:** S-18 (pierwsza nieodwracalna migracja na danych produkcyjnych; bez kopii przed migracją błąd oznacza utratę do doby zmian), S-24 (reguła przejścia z flag na rytm etapami).
-- **Prerequisites:** —
-- **Parallel with:** F-03, F-05
-- **Blockers:** —
-- **Unknowns:** —
-- **Risk:** Mały, ale jedyny element, który chroni produkcję przed nieodwracalnym scaleniem kategorii; wzorzec testu migracji na PostgreSQL zostaje dla S-18, żeby powstał na prawdziwej migracji.
-- **Status:** done
-
-### F-05: Decyzje domenowe rytmu i wydatku nieregularnego
-
-- **Outcome:** (foundation) nowy ADR zmienia ADR-0024 i ADR-0033: cztery rytmy zastępują flagi, mapowanie flag na rytm przy migracji jest ustalone, a wpisy w `context/foundation/glossary.md` nazywają stawkę i „zebrane” (po polsku i angielsku), regułę „do wydania” dla wydatku nieregularnego i przejście zebranego przez 31 grudnia.
-- **Change ID:** rhythm-and-irregular-decisions
-- **PRD refs:** Business Logic Changes, Decyzje strukturalne 2, 3 i 5–9, FR-007, FR-010
-- **Unlocks:** S-24 (rozstrzyga Otwarte pytanie 1, mapowanie flag), S-26 (rozstrzyga Otwarte pytanie 2, słownictwo; zmiana reguły „do wydania” wymaga ADR przed kodem), S-27 (reguła 31 grudnia).
-- **Prerequisites:** —
-- **Parallel with:** F-03, F-04, S-18, S-19, S-20, S-21, S-22, S-23, S-28, S-29, S-30, S-31, S-32
-- **Blockers:** —
-- **Unknowns:** —
-- **Risk:** Musi wyraźnie odróżnić „zebrane” od „odkładam / dobieram”, Set-aside i Reserve; nazwy z PRD („odkładam 150 · zebrane 450”) dziś zderzają się z sekcją „odkładam” na dole planu.
-- **Status:** done
-
-### F-06: Restore snapshotu na istniejącego użytkownika
-
-- **Outcome:** (foundation) `user:restore` wczytuje snapshot także na użytkownika, który ma już dane: `import_identity_account_id` operacji oraz `source_import_identity_account_id` i `destination_import_identity_account_id` przelewów przechodzą przez mapę id kont, jak w ruchach kapitału. Test restore na bazie z danymi i operacją z importu jest czerwony przed poprawką.
-- **Change ID:** restore-import-identity-accounts
-- **PRD refs:** Guardrails (droga powrotu), FR-023
-- **Unlocks:** scalenie par kategorii na produkcji (S-21): droga powrotu ze snapshotu zapisanego przez akcję scalenia (`user:restore`, `README.md`, „Scalanie kategorii”) działa tylko po tej poprawce. Dotyczy też snapshotów `deploy.sh`.
-- **Prerequisites:** —
-- **Parallel with:** S-21, S-23, S-25, S-30, S-31, S-32, S-33
-- **Blockers:** —
-- **Unknowns:** Czy to jedyne pola z id konta w snapshocie, których restore nie mapuje (próba S-21 sprawdziła operacje i przelewy w kodzie, nie wszystkie tabele).
-- **Risk:** Błąd jest w `main` (`app/Actions/RestoreUserData.php`), nie w S-21; wykryty w próbie na kopii produkcji (`context/archive/2026-11-11-category-merge/merge-trial.md`, O1): snapshot produkcji ma to pole wypełnione w 1269 z 1280 operacji, a `user:restore` na istniejącego użytkownika kończy się błędem klucza obcego (SQLSTATE 23503). Do pustej bazy restore przechodzi. Poprawka musi wejść przed wdrożeniem, bo `deploy.sh` robi snapshoty, a scalenie jest nieodwracalne w aplikacji.
-- **Status:** done
+- **Risk:** Stoi przed widokami, bo AGENTS.md wymaga wpisu w słowniku i ADR przed kodem, a `S-34` i `S-35` dzielą kolory i przełącznik okresu; bez wspólnej decyzji dwa równoległe plany rozstrzygnęłyby je inaczej. Tylko dokumenty, bez kodu.
+- **Status:** ready
 
 ## Slices
 
-### S-18: Jedna lista kategorii po migracji
+### S-34: Kategorie przez lata
 
-- **Outcome:** użytkownik może otworzyć „Kategorie” i zobaczyć jedną listę kategorii przez lata z sekcją archiwum, a budżet 2026, ~1 000 operacji, Budżet roczny, plan miesiąca, Import i `user:backup` / `user:restore` działają na tej liście bez ręcznej pracy i bez zmiany kwot
-- **Change ID:** category-list-after-migration
-- **PRD refs:** US-01, FR-001, FR-006, FR-022
-- **Prerequisites:** F-03, F-04
-- **Parallel with:** F-05
-- **Blockers:** —
-- **Unknowns:** —
-- **Risk:** Najbardziej ryzykowny wycinek kamienia milowego: liczby kontrolne (wykonanie per budżet i kategoria, liczba operacji, salda) przed i po, próba na kopii danych produkcyjnych i snapshot w starym formacie konwertowany tą samą regułą co migracja. Tworzenie budżetu musi dalej działać (budżet 2027 powstanie w grudniu), nawet zanim S-20 zmieni jego zasadę.
-- **Status:** done
-
-### S-19: Edycja, archiwum i przywracanie kategorii
-
-- **Outcome:** użytkownik może utworzyć kategorię i edytować jej nazwę, ikonę, kolor, kolejność, typ i opis, zarchiwizować ją i przywrócić; archiwalna znika z wyboru w operacjach i planie, a na istniejącej operacji zostaje widoczna w selektorze
-- **Change ID:** category-edit-and-archive
-- **PRD refs:** FR-002, FR-003, FR-019, FR-022
-- **Prerequisites:** S-18
-- **Parallel with:** F-05, S-20, S-21, S-22, S-23, S-24, S-25, S-26, S-27, S-28, S-29, S-30, S-31, S-32, S-33
-- **Blockers:** —
-- **Unknowns:** —
-- **Risk:** Zmiana typu kategorii z operacjami w dowolnym roku musi być zablokowana (PRD, FR-002), inaczej sumy przychodów i wydatków się rozjadą.
-- **Status:** done
-
-### S-20: Nowy budżet z listy kategorii
-
-- **Outcome:** użytkownik może utworzyć nowy budżet, który bierze aktywne kategorie z listy i podpowiada kwoty planu z planu aktualnego poprzedniego roku
-- **Change ID:** new-budget-from-category-list
-- **PRD refs:** FR-005
-- **Prerequisites:** S-18
-- **Parallel with:** F-05, S-19, S-21, S-22, S-23, S-24, S-25, S-26, S-28, S-29, S-30, S-31, S-32, S-33
-- **Blockers:** —
-- **Unknowns:** —
-- **Risk:** Stoi wcześnie w strumieniu A, bo budżet 2027 powstanie w grudniu; utworzony starą zasadą zostawiłby kategorie do scalania. Zastępuje ADR-0014 (F-03).
-- **Status:** done
-
-### S-21: Scalanie kategorii
-
-- **Outcome:** użytkownik może scalić dwie kategorie listy w jedną po podglądzie liczb (ile operacji, jakie plany), a operacje, plany i zebrane przechodzą na kategorię docelową
-- **Change ID:** category-merge
-- **PRD refs:** FR-023
-- **Prerequisites:** S-18
-- **Parallel with:** F-05, S-19, S-20, S-22, S-23, S-24, S-25, S-26, S-27, S-28, S-29, S-30, S-31, S-32, S-33
-- **Blockers:** —
-- **Unknowns:** —
-- **Risk:** Nieodwracalne, więc podgląd liczb jest częścią wycinka, nie ozdobą. To narzędzie porządków (literówki, dane testowe), które kończą się przed pomiarem trafności Importu „przed” w S-23. Co się dzieje z zebranym przy scaleniu, rozstrzyga ADR-0078. Kod i próba na kopii produkcji są gotowe (`context/archive/2026-11-11-category-merge/merge-trial.md`); scalenie obu par na produkcji idzie po F-06 i po wdrożeniu: F-06 → `scripts/deploy.sh` → `user:backup` → scalenie w UI → `app:control-numbers`.
-- **Status:** done
-
-### S-22: Grupy kategorii
-
-- **Outcome:** użytkownik może utworzyć, nazwać, uporządkować i usunąć grupę (przychodów albo wydatków), przypisać do niej kategorie i widzieć kategorie w grupach z sumą grupy w „Kategoriach”, w Budżecie rocznym i w selektorze kategorii operacji
-- **Change ID:** category-groups
-- **PRD refs:** FR-004, FR-019, FR-021, FR-022
-- **Prerequisites:** S-18
-- **Parallel with:** F-05, S-19, S-20, S-21, S-23, S-24, S-26, S-27, S-33
-- **Blockers:** —
-- **Unknowns:** —
-- **Risk:** Suma grupy musi równać się sumie jej kategorii co do grosza, a sumy Budżetu nie mogą się zmienić. Grupa nie miesza typów i nie ma planu (PRD Non-Goals).
-- **Status:** done
-
-### S-23: Podpowiedzi Importu na liście kategorii
-
-- **Outcome:** użytkownik może importować operacje z podpowiedziami wskazującymi kategorię listy, trafnymi co najmniej tak jak przed zmianą
-- **Change ID:** import-suggestions-on-category-list
-- **PRD refs:** FR-020
-- **Prerequisites:** S-18
-- **Parallel with:** F-05, S-19, S-20, S-21, S-22, S-24, S-25, S-26, S-27, S-28, S-29, S-30, S-31, S-32, S-33
+- **Outcome:** użytkownik może otworzyć Raporty → „Lata” i porównać każdą kategorię i grupę w latach 2020–2026, licząc każdy rok do tego samego dnia albo w pełnych latach, ze zmianą od 2020 i mini-wykresem, dla wydatków i przychodów
+- **Change ID:** report-categories-across-years
+- **PRD refs:** MS-01
+- **Prerequisites:** F-07
+- **Parallel with:** S-35, S-37, S-38
 - **Blockers:** —
 - **Unknowns:**
-  - Kiedy porządki w danych: przed wdrożeniem S-18 czy po, przez S-21 i zmianę kategorii operacji (Otwarte pytanie 4)? Od tego zależy moment pomiaru trafności „przed”. — Owner: user. Block: no.
-    - _Rozstrzygnięte:_ porządki idą po migracji, przez S-21. „Nie gorzej” rozstrzyga kopia z 11.09 na starym i nowym kodzie; odczyt po scaleniach jest informacyjny.
-- **Risk:** Pomiar przed i po musi iść na tych samych danych (istnieje próg z `import-category-suggestions`). Gorsze podpowiedzi to jeden z najszybszych sygnałów awarii wskazanych w PRD.
-- **Status:** done
+  - Czy wczytane lata 2020–2021 (ADR-0096) mają kategorie i grupy na tyle spójne, że „—” oznacza brak pozycji, a nie lukę po wczytaniu? — Owner: user. Block: no.
+- **Risk:** Pierwszy odczyt przez więcej niż dwa lata: suma roku w tabeli musi równać się wydatkom tego roku w raporcie Rok, a liczenie siedmiu lat nie może iść zapytaniami w pętli po latach (Sloppy). Zarchiwizowane i scalone kategorie łatwo zgubić albo policzyć podwójnie.
+- **Status:** proposed
 
-### S-24: Rytm kategorii w propozycji planu
+### S-35: Ranking kategorii i panel kategorii
 
-- **Outcome:** użytkownik może zobaczyć rytm nadany istniejącym kategoriom z dzisiejszych flag, poprawić go, a propozycja planu miesiąca liczy kwotę z rytmu (stała opłata, bieżąca, równomierna roczna z odczytem „zostało X na Y mies.”)
-- **Change ID:** category-rhythm
-- **PRD refs:** FR-007, FR-009, FR-022
-- **Prerequisites:** F-05, S-18
-- **Parallel with:** S-19, S-20, S-21, S-22, S-23, S-28, S-29, S-30, S-31, S-32
-- **Blockers:** —
-- **Unknowns:** —
-- **Risk:** Flagi są czytane w około 50 plikach, w tym w parach kalkulatorów PHP/TS: rytm dochodzi obok flag, czytelnicy przechodzą obszarami, a flagi znikają na końcu (reguła z F-04). Minione miesiące i zatwierdzone plany nie mogą się zmienić.
-- **Status:** done
-
-### S-25: Plan miesiąca w grupach
-
-- **Outcome:** użytkownik może zobaczyć w planie miesiąca kategorie w zwijanych grupach z sumą grupy i kategorie bez grupy osobno, a przekroczenie kategorii widać też na wierszu zwiniętej grupy
-- **Change ID:** month-plan-groups
-- **PRD refs:** FR-008
-- **Prerequisites:** S-22, S-24
-- **Parallel with:** S-19, S-20, S-21, S-23, S-26, S-27, S-28, S-29, S-30, S-31, S-32, S-33
-- **Blockers:** —
-- **Unknowns:** —
-- **Risk:** Stoi po S-24, bo sygnał przekroczenia na wierszu grupy zbiera sygnały kategorii, które zależą od rytmu (bieżąca wobec miesiąca, równomierna roczna wobec roku).
-- **Status:** done
-
-### S-26: Wydatek nieregularny i „zebrane”
-
-- **Outcome:** użytkownik może oznaczyć kategorię jako nieregularną i podać zebrane startowe, widzieć w planie miesiąca i w Podsumowaniu miesiąca stawkę oraz „zebrane”, a rachunek zużywa zebrane i obniża „do wydania” tylko o nadwyżkę; „odkładam / dobieram” działa jak dotąd
-- **Change ID:** irregular-expense-collected
-- **PRD refs:** US-02, FR-010, FR-011, FR-013, FR-022
-- **Prerequisites:** F-05, S-24
-- **Parallel with:** S-19, S-20, S-21, S-22, S-23, S-25, S-28, S-29, S-30, S-31, S-32, S-33
-- **Blockers:** —
-- **Unknowns:** — (F9 (a)–(c) z przeglądu F-05 rozstrzygnięte w ADR-0073)
-- **Risk:** Jedyna zmiana reguły „do wydania”: stawka i rachunek to jedna reguła, której nie da się dostarczyć osobno bez podwójnego obniżenia w miesiącu rachunku. Zebrane jest odczytem z operacji (zwroty netto), nie zapisaną liczbą; salda i Spendable Liquidity bez zmian, a Wynik miesiąca liczy faktyczny rachunek.
-- **Status:** done
-
-### S-27: Zebrane przez 31 grudnia
-
-- **Outcome:** użytkownik może zobaczyć w nowym budżecie zebrane startowe kategorii nieregularnej przeniesione ze stanu na 31 grudnia, a stawka nowego roku wynika z nowego planu rocznego
-- **Change ID:** collected-carry-over-new-year
-- **PRD refs:** FR-012
-- **Prerequisites:** S-20, S-26
-- **Parallel with:** S-19, S-21, S-22, S-23, S-25, S-28, S-29, S-30, S-31, S-32, S-33
-- **Blockers:** —
-- **Unknowns:** —
-- **Uwaga po S-26:** łańcuch zebranego przechodzi przez 31 grudnia już od S-26 (ADR-0073); S-27 dodaje tylko odczyt „zebranego startowego” i jego pokazanie w wierszu Budżetu, w szkicu i w realizacji (ADR-0076).
-- **Risk:** Zebrane startowe to odczyt stanu na 31 grudnia, nie liczba zapisana przy tworzeniu budżetu, bo budżet 2027 powstanie w grudniu, kiedy zebrane jeszcze się zmienia. Pierwsze przejście roku z prawdziwymi danymi wypada już na przełomie 2026 i 2027.
-- **Status:** done
-
-### S-28: Raport okresu po grupach
-
-- **Outcome:** użytkownik może otworzyć „Raporty”, wybrać miesiąc albo rok i zobaczyć przychody, wydatki, wynik oraz grupy z rozwinięciem do kategorii, z kwotą i udziałem % wydatków, jako wykres i tabelę
-- **Change ID:** period-report-by-group
-- **PRD refs:** FR-014, FR-015
-- **Prerequisites:** S-22
-- **Parallel with:** F-05, S-19, S-20, S-21, S-23, S-24, S-25, S-26, S-27, S-33
+- **Outcome:** użytkownik może zobaczyć raport roku jako listę kategorii od największych z paskiem udziału i różnicą do poprzedniego roku, przełączyć na grupy i otworzyć panel jednej kategorii z kwotą 2026 i 2025, różnicą, udziałem, miesiącami roku i przejściem do Operacji
+- **Change ID:** report-ranking-and-category-panel
+- **PRD refs:** MS-02
+- **Prerequisites:** F-07
+- **Parallel with:** S-34, S-37, S-38
 - **Blockers:** —
 - **Unknowns:**
-  - Biblioteka wykresów czy wykres bez biblioteki? Decyzja planu plus ADR (`.ai/rules/reports.md`). — Owner: user. Block: no.
-- **Risk:** Suma kategorii za rok musi równać się wykonaniu w Budżecie, a wynik miesiąca Wynikowi miesiąca, co do grosza; raport roku otwiera się w 2 s przy 10 000 operacji. Tu powstaje widok i decyzja o wykresach, z których korzysta reszta strumienia B.
-- **Status:** done
+  - Czy ranking i panel dotyczą też widoków Miesiąc i 12 miesięcy, czy tylko Roku? — Owner: user. Block: no.
+- **Risk:** Zastępuje wykres słupkowy i tabelę z S-28/S-29, więc nie może zgubić niczego, co raport dziś pokazuje (grupy, zarchiwizowane, porównanie do tego samego dnia, przejście do Operacji z S-31); panel potrzebuje miesięcy kategorii w widoku Rok i wyboru kategorii w adresie (zmiana propsów z testem `assertInertia`).
+- **Status:** proposed
 
-### S-29: Rok do roku
+### S-36: Zakładka „Lata” w panelu kategorii
 
-- **Outcome:** użytkownik może porównać okres raportu z tym samym okresem rok wcześniej (kwota, różnica) na tej samej kategorii listy
-- **Change ID:** year-over-year-report
-- **PRD refs:** FR-016
-- **Prerequisites:** S-28
-- **Parallel with:** F-05, S-19, S-20, S-21, S-23, S-24, S-25, S-26, S-27, S-30, S-31, S-32, S-33
+- **Outcome:** użytkownik może kliknąć kategorię w tabeli „Lata” i zobaczyć w panelu kategorii Raportu zakładkę „Lata” z jej latami 2020–2026
+- **Change ID:** report-panel-years-tab
+- **PRD refs:** MS-03
+- **Prerequisites:** S-34, S-35
+- **Parallel with:** S-37, S-38
 - **Blockers:** —
 - **Unknowns:** —
-- **Risk:** Na produkcji porównanie lat działa dopiero od 2027, więc tu powstaje mock budżetu 2025 z operacjami (tylko dev). Porównanie idzie po kategorii listy, nie po nazwie.
-- **Status:** done
+- **Risk:** Łączy dwa wycinki, więc stoi na końcu strumienia; lata w panelu muszą pochodzić z tego samego odczytu co tabela „Lata”, inaczej liczby rozjadą się między dwoma miejscami.
+- **Status:** proposed
 
-### S-30: Trend w miesiącach roku
+### S-37: Kategorie w zakładkach z filtrami
 
-- **Outcome:** użytkownik może zobaczyć kwoty grup i kategorii w kolejnych miesiącach roku, domyślnie po grupach
-- **Change ID:** report-trend-by-month
-- **PRD refs:** FR-017
-- **Prerequisites:** S-28
-- **Parallel with:** F-05, S-19, S-20, S-21, S-23, S-24, S-25, S-26, S-27, S-29, S-31, S-32, S-33
+- **Outcome:** użytkownik może przeglądać „Kategorie” w zakładkach Wydatki, Przychody i Archiwum z licznikami, szukać po nazwie i opisie, filtrować wydatki po rytmie i widzieć lata w budżecie jako pasek komórek
+- **Change ID:** categories-tabs-and-filters
+- **PRD refs:** MS-04
+- **Prerequisites:** —
+- **Parallel with:** F-07, S-34, S-35, S-36, S-38
 - **Blockers:** —
 - **Unknowns:** —
-- **Risk:** Element opcjonalny (nice-to-have). Wynik każdego miesiąca musi równać się Wynikowi miesiąca bez zapytań w pętli po miesiącach (Sloppy); sezonowość wydatków nieregularnych łatwo odczytać jako alarm.
-- **Status:** done
+- **Risk:** Archiwum jako zakładka zmienia ADR-0067 (sekcja archiwum pod listą), a przeciąganie musi zniknąć przy włączonym filtrze lub szukaniu, inaczej zapis kolejności z częściowej listy przestawi kategorie (reorder grup z S-22).
+- **Status:** ready
 
-### S-31: Z raportu do operacji
+### S-38: Stan roku w menu „Rok budżetu”
 
-- **Outcome:** użytkownik może przejść z kategorii w raporcie do jej operacji w wybranym okresie
-- **Change ID:** report-to-operations
-- **PRD refs:** FR-018
-- **Prerequisites:** S-28
-- **Parallel with:** F-05, S-19, S-20, S-21, S-23, S-24, S-25, S-26, S-27, S-29, S-30, S-32, S-33
+- **Outcome:** użytkownik może zobaczyć w menu „Rok budżetu”, który rok jest bieżący, a który jest szkicem, z latami w grupach Ostatnie i Starsze i podpisem „szkic z planem roku N−1” przy „Dodaj rok N”
+- **Change ID:** budget-year-menu-state
+- **PRD refs:** MS-05
+- **Prerequisites:** —
+- **Parallel with:** F-07, S-34, S-35, S-36, S-37
 - **Blockers:** —
 - **Unknowns:** —
-- **Risk:** Element opcjonalny (nice-to-have). Filtr Operacji przechodzi z nazwy i typu na kategorię listy i grupę (zmiana ADR-0016); lista musi pokazać to, co raport liczy (zwroty netto, bez transferów własnych).
-- **Status:** done
-
-### S-32: Ostatnie 12 miesięcy
-
-- **Outcome:** użytkownik może wybrać okres raportu „ostatnie 12 miesięcy”
-- **Change ID:** rolling-twelve-month-report
-- **PRD refs:** FR-025
-- **Prerequisites:** S-28
-- **Parallel with:** F-05, S-19, S-20, S-21, S-23, S-24, S-25, S-26, S-27, S-29, S-30, S-31, S-33
-- **Blockers:** —
-- **Unknowns:** —
-- **Risk:** Element opcjonalny (nice-to-have). Okres przechodzi przez dwa budżety, więc suma nie ma jednego odpowiednika w Budżecie rocznym; zgodność sprawdza się jako suma Wyników miesięcy.
-- **Status:** done
-
-### S-33: Domyślny procent „odkładam”
-
-- **Outcome:** użytkownik może ustawić domyślny procent planowanych przychodów, który propozycja planu wpisuje jako „odkładam”
-- **Change ID:** default-set-aside-percent
-- **PRD refs:** FR-024
-- **Prerequisites:** S-24
-- **Parallel with:** S-19, S-20, S-21, S-22, S-23, S-25, S-26, S-27, S-28, S-29, S-30, S-31, S-32
-- **Blockers:** —
-- **Unknowns:** —
-- **Risk:** Element opcjonalny (nice-to-have). Stoi po S-24, bo oba zmieniają propozycję planu miesiąca; reguła „odkładam / dobieram” (FR-013) się nie zmienia, zmienia się tylko kwota startowa.
-- **Status:** done
+- **Risk:** Rozwija ADR-0087 i zmienia współdzielony props `shell.budgetYears` (lata z fazą), który czyta każda strona i paleta ⌘K; ciemne menu to klasa na `DropdownMenuContent`, bez edycji `components/ui`.
+- **Status:** ready
 
 ## Backlog Handoff
 
-| Roadmap ID | Change ID                           | Suggested issue title                                                  | Ready for `/10x-plan` | Notes                                                |
-| ---------- | ----------------------------------- | ---------------------------------------------------------------------- | --------------------- | ---------------------------------------------------- |
-| F-03       | category-list-domain-decisions      | ADR i słownik: kategoria przez lata, grupa, reguła migracji              | done                  | Zarchiwizowane: `context/archive/2026-11-09-category-list-domain-decisions/` |
-| F-04       | safe-first-data-migration           | Kopia bazy przed migracją i reguły migracji danych                      | done                  | Zarchiwizowane: `context/archive/2026-11-09-safe-first-data-migration/` |
-| F-05       | rhythm-and-irregular-decisions      | ADR i słownik: rytmy, stawka, „zebrane”, 31 grudnia                     | done                  | Zarchiwizowane: `context/archive/2026-11-09-rhythm-and-irregular-decisions/` |
-| F-06       | restore-import-identity-accounts    | Restore snapshotu: mapowanie id kont w tożsamości importu               | done                  | Zarchiwizowane: `context/archive/2026-11-12-restore-import-identity-accounts/` |
-| S-18       | category-list-after-migration       | Jedna lista kategorii po migracji i widok „Kategorie”                   | done                  | Zarchiwizowane: `context/archive/2026-11-09-category-list-after-migration/` |
-| S-19       | category-edit-and-archive           | Edycja, archiwum i przywracanie kategorii                               | done                  | Zarchiwizowane: `context/archive/2026-11-10-category-edit-and-archive/` |
-| S-20       | new-budget-from-category-list       | Nowy budżet z aktywnych kategorii listy                                | done                  | Zarchiwizowane: `context/archive/2026-11-10-new-budget-from-category-list/` |
-| S-21       | category-merge                      | Scalanie kategorii z podglądem liczb                                   | done                  | Zarchiwizowane: `context/archive/2026-11-11-category-merge/`; scalenie par na produkcji po F-06 i wdrożeniu |
-| S-22       | category-groups                     | Grupy kategorii w „Kategoriach”, Budżecie i selektorze                 | done                  | Zarchiwizowane: `context/archive/2026-11-10-category-groups/` |
-| S-23       | import-suggestions-on-category-list | Podpowiedzi Importu na kategorii listy                                 | done                  | Zarchiwizowane: `context/archive/2026-11-12-import-suggestions-on-category-list/` |
-| S-24       | category-rhythm                     | Rytm kategorii i propozycja planu z rytmu                              | done                  | Zarchiwizowane: `context/archive/2026-11-10-category-rhythm/`; przed wdrożeniem na produkcję próba na kopii (`reviews/production-rehearsal.md` w archiwum) |
-| S-25       | month-plan-groups                   | Plan miesiąca w zwijanych grupach                                       | done                  | Zarchiwizowane: `context/archive/2026-11-12-month-plan-groups/` |
-| S-26       | irregular-expense-collected         | Wydatek nieregularny: stawka i „zebrane”                                | done                  | Zarchiwizowane: `context/archive/2026-11-11-irregular-expense-collected/` |
-| S-27       | collected-carry-over-new-year       | Zebrane startowe z 31 grudnia w nowym budżecie                          | done                  | Zarchiwizowane: `context/archive/2026-11-11-collected-carry-over-new-year/`; odczyt w wierszu Budżetu (ADR-0076) |
-| S-28       | period-report-by-group              | Raporty: miesiąc albo rok po grupach i kategoriach                      | done                  | Zarchiwizowane: `context/archive/2026-11-10-period-report-by-group/` |
-| S-29       | year-over-year-report               | Raporty: porównanie rok do roku                                         | done                  | Zarchiwizowane: `context/archive/2026-11-11-year-over-year-report/`; mock budżetu 2025 (dev) gotowy dla S-30…S-32 |
-| S-30       | report-trend-by-month               | Raporty: trend w miesiącach roku                                        | done                  | Zarchiwizowane: `context/archive/2026-11-11-report-trend-by-month/` |
-| S-31       | report-to-operations                | Raporty: przejście z kategorii do operacji                              | done                  | Zarchiwizowane: `context/archive/2026-11-12-report-to-operations/` |
-| S-32       | rolling-twelve-month-report         | Raporty: okres „ostatnie 12 miesięcy”                                   | done                  | Zarchiwizowane: `context/archive/2026-11-12-rolling-twelve-month-report/` |
-| S-33       | default-set-aside-percent           | Domyślny procent „odkładam” w propozycji planu                          | done                  | Zarchiwizowane: `context/archive/2026-11-12-default-set-aside-percent/` |
+| Roadmap ID | Change ID                         | Suggested issue title                                                  | Ready for `/10x-plan` | Notes                                                |
+| ---------- | --------------------------------- | ---------------------------------------------------------------------- | --------------------- | ---------------------------------------------------- |
+| F-07       | report-redesign-decisions         | ADR i słownik: widok „Lata”, ranking z panelem, kolory wykresów         | yes                   | Run `/10x-plan report-redesign-decisions`            |
+| S-34       | report-categories-across-years    | Raporty: kategorie przez lata 2020–2026 do tego samego dnia             | no                    | Po F-07; karta `PageReportsYears`                    |
+| S-35       | report-ranking-and-category-panel | Raporty: ranking kategorii i panel kategorii                           | no                    | Po F-07; karta `PageReports`                         |
+| S-36       | report-panel-years-tab            | Raporty: zakładka „Lata” w panelu kategorii                            | no                    | Po S-34 i S-35                                       |
+| S-37       | categories-tabs-and-filters       | Kategorie: zakładki z archiwum, szukajka, filtr rytmu, pasek lat        | yes                   | Run `/10x-ui` → `/10x-plan categories-tabs-and-filters`; karta `PageCategories` |
+| S-38       | budget-year-menu-state            | Sidebar: stan roku w menu „Rok budżetu”                                | yes                   | Run `/10x-plan budget-year-menu-state`; karta `Sidebar` |
 
 This table is the clean handoff to Jira/Linear or any MCP-backed backlog. Include one row for every `F-NN` and `S-NN`. It should be compact enough to copy into issues, but it must not duplicate the detailed roadmap body.
 
 ## Open Roadmap Questions
 
-1. **Mapowanie dzisiejszych flag na rytm przy migracji.** „Rachunek” → stała opłata jest jasne; „bieżąca” równomierna → bieżąca czy równomierna roczna, „jednorazowa” → równomierna roczna czy nieregularna? Na devie wszystkie wydatki są „bieżąca”. — Owner: user, przy ADR rytmu. Block: rozstrzyga F-05; gates S-24. — **Resolved 2026-11-10:** ADR-0066 (F-05).
-2. **Słownictwo UI dla stawki i zebranego.** Wiersz nieregularny mówi dziś w szkicach „odkładam 150 · zebrane 450”, a sekcja na dole to też „odkładam”; nazwy polskie i angielskie (słownik) do ustalenia w ADR. — Owner: user. Block: rozstrzyga F-05; gates S-26. — **Resolved 2026-11-10:** ADR-0066 (F-05).
-3. **Pojęcia z dokumentów, których nie ma w kodzie** (Earmark, Reserve, Year Close, Cash Expectation) są zdefiniowane na „kategorii należącej do budżetu” i łączeniu po nazwie. Czy przepisać ich definicje w słowniku w tej zmianie, czy oznaczyć jako do rewizji? — Owner: user, przy ADR tożsamości kategorii. Block: rozstrzyga F-03; gates S-18. — **Resolved 2026-11-09:** ADR-0063 (F-03, decyzja 7 planu): definicje przepisane minimalnie na kategorię listy i pozycję budżetu; ADR-0018 i ADR-0030 „Amended by ADR-0063”.
-4. **Porządek w danych przed migracją.** Literówki, dane testowe z września–października, błędnie przypisane operacje (Prime Video w Rozrywce, Sinsay w Artykułach spożywczych) — czy użytkownik sprząta przed wdrożeniem, czy po, przez FR-023 i zmianę kategorii operacji? Wpływa na pomiar trafności Importu „przed”. — Owner: user. Block: S-23 (moment pomiaru, nie planowanie). — **Resolved 2026-11-12:** porządki idą po migracji, przez S-21; „nie gorzej” rozstrzyga kopia z 11.09 na starym i nowym kodzie (S-23).
+1. **Kolory wykresów Raportów.** Aplikacja ma tokeny `chart-1` i `chart-2`, design system Atrament ich nie ma, a karty Raportów używają `brand-text`, `success` i `foreground`. Dopisać tokeny wykresu do design systemu czy zastąpić je w aplikacji? — Owner: user. Block: rozstrzyga F-07; gates S-34, S-35.
+2. **Nazwa odczytu „Lata” w słowniku.** Odczyt wielu lat do tego samego dnia potrzebuje terminu po polsku i angielsku obok „Rok do roku” (S-29) i Trendu (S-30). — Owner: user. Block: rozstrzyga F-07; gates S-34.
 
 ## Parked
 
+- **Wykres zmiany od 2020 dla wybranych kategorii i kafelki kategorii** — Why parked: warianty B i C widoku „Lata” odrzucone przy wyborze w design systemie (2026-11-14); kolor kategorii na liniach wykresu łamał zasadę „kolor kategorii to tylko tożsamość”.
+- **Lata dla okresów Miesiąc i 12 miesięcy** — Why parked: opis mówi o latach całych albo do tego samego dnia; porównanie miesiąca przez lata nie było prośbą.
 - **Plan na grupie i więcej niż dwa poziomy** — Why parked: PRD v3 §Non-Goals; grupa tylko sumuje kategorie.
-- **Liczniki mediów, wynagrodzenia** — Why parked: PRD v3 §Non-Goals. Import arkusza budżetu wyszedł z parkingu: ADR-0085 (zmiana legacy-budget-import).
+- **Liczniki mediów, wynagrodzenia** — Why parked: PRD v3 §Non-Goals.
 - **Cele długoterminowe i nazwane pozycje odkładania** — Why parked: PRD v3 §Non-Goals; „odkładam / dobieram” zostaje jedną kwotą.
-- **Domyślna kwota miesięczna kategorii** — Why parked: PRD v3, decyzja strukturalna 2; kwota wynika z planu rocznego i rytmu.
-- **Podział jednej kategorii na kilka** — Why parked: PRD v3 daje tylko scalanie (FR-023); podgrupy to kategorie w grupie.
-- **Własny zakres dat, eksport i wydruk raportu** — Why parked: poza PRD v3; okres to miesiąc, rok i (opcjonalnie) ostatnie 12 miesięcy.
-- **Year Close i Reserve** — Why parked: niezaimplementowane na `main` (AGENTS.md); PRD v3 rozstrzyga koniec roku tylko dla zebranego (S-27), nie buduje Year Close.
-- **Automatyczne wdrożenie i E2E w CI** — Why parked: health-check, kategoria B i poprawka 5; poza PRD v3. Do czasu E2E w CI plan każdego wycinka zmieniającego widoki dopisuje `npx playwright test` do weryfikacji.
-- **Śledzenie błędów i metryki** — Why parked: obserwowalność częściowa, PRD v3 jej nie wymaga.
+- **Własny zakres dat, eksport i wydruk raportu** — Why parked: poza zakresem; okresy to Rok, Miesiąc, 12 miesięcy, Trend i Lata.
+- **Year Close i Reserve** — Why parked: niezaimplementowane na `main` (AGENTS.md).
+- **Pozostałe karty Atramentu czekające na `/10x-ui`** (Dashboard, Konta, Lokaty, import, ustawienia, strona powitalna, ekrany wejścia) — Why parked: użytkownik wybrał do M-4 tylko Raporty, Kategorie i menu roku.
+- **Automatyczne wdrożenie i E2E w CI** — Why parked: poza zakresem; do czasu E2E w CI plan każdego wycinka zmieniającego widoki dopisuje `npx playwright test` do weryfikacji.
+- **Śledzenie błędów i metryki** — Why parked: obserwowalność częściowa, ten kamień jej nie wymaga.
 
 ## Milestone History
 
