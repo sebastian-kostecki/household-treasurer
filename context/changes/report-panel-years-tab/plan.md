@@ -427,10 +427,10 @@ Brak migracji i zmian danych. Nowe pola propsów i parametr `report_panel` są d
 
 #### Automated
 
-- [x] 2.1 Testy JS przechodzą
-- [x] 2.2 Typy
-- [x] 2.3 Strażnicy UI
-- [x] 2.4 Lint i format frontu
+- [x] 2.1 Testy JS przechodzą — 8dccc83
+- [x] 2.2 Typy — 8dccc83
+- [x] 2.3 Strażnicy UI — 8dccc83
+- [x] 2.4 Lint i format frontu — 8dccc83
 
 #### Manual
 
@@ -442,10 +442,10 @@ Brak migracji i zmian danych. Nowe pola propsów i parametr `report_panel` są d
 
 #### Automated
 
-- [ ] 3.1 E2E przechodzą
-- [ ] 3.2 Pełna bramka na PostgreSQL w worktree
-- [ ] 3.3 Sloppy
-- [ ] 3.4 Styl PHP
+- [x] 3.1 E2E przechodzą
+- [x] 3.2 Pełna bramka na PostgreSQL w worktree
+- [x] 3.3 Sloppy
+- [x] 3.4 Styl PHP
 
 #### Manual
 

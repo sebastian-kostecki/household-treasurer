@@ -884,7 +884,7 @@ function yearsSection(
         icon: spec.icon,
         color: spec.color,
         is_archived: spec.archived ?? false,
-        opens_panel: true,
+        opens_panel: !(spec.archived ?? false),
     });
 
     const entries: ReportYearsEntry[] = rows.map((row) => {
@@ -2237,7 +2237,8 @@ export const reportScenarios: ReportScenario[] = [
     },
     {
         key: 'panel-years-phone',
-        caption: 'Telefon (ramka 22rem): arkusz otwarty na „Latach”',
+        caption:
+            'Telefon (ramka 22rem): arkusz zamknięty do tapnięcia nazwy, otwiera się na „Latach”',
         phone: true,
         props: {
             budgetYear: 2026,
@@ -2256,7 +2257,7 @@ export const reportScenarios: ReportScenario[] = [
             categoryPanel: buildPanel(
                 comparedYearReport,
                 panelInProgress,
-                1,
+                null,
                 {},
                 {},
                 {

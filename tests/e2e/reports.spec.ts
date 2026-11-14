@@ -638,7 +638,11 @@ test('the Lata view shows a category in two years, switches the tab and range wi
 
     try {
         await page.goto('/reports');
-        await page.getByRole('button', { name: 'Lata', exact: true }).click();
+        // The panel has its own „Lata” tab: pick the one of the period switch.
+        await page
+            .getByRole('group', { name: 'Okres raportu' })
+            .getByRole('button', { name: 'Lata', exact: true })
+            .click();
 
         await expect(page).toHaveURL(/\/reports\?view=years$/);
         const heading = page.getByRole('heading', {
@@ -765,5 +769,77 @@ test('the Lata view shows a category in two years, switches the tab and range wi
         } finally {
             await deleteOperation(page, 'wydatek', description);
         }
+    }
+});
+
+test('a category name in the Lata table opens the panel of the Year view on its Lata tab', async ({
+    page,
+}) => {
+    test.slow();
+
+    const description = `E2E lata link ${Date.now()}`;
+
+    await addOperation(page, 'Wydatek', description);
+
+    try {
+        await page.goto('/reports?view=years');
+        const heading = page.getByRole('heading', {
+            level: 1,
+            name: /^Raport: lata \d{4}–\d{4}$/,
+        });
+        await expect(heading).toBeVisible();
+        const [firstYear, lastYear] = ((await heading.textContent()) ?? '')
+            .match(/\d{4}/g)!
+            .map(Number);
+        const columnCount = lastYear - firstYear + 1;
+
+        const expenseTable = page.locator('[data-years-table="expense"]');
+        // The footer hint names the link.
+        await expect(expenseTable).toContainText(
+            'Kliknij kategorię, aby zobaczyć jej lata w panelu',
+        );
+
+        let row = expenseTable
+            .locator('[data-report-row="category"]')
+            .filter({ hasText: 'Rozrywka' });
+        if ((await row.count()) === 0 || !(await row.first().isVisible())) {
+            const toggles = expenseTable.getByRole('button', {
+                name: /^Rozwiń grupę/,
+            });
+            for (let i = (await toggles.count()) - 1; i >= 0; i--) {
+                await toggles.nth(i).click();
+            }
+        }
+        row = expenseTable
+            .locator('[data-report-row="category"]')
+            .filter({ hasText: 'Rozrywka' })
+            .first();
+        await expect(row).toBeVisible();
+
+        await row.locator('[data-report-years-link]').click();
+
+        await expectReportsQuery(page, {
+            category: /^\d+$/,
+            panel: 'years',
+        });
+        await expect(
+            page.getByRole('heading', {
+                level: 1,
+                name: `Raport roku ${lastYear}`,
+            }),
+        ).toBeVisible();
+
+        const aside = page.getByRole('complementary', {
+            name: 'Panel kategorii',
+        });
+        await expect(aside).toContainText('Rozrywka');
+        await expect(
+            aside.locator('.segmented-control-item', { hasText: 'Lata' }),
+        ).toHaveAttribute('data-state', 'on');
+        await expect(
+            aside.locator('[data-report-year-bars] [data-year]'),
+        ).toHaveCount(columnCount);
+    } finally {
+        await deleteOperation(page, 'wydatek', description);
     }
 });

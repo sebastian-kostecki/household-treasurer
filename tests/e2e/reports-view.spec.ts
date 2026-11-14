@@ -272,3 +272,69 @@ test.describe('Raporty: panel kategorii w kitchen sinku', () => {
         await expect(page.getByRole('dialog')).toBeVisible();
     });
 });
+
+// The Lata tab of the panel and the links of the Lata table in the kitchen sink (S-36, ADR-0101).
+test.describe('Raporty: zakładka „Lata” panelu i linki tabeli „Lat” w kitchen sinku', () => {
+    test.beforeEach(async ({ page }) => {
+        await page.goto('/dev/ui/reports');
+    });
+
+    test('panel-years: 7 słupków, „Zmiana od 2020” i podpis „Każdy rok do 14 listopada”', async ({
+        page,
+    }) => {
+        const panel = scenario(page, 'panel-years').locator(
+            '[data-report-panel]',
+        );
+
+        await expect(
+            panel.locator('.segmented-control-item', { hasText: 'Lata' }),
+        ).toHaveAttribute('data-state', 'on');
+        await expect(
+            panel.locator('[data-report-year-bars] [data-year]'),
+        ).toHaveCount(7);
+        await expect(panel.locator('[data-year="2022"]')).toHaveAttribute(
+            'data-state',
+            'none',
+        );
+        await expect(
+            panel.locator('[data-panel-row="years-change"]'),
+        ).toContainText('Zmiana od 2020');
+        await expect(
+            panel.locator('[data-panel-row="years-range"]'),
+        ).toContainText('Każdy rok do 14 listopada');
+    });
+
+    test('panel-years-past-year: „Pełne lata” w roku przeszłym', async ({
+        page,
+    }) => {
+        const panel = scenario(page, 'panel-years-past-year').locator(
+            '[data-report-panel]',
+        );
+
+        await expect(
+            panel.locator('[data-panel-row="years-range"]'),
+        ).toContainText('Pełne lata');
+    });
+
+    test('years-same-day: Kino bez linku, pozostałe nazwy z linkiem', async ({
+        page,
+    }) => {
+        const years = scenario(page, 'years-same-day');
+        const table = years.locator('[data-years-table="expense"]');
+        const rows = table.locator('[data-report-row="category"]');
+
+        await expect(
+            rows
+                .filter({ hasText: 'Kino' })
+                .locator('[data-report-years-link]'),
+        ).toHaveCount(0);
+        await expect(
+            rows
+                .filter({ hasText: 'Wakacje' })
+                .locator('[data-report-years-link]'),
+        ).toHaveCount(1);
+        await expect(table).toContainText(
+            'Kliknij kategorię, aby zobaczyć jej lata w panelu',
+        );
+    });
+});

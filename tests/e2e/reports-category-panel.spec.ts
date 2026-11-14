@@ -360,6 +360,91 @@ test.describe('wide window: the panel stands beside the Rankings', () => {
             await expect(groupBlock(page, group)).toHaveCount(0);
         }
     });
+
+    test('(f) the Lata tab is in the address, survives a refresh and a year change, and shows full years in a past year', async ({
+        page,
+    }) => {
+        test.slow();
+
+        await page.goto('/reports');
+        const names = expenseNames(page);
+        await expect(names.first()).toBeVisible();
+        const previousCell = rowOf(names.first()).locator(
+            '.report-cell-previous',
+        );
+        const previous =
+            (await previousCell.textContent())?.replace(/[^0-9—]/g, '') ?? '—';
+        test.skip(
+            previous.includes('—') || previous === '',
+            'The previous year of the demo household has no row for the first Category.',
+        );
+
+        const heading = page.getByRole('heading', {
+            level: 1,
+            name: /^Raport roku \d{4}$/,
+        });
+        const year = Number((await heading.textContent())?.match(/\d{4}/)?.[0]);
+        const lata = panelAside(page).locator('.segmented-control-item', {
+            hasText: 'Lata',
+        });
+
+        try {
+            // A marker on the window survives a visit of the client, not a page load.
+            await page.evaluate(() => {
+                (window as unknown as { __noReload?: boolean }).__noReload =
+                    true;
+            });
+
+            await lata.click();
+            await expectReportsQuery(page, { panel: 'years' });
+            await expect(lata).toHaveAttribute('data-state', 'on');
+            expect(
+                await page.evaluate(
+                    () =>
+                        (window as unknown as { __noReload?: boolean })
+                            .__noReload,
+                ),
+            ).toBe(true);
+            await expect(
+                panelAside(page).locator('[data-report-year-bars] [data-year]'),
+            ).not.toHaveCount(0);
+            await expect(
+                panelAside(page).locator('[data-panel-row="years-range"]'),
+            ).toContainText('Każdy rok do');
+
+            await page.reload();
+            await expect(panelAside(page)).toBeVisible();
+            await expect(lata).toHaveAttribute('data-state', 'on');
+
+            // A selection keeps the tab.
+            await names.first().click();
+            await expectReportsQuery(page, {
+                category: /^\d+$/,
+                panel: 'years',
+            });
+            const category = new URL(page.url()).searchParams.get('category');
+
+            await selectBudgetYear(page, year - 1);
+            await expect(
+                page.getByRole('heading', {
+                    level: 1,
+                    name: `Raport roku ${year - 1}`,
+                }),
+            ).toBeVisible();
+            await expectReportsQuery(page, {
+                category: category ?? '',
+                panel: 'years',
+            });
+            await expect(lata).toHaveAttribute('data-state', 'on');
+            await expect(
+                panelAside(page).locator('[data-panel-row="years-range"]'),
+            ).toContainText('Pełne lata');
+        } finally {
+            // The selected year is kept in the session: leave the one found.
+            await page.goto('/reports');
+            await selectBudgetYear(page, year);
+        }
+    });
 });
 
 test.describe('phone width: the panel is a sheet from the bottom', () => {
@@ -437,5 +522,36 @@ test.describe('phone width: the panel is a sheet from the bottom', () => {
             .click();
         await expect(page.getByRole('dialog')).toHaveCount(0);
         await expect(expenseNames(page).first()).toBeFocused();
+    });
+});
+
+test.describe('phone width: a link from the Lata table opens the sheet on Lata', () => {
+    test.use({ viewport: { width: 390, height: 844 } });
+
+    test('(g) the name link opens the sheet with the Lata tab pressed', async ({
+        page,
+    }) => {
+        await page.goto('/reports?view=years');
+
+        const link = page
+            .locator(
+                '[data-years-table="expense"] [data-report-years-link]:visible',
+            )
+            .first();
+        await expect(link).toBeVisible();
+        await link.click();
+
+        await expectReportsQuery(page, {
+            category: /^\d+$/,
+            panel: 'years',
+        });
+        const sheet = page.getByRole('dialog');
+        await expect(sheet).toBeVisible();
+        await expect(
+            sheet.locator('.segmented-control-item', { hasText: 'Lata' }),
+        ).toHaveAttribute('data-state', 'on');
+        await expect(
+            sheet.locator('[data-report-year-bars] [data-year]'),
+        ).not.toHaveCount(0);
     });
 });

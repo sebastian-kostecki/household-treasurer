@@ -1,12 +1,14 @@
 <script setup lang="ts">
+import { Link } from '@inertiajs/vue3';
 import { ChevronDown } from '@lucide/vue';
 import { computed, reactive, useId } from 'vue';
+import BudgetController from '@/actions/App/Http/Controllers/BudgetController';
 import CategoryChip from '@/components/CategoryChip.vue';
 import ListSurface from '@/components/ListSurface.vue';
 import ReportYearsRow from '@/components/ReportYearsRow.vue';
 import { Badge } from '@/components/ui/badge';
 import { useTranslations } from '@/composables/useTranslations';
-import type { ReportYearsSection } from '@/types/reports';
+import type { ReportYearsCategory, ReportYearsSection } from '@/types/reports';
 
 const props = defineProps<{
     type: 'income' | 'expense';
@@ -46,6 +48,34 @@ function toggle(groupId: number): void {
 function bodyId(groupId: number): string {
     return `${tableId}-group-${groupId}`;
 }
+
+/** The target year is the last column; the link goes through the year switch because the year lives in the session (ADR-0101). */
+const targetYear = computed(() => props.columns[props.columns.length - 1]);
+
+function categoryLinkData(
+    category: ReportYearsCategory,
+): Record<string, string | number> {
+    return {
+        year: targetYear.value,
+        destination: 'reports',
+        report_category: String(category.id),
+        report_panel: 'years',
+    };
+}
+
+function panelLinkLabel(name: string): string {
+    return t.reports.years_open_panel
+        .replace(':name', name)
+        .replace(':year', String(targetYear.value));
+}
+
+const hasPanelLink = computed(() =>
+    props.section.entries.some((entry) =>
+        entry.kind === 'category'
+            ? entry.opens_panel
+            : entry.categories.some((category) => category.opens_panel),
+    ),
+);
 
 function toggleLabel(name: string, open: boolean): string {
     return (open ? t.reports.group_collapse : t.reports.group_expand).replace(
@@ -106,7 +136,26 @@ function toggleLabel(name: string, open: boolean): string {
                             :muted="entry.is_archived"
                             data-report-row="category"
                         >
+                            <Link
+                                v-if="entry.opens_panel"
+                                :href="BudgetController.selectYear()"
+                                method="post"
+                                as="button"
+                                :data="categoryLinkData(entry)"
+                                :preserve-scroll="false"
+                                :preserve-state="false"
+                                class="report-name-link cursor-pointer text-left"
+                                :aria-label="panelLinkLabel(entry.name)"
+                                data-report-years-link
+                            >
+                                <CategoryChip
+                                    :name="entry.name"
+                                    :icon="entry.icon"
+                                    :color="entry.color"
+                                />
+                            </Link>
                             <CategoryChip
+                                v-else
                                 :name="entry.name"
                                 :icon="entry.icon"
                                 :color="entry.color"
@@ -180,7 +229,28 @@ function toggleLabel(name: string, open: boolean): string {
                                     :muted="category.is_archived"
                                     data-report-row="category"
                                 >
+                                    <Link
+                                        v-if="category.opens_panel"
+                                        :href="BudgetController.selectYear()"
+                                        method="post"
+                                        as="button"
+                                        :data="categoryLinkData(category)"
+                                        :preserve-scroll="false"
+                                        :preserve-state="false"
+                                        class="report-name-link cursor-pointer text-left"
+                                        :aria-label="
+                                            panelLinkLabel(category.name)
+                                        "
+                                        data-report-years-link
+                                    >
+                                        <CategoryChip
+                                            :name="category.name"
+                                            :icon="category.icon"
+                                            :color="category.color"
+                                        />
+                                    </Link>
                                     <CategoryChip
+                                        v-else
                                         :name="category.name"
                                         :icon="category.icon"
                                         :color="category.color"
@@ -220,6 +290,9 @@ function toggleLabel(name: string, open: boolean): string {
         <template v-if="section.entries.length > 0" #footer>
             <p class="meta text-muted-foreground">
                 {{ t.reports.years_footer }}
+            </p>
+            <p v-if="hasPanelLink" class="meta text-muted-foreground">
+                {{ t.reports.years_footer_panel_hint }}
             </p>
         </template>
     </ListSurface>

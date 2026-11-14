@@ -429,6 +429,8 @@ return [
         'years_table_label' => 'Tabela: :title, kwoty według lat',
         'years_legend_max' => 'pogrubiony rok = najwyższy w wierszu',
         'years_footer' => 'Kwoty w zł, zaokrąglone do pełnych złotych · „—” = kategoria bez pozycji w budżecie tego roku',
+        'years_footer_panel_hint' => 'Kliknij kategorię, aby zobaczyć jej lata w panelu',
+        'years_open_panel' => ':name — lata w panelu roku :year',
         'years_in_progress' => 'w toku',
         'years_change_since' => 'Zmiana od :year',
         'years_change_range' => 'Zmiana :from–:to',
