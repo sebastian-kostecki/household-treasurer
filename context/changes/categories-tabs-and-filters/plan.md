@@ -524,8 +524,8 @@ Brak zmian danych. Stare linki `/categories` otwierają Wydatki.
 
 #### Automated
 
-- [x] 1.1 ADR-0097 istnieje i jest jedynym plikiem o numerze 0097
-- [x] 1.2 design-system.md nie wspomina już zwijanego archiwum Kategorii
+- [x] 1.1 ADR-0097 istnieje i jest jedynym plikiem o numerze 0097 — 8c1abb8
+- [x] 1.2 design-system.md nie wspomina już zwijanego archiwum Kategorii — 8c1abb8
 
 #### Manual
 
@@ -535,9 +535,9 @@ Brak zmian danych. Stare linki `/categories` otwierają Wydatki.
 
 #### Automated
 
-- [ ] 2.1 Testy strony przechodzą (CategoriesPageTest)
-- [ ] 2.2 Formatowanie pint
-- [ ] 2.3 Typy: build i types:check
+- [x] 2.1 Testy strony przechodzą (CategoriesPageTest)
+- [x] 2.2 Formatowanie pint
+- [x] 2.3 Typy: build i types:check
 
 ### Phase 3: Logika w lib (Vitest)
 
