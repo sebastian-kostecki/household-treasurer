@@ -3,13 +3,13 @@ project: 'Household Treasurer'
 version: 4
 status: draft
 created: 2026-11-02
-updated: 2026-11-14
+updated: 2026-11-15
 prd_version: —
 main_goal: quality
 top_blocker: decisions
 milestone_id: categories-across-years-and-atrament-views
 milestone_seq: 4
-milestone_status: open
+milestone_status: done
 ---
 
 # Roadmap: Household Treasurer
@@ -21,7 +21,7 @@ milestone_status: open
 
 ## Milestone
 
-**M-4: Kategorie przez lata i widoki Atramentu** — Status: open
+**M-4: Kategorie przez lata i widoki Atramentu** — Status: done
 
 - **Intent:** Użytkownik widzi, jak każda kategoria zmieniała się od 2020 roku, porównując lata do tego samego dnia, i dochodzi od raportu roku do szczegółu jednej kategorii. Przy okazji Raporty, Kategorie i menu roku dostają układ wybrany w design systemie Atrament.
 - **Source materials:** opis użytkownika z 2026-11-14 („w ogóle brakuje mi widoku porównania kategorii na przestrzeni lat; jest tylko porównanie lat sąsiednich, a nie ma większych trendów”) i jego wybory w design systemie: `PageReportsYears` (wariant A), `PageReports` (C), `PageCategories` (B), menu roku w `Sidebar` (B). Bez PRD.
@@ -191,6 +191,7 @@ This table is the clean handoff to Jira/Linear or any MCP-backed backlog. Includ
 - **M-1: Kontrola miesiąca bez arkusza** (`month-control-without-spreadsheet`) — closed 2026-11-03. Wszystkie elementy F-01 i S-01 do S-10 mają status `done`; warunek „pełny miesiąc w aplikacji” (kryterium sukcesu PRD) do potwierdzenia w użyciu.
 - **M-2: Raporty okresu i wydatki nieregularne** (`period-reports-and-irregular-expenses`) — abandoned 2026-11-08. Zastąpiony przez PRD v3 (`context/foundation/prd-v3.md`), który przebudował zakres: jedna lista kategorii zamiast powiązania 1:1, rytmy zamiast flag, raporty po grupach. Żaden z elementów F-02, S-11…S-17 nie był `done`; zmianę `period-report-by-category` usunięto w sesji shape 2026-11-07.
 - **M-3: Jedna lista kategorii, rytmy i raporty** (`category-list-rhythms-reports`) — closed 2026-11-12. Wszystkie elementy F-03…F-06 i S-18…S-33 mają status `done`; kod na produkcji, pary kategorii scalone (S-21), a pięć kroków głównego kryterium sukcesu PRD v3 użytkownik przeszedł na produkcji.
+- **M-4: Kategorie przez lata i widoki Atramentu** (`categories-across-years-and-atrament-views`) — closed 2026-11-15. Wszystkie elementy F-07 i S-34…S-38 mają status `done`; kod na produkcji jako v1.5.0 (`budget.kostecki.dev`), a użytkownik porównał kategorię przez lata 2020–2026 w „Latach” i doszedł z niej do panelu kategorii.
 
 ## Done
 
