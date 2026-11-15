@@ -6,6 +6,30 @@ Domain terms (_Current Plan_, _Own Transfer_, _Capital Movement_…) come from t
 
 ## [Unreleased]
 
+## [1.5.0] — 2026-11-15
+
+Milestone M-4: "Raporty" (Reports) compare every Category across the years 2020–2026, the year report ranks Categories from the largest and opens a panel of one Category, "Kategorie" (Categories) is split into tabs with search and filters, and the "Rok budżetu" (budget year) menu shows which year is current and which is a draft. Production moves to `budget.kostecki.dev`.
+
+### Added
+
+- **"Lata"** (Years), the fifth Reports period (`?view=years`): a table of Categories and groups × the years 2020–2026 in list order, with archived Categories, whole złoty, "Zmiana od 2020" (change since the first year of the Category) and a sparkline per row, "Wydatki | Przychody" tabs and four tiles ("Średnio rocznie", "Najszybciej rośnie"…). Each year is counted up to the same day ("Do 14 listopada", the Same-day Cut) or as "Pełne lata" (full years, the change up to the last full year); "—" means no Budget Line in that year, 0 a line without amounts. The year totals equal the year report to the grosz, and the read takes a fixed number of queries (`report-categories-across-years`, ADR-0097).
+- Category panel in the "Rok" (Year) report: the amount of the year and the year before, the difference with a percentage, the share, the 12 months with the average and the highest month, and "Operacje" (operations of that Category in the year). The choice is kept in the address (`?category=<id>`) and survives a change of year; on a phone the panel is a bottom sheet (`report-ranking-and-category-panel`, ADR-0097, ADR-0100).
+- The panel has a "Miesiące 2026 | Lata" switch (`?panel=years`): the years 2020–2026 of that Category from the same read as the "Lata" table, with the change since the first year and the highest year. A Category name in the "Lata" table opens its panel in the current year on that tab (`report-panel-years-tab`, ADR-0101).
+- "Kategorie": "Wydatki | Przychody | Archiwum" tabs with counters (`?tab=`), a search over the name and the description shared by the tabs ("prad" finds "Prąd"), a Rhythm filter, a Rhythm column and the years in the Budget as a strip of cells. While a filter or a search is on, reordering is off, so a partial list cannot rewrite the order (`categories-tabs-and-filters`, ADR-0099).
+- The "Rok budżetu" menu marks the current year and a draft (also on the button), splits the years into "Ostatnie" (recent) and "Starsze" (older) from four years on, and labels "Dodaj rok N" as a draft with the plan of year N−1 (`budget-year-menu-state`, ADR-0098, extends ADR-0087).
+
+### Changed
+
+- "Rok", "Miesiąc" and "12 miesięcy" show "Wydatki od największych" and "Przychody od największych": Categories by amount with a share bar and the difference to the same period a year earlier, and a "Kategorie | Grupy" switch (`?ranking=groups`) kept across periods and years (`report-ranking-and-category-panel`, ADR-0097).
+- Report bars use the chart tokens: `chart-1` for expenses, `success` for income, `foreground` for the current year and the highest month; `chart-1` and `chart-2` are now in the Atrament design system (ADR-0097).
+- The archive of "Kategorie" is a tab with Expense and Income subsections instead of a collapsible section under the list (ADR-0099).
+- `shell.budgetYears` carries the phase of each year (`{year, phase}`) instead of the year alone (ADR-0098).
+- Production runs on `budget.kostecki.dev`; `treasurer.kostecki.dev` redirects permanently to the same path. `.env.prod` needs the new `APP_URL` and `SESSION_DOMAIN`, and existing sessions end.
+
+### Removed
+
+- The bar chart of the period report; Unovis stays for "Trend" (ADR-0097, replaces the chart of ADR-0071 and ADR-0084).
+
 ## [1.4.5] — 2026-11-14
 
 The Sheet Load mapping follows the Category list as it stands on production after it was rebuilt on 2026-11-13, so the years 2020 and 2021 load into the current Categories (ADR-0096, decision 6).
@@ -247,7 +271,8 @@ The first version (MVP) deployed to production: a yearly household budget and li
 - Polish landing page, the Geist typeface with `latin-ext`, the first design system with colour tokens and amber non-blocking warnings.
 - Production Docker stack (behind Traefik and Cloudflare, HTTPS), a deploy script from `main`, CI in GitHub Actions, the NFR-PERF-01 performance test on PostgreSQL, PHPStan at level 7.
 
-[Unreleased]: https://github.com/sebastian-kostecki/household-treasurer/compare/v1.4.5...HEAD
+[Unreleased]: https://github.com/sebastian-kostecki/household-treasurer/compare/v1.5.0...HEAD
+[1.5.0]: https://github.com/sebastian-kostecki/household-treasurer/compare/v1.4.5...v1.5.0
 [1.4.5]: https://github.com/sebastian-kostecki/household-treasurer/compare/v1.4.4...v1.4.5
 [1.4.4]: https://github.com/sebastian-kostecki/household-treasurer/compare/v1.4.3...v1.4.4
 [1.4.3]: https://github.com/sebastian-kostecki/household-treasurer/compare/v1.4.2...v1.4.3
