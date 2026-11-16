@@ -571,8 +571,8 @@ Brak migracji. Wycofanie: `budget:unload-sheet {user} 2019`, które usuwa też �
 
 #### Manual
 
-- [ ] 1.4 Lista kategorii z produkcji dostarczona, production-categories.md podaje kategorię sportową
-- [ ] 1.5 Użytkownik zaakceptował poprawione H miesięcy i marzec_19!B3
+- [x] 1.4 Lista kategorii z produkcji dostarczona, production-categories.md podaje kategorię sportową — 592d854
+- [x] 1.5 Użytkownik zaakceptował poprawione H miesięcy i marzec_19!B3 — potwierdzone 2026-11-16
 
 ### Phase 2: Czytnik 2019
 
@@ -587,12 +587,12 @@ Brak migracji. Wycofanie: `budget:unload-sheet {user} 2019`, które usuwa też �
 #### Automated
 
 - [x] 3.1 Testy Sheet Load na PostgreSQL przechodzą — 4a12fc8
-- [x] 3.2 --dry-run poprawionego pliku 2019 z sumami z Desired End State
+- [x] 3.2 --dry-run poprawionego pliku 2019 z sumami z Desired End State — 4a12fc8
 - [x] 3.3 --dry-run plików 2020–2025 z sumami z README — 4a12fc8
 
 #### Manual
 
-- [ ] 3.4 Użytkownik przejrzał tabelę kategorii z --dry-run 2019
+- [x] 3.4 Użytkownik przejrzał tabelę kategorii z --dry-run 2019 — potwierdzone 2026-11-16
 
 ### Phase 4: Dokumentacja i bramka
 
@@ -604,7 +604,7 @@ Brak migracji. Wycofanie: `budget:unload-sheet {user} 2019`, które usuwa też �
 
 #### Manual
 
-- [ ] 4.4 Użytkownik przeczytał sekcję README
+- [x] 4.4 Użytkownik przeczytał sekcję README — potwierdzone 2026-11-16
 
 ### Phase 5: Wczytanie na produkcji
 

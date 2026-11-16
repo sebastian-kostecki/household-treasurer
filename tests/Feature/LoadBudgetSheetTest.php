@@ -348,6 +348,26 @@ it('keeps an existing Stypendium of the user on load and on unload, also when it
     expect(Category::query()->whereKey($active->id)->exists())->toBeTrue();
 });
 
+it('refuses to reuse an archived Stypendium of the user without lines and writes nothing', function (): void {
+    [$user] = householdBeforeSheetLoad();
+    $archived = Category::factory()->create(['user_id' => $user->id, 'name' => 'Stypendium', 'type' => CategoryType::Income, 'archived_at' => now()]);
+
+    expect(loadSheetYear($user, ['layout' => '2019', 'year' => 2019, 'months' => SheetWorkbookFactory::bills2019Months()]))->toBe(1)
+        ->and($user->budgets()->where('year', 2019)->exists())->toBeFalse()
+        ->and(Category::query()->whereKey($archived->id)->exists())->toBeTrue();
+});
+
+it('keeps an archived Stypendium of the user without lines when another year is unloaded', function (): void {
+    [$user] = householdBeforeSheetLoad();
+    $archived = Category::factory()->create(['user_id' => $user->id, 'name' => 'Stypendium', 'type' => CategoryType::Income, 'archived_at' => now()]);
+
+    expect(loadSheetYear($user, sheet2025Options()))->toBe(0);
+
+    $this->artisan('budget:unload-sheet', ['user' => (string) $user->id, 'year' => 2025, '--force' => true])->assertExitCode(0);
+
+    expect(Category::query()->whereKey($archived->id)->exists())->toBeTrue();
+});
+
 it('refuses an unload when the Budget has a Month Plan', function (): void {
     [$user] = householdBeforeSheetLoad();
 

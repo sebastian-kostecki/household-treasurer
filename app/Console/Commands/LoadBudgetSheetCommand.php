@@ -44,7 +44,7 @@ class LoadBudgetSheetCommand extends Command
 
         $this->printPlan($plan, $mapping);
 
-        $problems = $check->problems($user, $mapping);
+        $problems = [...$check->problems($user, $mapping), ...$check->newCategoryProblems($user, $mapping, $plan)];
         $this->printCategoryCheck($problems, $check, $user, $mapping, $plan);
 
         if ($problems !== []) {

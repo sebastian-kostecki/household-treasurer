@@ -467,3 +467,31 @@ test('2019 refuses a grudzień_19!C31 that is not 31 December and a month of an 
         ->and($variant->getMessage())->toContain('nieznany wariant')
         ->and($missing->address)->toBe('maj_19');
 });
+
+test('2019 variant C refuses an amount in a row without a label, naming the cell', function () {
+    $failure = readSheetFailure(['layout' => '2019', 'mutate' => function (Spreadsheet $spreadsheet): void {
+        $spreadsheet->getSheetByName('sierpień_19')->setCellValue('B9', null)->setCellValue('C9', null);
+    }]);
+
+    expect($failure->address)->toBe('sierpień_19!D9')
+        ->and($failure->getMessage())->toContain('bez etykiety');
+});
+
+test('2019 refuses a personal list bound to a second row', function () {
+    $failure = readSheetFailure(['layout' => '2019', 'mutate' => function (Spreadsheet $spreadsheet): void {
+        $spreadsheet->getSheetByName('styczeń_19')->setCellValue('A12', 'osobiste: Sebastian');
+    }]);
+
+    expect($failure->address)->toBe('styczeń_19!B17')
+        ->and($failure->getMessage())->toContain('należy już do wiersza styczeń_19!C12');
+});
+
+test('2019 reads a personal item whose name starts with Cele as an item, not as the end of the list', function () {
+    $january = readSheet(['layout' => '2019', 'mutate' => function (Spreadsheet $spreadsheet): void {
+        $spreadsheet->getSheetByName('styczeń_19')->setCellValue('F8', 'Cele na wakacje');
+    }])->months[1];
+
+    expect(array_map(fn (SheetListItem $item): string => $item->name, $january->rowLists['styczeń_19!B17']))
+        ->toBe(['fryzjer (Sebastian)', 'Cele na wakacje (Sebastian)'])
+        ->and($january->warnings)->toBe([]);
+});

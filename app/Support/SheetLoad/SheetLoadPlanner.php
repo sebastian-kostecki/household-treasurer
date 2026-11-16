@@ -35,6 +35,7 @@ final class SheetLoadPlanner
 
         array_push($operations, ...$this->incomeOperations($sheet, $transfers, $fundMovements, $usedOverrides));
         $this->assertOverridesUsed($sheet->year, $usedOverrides);
+        $this->assertTargetsDefined($operations);
 
         $plan = new SheetLoadPlan(
             $sheet->year, $operations, $sheet->warnings(), $transfers, $remainders,
@@ -74,7 +75,7 @@ final class SheetLoadPlanner
             $block = $this->listedBlock($year, $month, $entry);
 
             if ($block === null) {
-                $amount = $this->applyExpenseOverrides($year, $month->month, $entry, $operations, $usedOverrides);
+                $amount = $this->applyExpenseOverrides($year, $month->month, $entry, $target, $operations, $usedOverrides);
                 $operations[] = $this->rowOperation($year, $date, FinancialOperationType::Expense, $target, $entry, $amount);
 
                 continue;
@@ -305,12 +306,16 @@ final class SheetLoadPlanner
      * @param  list<PlannedOperation>  $operations  receives the override operations
      * @param  array<int, true>  $usedOverrides
      */
-    private function applyExpenseOverrides(int $year, int $month, SheetEntry $entry, array &$operations, array &$usedOverrides): int
+    private function applyExpenseOverrides(int $year, int $month, SheetEntry $entry, int|string $target, array &$operations, array &$usedOverrides): int
     {
         $amount = $entry->amountMinorUnits;
 
         foreach ($this->mapping->overrides($year) as $index => $override) {
             if (($override['type'] ?? 'income') === 'expense' && $override['month'] === $month && $override['label'] === $entry->label) {
+                if ($target === SheetMapping::SKIP) {
+                    throw new SheetLoadException($entry->address, 'wiersz z celem „'.$target.'” w mapowaniu nie może mieć nadpisania wydatku');
+                }
+
                 $amount = $this->applyOverride($override, FinancialOperationType::Expense, $entry, $amount, $year, $operations);
                 $usedOverrides[$index] = true;
             }
@@ -332,7 +337,7 @@ final class SheetLoadPlanner
     }
 
     /**
-     * @param  array{year: int, month: int, label: string, amount_minor_units: int, category: int, description: string}  $override
+     * @param  array{year: int, month: int, label: string, amount_minor_units: int, category: int, description: string, type?: 'income'|'expense'}  $override
      * @param  list<PlannedOperation>  $operations
      */
     private function applyOverride(array $override, FinancialOperationType $type, SheetEntry $entry, int $amount, int $year, array &$operations): int
@@ -414,6 +419,27 @@ final class SheetLoadPlanner
         }
 
         throw new SheetLoadException($cells[$from]['entry']->address, 'ujemny przychód −'.MinorUnits::toMajorDisplay($deficit).' zł nie mieści się w żadnym innym miesiącu źródła');
+    }
+
+    /**
+     * Every operation goes to a Category the mapping checks (`categories`) or to one of its new Categories, so a typo in
+     * a target fails the dry run instead of the write.
+     *
+     * @param  list<PlannedOperation>  $operations
+     */
+    private function assertTargetsDefined(array $operations): void
+    {
+        $expected = $this->mapping->expectedCategories();
+
+        foreach ($operations as $operation) {
+            $defined = is_int($operation->category)
+                ? isset($expected[$operation->category])
+                : $this->mapping->isNewCategory($operation->category);
+
+            if (! $defined) {
+                throw new SheetLoadException($operation->address, 'cel „'.$operation->category.'” nie jest kategorią z sekcji `categories` ani nową kategorią mapowania');
+            }
+        }
     }
 
     private function assertTotal(int $planned, int $fund, SheetEntry $analysis, string $name): void

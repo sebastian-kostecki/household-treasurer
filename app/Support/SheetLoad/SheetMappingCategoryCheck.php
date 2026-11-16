@@ -2,6 +2,7 @@
 
 namespace App\Support\SheetLoad;
 
+use App\Models\BudgetLine;
 use App\Models\Category;
 use App\Models\User;
 use App\Support\CategoryList\CategoryNameKey;
@@ -31,6 +32,34 @@ final class SheetMappingCategoryCheck
                 $problems[] = "Kategoria {$id} („{$category['name']}”) nie istnieje u tego użytkownika.";
             } elseif ($actual->name !== $category['name'] || $actual->type !== $category['type']) {
                 $problems[] = "Kategoria {$id}: oczekiwano „{$category['name']}” ({$category['type']->value}), jest „{$actual->name}” ({$actual->type->value}).";
+            }
+        }
+
+        return $problems;
+    }
+
+    /**
+     * The new Categories of the plan that a load must not reuse: an archived Category without a Budget Line whose
+     * definition has no `rhythm_start` looks exactly like one the load created, so an unload would delete it (ADR-0102).
+     *
+     * @return list<string>
+     */
+    public function newCategoryProblems(User $user, SheetMapping $mapping, SheetLoadPlan $plan): array
+    {
+        $problems = [];
+
+        foreach (array_keys($plan->categoryTotals()) as $target) {
+            if (! $mapping->isNewCategory($target)) {
+                continue;
+            }
+
+            $existing = $this->existingNewCategory($user, $mapping, (string) $target);
+
+            if ($existing !== null
+                && $mapping->newCategories()[(string) $target]['rhythm_start'] === null
+                && $existing->archived_at !== null
+                && ! BudgetLine::query()->where('category_id', $existing->id)->exists()) {
+                $problems[] = "Kategoria „{$existing->name}” (id {$existing->id}) jest zarchiwizowana i nie ma linii w żadnym Budżecie: wycofanie nie odróżniłoby jej od kategorii utworzonej przez wczytanie. Przywróć ją z archiwum albo zmień jej nazwę.";
             }
         }
 

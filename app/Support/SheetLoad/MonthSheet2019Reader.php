@@ -18,6 +18,9 @@ final class MonthSheet2019Reader
     /** Rows of variants A and B whose amount is the list sum in B while the actual in C stays empty. */
     private const array LIST_ROWS = ['akcesoria do domu', 'osobiste: jana', 'osobiste: sebastian', 'osobiste', 'cele: sebastian'];
 
+    /** The header that ends the personal lists of variants A and B. */
+    private const string GOALS_HEADER = 'cele (odkładane przez sebastiana)';
+
     private const int DESCRIPTION_LIMIT = 255;
 
     public function read(Worksheet $worksheet, int $month): MonthSheet
@@ -77,7 +80,7 @@ final class MonthSheet2019Reader
 
         for ($row = $incomeRow + 1; $row < $expenseRow; $row++) {
             if (! $cells->isEmpty('A', $row)) {
-                $income[] = $this->entry($cells, 'A', $amountColumn, $row);
+                $income[] = $cells->entry('A', $amountColumn, $row);
             }
         }
 
@@ -104,7 +107,7 @@ final class MonthSheet2019Reader
 
         for ($row = $expenseRow + 1; $row <= $last; $row++) {
             if ($cells->isEmpty('A', $row)) {
-                $this->requireNoAmount($cells, $row);
+                $this->requireNoAmount($cells, $row, ['B', 'C']);
 
                 continue;
             }
@@ -120,23 +123,26 @@ final class MonthSheet2019Reader
         $label = (string) $cells->label('A', $row);
 
         if (! $cells->isEmpty('C', $row)) {
-            return $this->entry($cells, 'A', 'C', $row);
+            return $cells->entry('A', 'C', $row);
         }
 
         if (in_array($label, self::LIST_ROWS, true)) {
-            return $this->entry($cells, 'A', 'B', $row);
+            return $cells->entry('A', 'B', $row);
         }
 
         if ($cells->amount('B', $row) !== 0) {
             throw new SheetReadException($cells->address('B', $row), 'wiersz „'.$cells->text('A', $row).'” ma tylko plan (B) i puste wykonanie (C)');
         }
 
-        return $this->entry($cells, 'A', 'C', $row);
+        return $cells->entry('A', 'C', $row);
     }
 
-    private function requireNoAmount(SheetCells $cells, int $row): void
+    /**
+     * @param  list<string>  $columns
+     */
+    private function requireNoAmount(SheetCells $cells, int $row, array $columns): void
     {
-        foreach (['B', 'C'] as $column) {
+        foreach ($columns as $column) {
             if ($cells->amount($column, $row) !== 0) {
                 throw new SheetReadException($cells->address($column, $row), 'kwota w wierszu bez etykiety');
             }
@@ -144,46 +150,43 @@ final class MonthSheet2019Reader
     }
 
     /**
-     * Variant C: item labels in B between "Wydatki" and "Pozostałe", the actual in D.
+     * Variant C: item labels in B between "Wydatki" and "Pozostałe", the actual in D. A row without a label must not
+     * hold an amount in C or D.
      *
      * @return list<SheetEntry>
      */
     private function newTemplateExpenses(SheetCells $cells, int $expenseRow): array
     {
-        $balanceRow = $this->requireLabel($cells, 'B', 'pozostałe', $expenseRow + 1);
+        $balanceRow = $cells->requireLabel('B', 'pozostałe', $expenseRow + 1);
         $expenses = [];
 
         for ($row = $expenseRow + 1; $row < $balanceRow; $row++) {
-            if (! $cells->isEmpty('B', $row)) {
-                $expenses[] = $this->entry($cells, 'B', 'D', $row);
+            if ($cells->isEmpty('B', $row)) {
+                $this->requireNoAmount($cells, $row, ['C', 'D']);
+
+                continue;
             }
+
+            $expenses[] = $cells->entry('B', 'D', $row);
         }
 
         return $expenses;
     }
 
     /**
-     * Variants A and B: "Wydatki osobiste" (Sebastian F/G, Jana H/I) down to "Cele (odkładane …)", then "Dom i akcesoria" in F/I.
+     * Variants A and B: "Wydatki osobiste" (Sebastian F/G, Jana H/I) down to "Cele (odkładane przez Sebastiana)", then
+     * "Dom i akcesoria" in F/I.
      *
      * @return array{sebastian: list<SheetListItem>, jana: list<SheetListItem>, home: list<SheetListItem>}
      */
     private function lists(SheetCells $cells): array
     {
-        $names = $this->requireLabel($cells, 'F', 'wydatki osobiste', 1) + 1;
+        $names = $cells->requireLabel('F', 'wydatki osobiste', 1) + 1;
         $this->requireName($cells, 'F', $names, 'sebastian');
         $this->requireName($cells, 'H', $names, 'jana');
 
-        $end = $names + 1;
-
-        while ($end <= $cells->highestRow() && ! str_starts_with((string) $cells->label('F', $end), 'cele')) {
-            $end++;
-        }
-
-        if ($end > $cells->highestRow()) {
-            throw new SheetReadException($cells->rangeAddress('F', $names, $cells->highestRow()), 'brak etykiety „Cele …” pod listami osobistymi');
-        }
-
-        $home = $this->requireLabel($cells, 'F', 'dom i akcesoria', $end + 1);
+        $end = $cells->requireLabel('F', self::GOALS_HEADER, $names + 1);
+        $home = $cells->requireLabel('F', 'dom i akcesoria', $end + 1);
 
         return [
             'sebastian' => $this->items($cells, 'F', 'G', $names + 1, $end - 1, 'Sebastian'),
@@ -200,7 +203,7 @@ final class MonthSheet2019Reader
      */
     private function newTemplateLists(SheetCells $cells): array
     {
-        $names = $this->requireLabel($cells, 'G', 'wydatki osobiste', 1) + 1;
+        $names = $cells->requireLabel('G', 'wydatki osobiste', 1) + 1;
         $split = $cells->label('H', $names + 1) === 'plan:';
         [$sebastianAmount, $janaName, $janaAmount, $homeAmount] = $split ? ['I', 'J', 'L', 'L'] : ['H', 'I', 'J', 'J'];
 
@@ -208,8 +211,8 @@ final class MonthSheet2019Reader
         $this->requireName($cells, $janaName, $names, 'jana');
 
         $first = $names + ($split ? 2 : 1);
-        $end = $this->requireLabel($cells, 'G', 'cele do odłożenia', $first);
-        $home = $this->requireLabel($cells, 'G', 'dom i akcesoria', $end + 1);
+        $end = $cells->requireLabel('G', 'cele do odłożenia', $first);
+        $home = $cells->requireLabel('G', 'dom i akcesoria', $end + 1);
 
         return [
             'sebastian' => $this->items($cells, 'G', $sebastianAmount, $first, $end - 1, 'Sebastian'),
@@ -257,7 +260,8 @@ final class MonthSheet2019Reader
 
     /**
      * Personal lists bind to "osobiste: Jana" / "osobiste: Sebastian", or both to the single "osobiste" row of June and
-     * July-December; "Dom i akcesoria" to "akcesoria do domu". A non-empty list without its row is refused.
+     * July-December; "Dom i akcesoria" to "akcesoria do domu". A non-empty list without its row, or bound to a second
+     * row, is refused.
      *
      * @param  list<SheetEntry>  $expenses
      * @param  array{sebastian: list<SheetListItem>, jana: list<SheetListItem>, home: list<SheetListItem>}  $lists
@@ -276,7 +280,11 @@ final class MonthSheet2019Reader
 
         foreach ($expenses as $entry) {
             foreach ($targets[$entry->label] ?? [] as $list) {
-                $bound[$list] = true;
+                if (isset($bound[$list]) && $lists[$list] !== []) {
+                    throw new SheetReadException($entry->address, 'lista „'.$list.'” należy już do wiersza '.$bound[$list]);
+                }
+
+                $bound[$list] = $entry->address;
                 $rowLists[$entry->address] = [...($rowLists[$entry->address] ?? []), ...$lists[$list]];
             }
         }
@@ -304,7 +312,7 @@ final class MonthSheet2019Reader
         $items = [];
 
         for ($row = 13; $row <= $cells->highestRow() && ! $cells->isEmpty('M', $row); $row++) {
-            $items[] = $this->entry($cells, 'M', 'O', $row);
+            $items[] = $cells->entry('M', 'O', $row);
         }
 
         return $items;
@@ -344,28 +352,10 @@ final class MonthSheet2019Reader
         }
     }
 
-    private function entry(SheetCells $cells, string $labelColumn, string $amountColumn, int $row): SheetEntry
-    {
-        $raw = $cells->text($labelColumn, $row) ?? '';
-
-        return new SheetEntry(SheetCells::normalizeLabel($raw), $raw, $cells->amount($amountColumn, $row), $cells->address($amountColumn, $row));
-    }
-
     private function requireName(SheetCells $cells, string $column, int $row, string $name): void
     {
         if ($cells->label($column, $row) !== $name) {
             throw new SheetReadException($cells->address($column, $row), 'oczekiwany nagłówek listy „'.$name.'”');
         }
-    }
-
-    private function requireLabel(SheetCells $cells, string $column, string $label, int $from): int
-    {
-        for ($row = $from; $row <= $cells->highestRow(); $row++) {
-            if ($cells->label($column, $row) === $label) {
-                return $row;
-            }
-        }
-
-        throw new SheetReadException($cells->rangeAddress($column, $from, max($from, $cells->highestRow())), 'brak etykiety „'.$label.'”');
     }
 }

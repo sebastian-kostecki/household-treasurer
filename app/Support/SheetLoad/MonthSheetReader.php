@@ -15,12 +15,12 @@ final class MonthSheetReader
     {
         $cells = new SheetCells($worksheet);
 
-        $irregularRow = $this->requireLabel($cells, 'B', 'wydatki nieregularne', self::FIRST_ROW);
+        $irregularRow = $cells->requireLabel('B', 'wydatki nieregularne', self::FIRST_ROW);
         $expenses = $this->entries($cells, 'B', 'D', self::FIRST_ROW, $irregularRow - 1);
-        $irregularTotal = $this->entry($cells, 'B', 'D', $irregularRow);
-        $balance = $this->entry($cells, 'B', 'D', $irregularRow + 1);
+        $irregularTotal = $cells->entry('B', 'D', $irregularRow);
+        $balance = $cells->entry('B', 'D', $irregularRow + 1);
 
-        $savingsRow = $this->requireLabel($cells, 'G', 'oszczędności', self::FIRST_ROW);
+        $savingsRow = $cells->requireLabel('G', 'oszczędności', self::FIRST_ROW);
         $income = $this->entries($cells, 'G', $layout->incomeColumn(), self::FIRST_ROW, $savingsRow);
         $fund = $this->fundWithdrawal($cells, $savingsRow + 1, $layout);
         $daily = $this->dailyBreakdown($cells, $savingsRow + 1, $layout);
@@ -47,9 +47,9 @@ final class MonthSheetReader
     private function lists(SheetCells $cells, SheetLayout $layout): array
     {
         $column = $layout->categoryColumn();
-        $categoryRow = $this->requireLabel($cells, $column, 'kategoria', 1);
+        $categoryRow = $cells->requireLabel($column, 'kategoria', 1);
         $healthRow = $layout->requiresMedicalBlock()
-            ? $this->requireLabel($cells, $column, 'opieka zdrowotna', $categoryRow + 1)
+            ? $cells->requireLabel($column, 'opieka zdrowotna', $categoryRow + 1)
             : $this->findLabel($cells, $column, 'opieka zdrowotna', $categoryRow + 1);
 
         if ($healthRow === null) {
@@ -60,10 +60,10 @@ final class MonthSheetReader
             return [$irregular, [], []];
         }
 
-        $treatmentRow = $this->requireLabel($cells, $column, $layout->treatmentLabel(), $healthRow + 1);
-        $examsRow = $this->requireLabel($cells, $column, 'badania', $treatmentRow + 1);
+        $treatmentRow = $cells->requireLabel($column, $layout->treatmentLabel(), $healthRow + 1);
+        $examsRow = $cells->requireLabel($column, 'badania', $treatmentRow + 1);
         $medicalStart = $layout->requiresNameHeader()
-            ? $this->requireLabel($cells, $layout->nameColumn(), 'nazwa', $treatmentRow + 1, $examsRow - 1) + 1
+            ? $cells->requireLabel($layout->nameColumn(), 'nazwa', $treatmentRow + 1, $examsRow - 1) + 1
             : $treatmentRow + 1;
         $examsStart = $this->examsStart($cells, $layout, $examsRow);
 
@@ -85,34 +85,6 @@ final class MonthSheetReader
         return null;
     }
 
-    private function requireLabel(SheetCells $cells, string $column, string $label, int $from, ?int $to = null): int
-    {
-        $to ??= $cells->highestRow();
-
-        for ($row = $from; $row <= $to; $row++) {
-            if ($cells->label($column, $row) === $label) {
-                return $row;
-            }
-        }
-
-        throw new SheetReadException(
-            $cells->rangeAddress($column, $from, max($from, $to)),
-            'brak etykiety „'.$label.'”',
-        );
-    }
-
-    private function entry(SheetCells $cells, string $labelColumn, string $amountColumn, int $row): SheetEntry
-    {
-        $raw = $cells->text($labelColumn, $row) ?? '';
-
-        return new SheetEntry(
-            SheetCells::normalizeLabel($raw),
-            $raw,
-            $cells->amount($amountColumn, $row),
-            $cells->address($amountColumn, $row),
-        );
-    }
-
     /**
      * @return list<SheetEntry>
      */
@@ -122,7 +94,7 @@ final class MonthSheetReader
 
         for ($row = $from; $row <= $to; $row++) {
             if (! $cells->isEmpty($labelColumn, $row)) {
-                $entries[] = $this->entry($cells, $labelColumn, $amountColumn, $row);
+                $entries[] = $cells->entry($labelColumn, $amountColumn, $row);
             }
         }
 
@@ -158,7 +130,7 @@ final class MonthSheetReader
             $items = [];
 
             for ($item = $row + 1; $item <= $cells->highestRow() && ! $cells->isEmpty('G', $item) && ! in_array($cells->label('G', $item), ['do kiedy wydatki', 'na tydzień'], true); $item++) {
-                $items[] = $this->entry($cells, 'G', $layout->incomeColumn(), $item);
+                $items[] = $cells->entry('G', $layout->incomeColumn(), $item);
             }
 
             return $items;

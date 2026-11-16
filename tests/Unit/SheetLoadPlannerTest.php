@@ -482,3 +482,56 @@ test('the real mapping defines the new Categories and the 2019 Rachunki override
         ->and(array_filter($overrides, fn (array $o): bool => ($o['type'] ?? null) !== 'expense'))->toBe([])
         ->and(array_filter($mapping->overrides(2023), fn (array $o): bool => isset($o['type'])))->toBe([]);
 });
+
+test('the real mapping maps every 2019 label of ADR-0102', function () {
+    $mapping = new SheetMapping(require __DIR__.'/../../database/sheet-load/mapping.php');
+    $expenses = [
+        'prąd+gaz' => 15, 'rachunki (prąd+telefon+internet)' => 15, 'rachunki' => 15, 'samochód: inne' => 17,
+        'cinema city' => 23, 'rozrywka: inne' => 23, 'rozrywka - inne' => 23, 'wyjścia' => 23, 'lekarze' => 20,
+        'zdrowie i uroda: inne' => 20, 'apteka i kosmetyki' => 12, 'akcesoria do domu' => 37, 'osobiste' => 29,
+        'osobiste: jana' => 29, 'osobiste: sebastian' => 29, 'siłownia' => 49, 'cele' => SheetMapping::SKIP,
+        'cele: sebastian' => SheetMapping::SKIP, 'oszczędności' => SheetMapping::SKIP, 'oszczędności (10%)' => SheetMapping::SKIP,
+    ];
+    $income = ['stypendium' => 'stypendium', 'z poprzedniego' => SheetMapping::SKIP, 'inne' => 7, 'oszczędności' => SheetMapping::SKIP];
+
+    expect(array_map(fn (string $label): int|string|null => $mapping->expense($label), array_combine(array_keys($expenses), array_keys($expenses))))->toBe($expenses)
+        ->and(array_map(fn (string $label): int|string|null => $mapping->income($label), array_combine(array_keys($income), array_keys($income))))->toBe($income);
+});
+
+test('refuses an expense override on a row the mapping skips', function () {
+    $failure = null;
+
+    try {
+        planSheetWithMapping(['layout' => '2019', 'year' => 2019, 'months' => SheetWorkbookFactory::bills2019Months()], function (array $data): array {
+            $data['expenses']['rachunki'] = SheetMapping::SKIP;
+
+            return $data;
+        });
+    } catch (SheetLoadException $e) {
+        $failure = $e;
+    }
+
+    expect($failure)->toBeInstanceOf(SheetLoadException::class)
+        ->and($failure->address)->toStartWith('sierpień_19!D')
+        ->and($failure->getMessage())->toContain('nie może mieć nadpisania wydatku');
+});
+
+test('refuses a target that is neither a mapped Category nor a new Category, before anything is written', function (string $section, string $label, int|string $target) {
+    $failure = null;
+
+    try {
+        planSheetWithMapping(['layout' => '2019', 'year' => 2019, 'months' => SheetWorkbookFactory::bills2019Months()], function (array $data) use ($section, $label, $target): array {
+            $data[$section][$label] = $target;
+
+            return $data;
+        });
+    } catch (SheetLoadException $e) {
+        $failure = $e;
+    }
+
+    expect($failure)->toBeInstanceOf(SheetLoadException::class)
+        ->and($failure->getMessage())->toContain('cel „'.$target.'” nie jest kategorią');
+})->with([
+    'a typo in a new Category key' => ['income', 'stypendium', 'stypendum'],
+    'an id outside categories' => ['expenses', 'czynsz', 999],
+]);

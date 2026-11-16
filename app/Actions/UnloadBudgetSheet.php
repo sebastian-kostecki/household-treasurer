@@ -40,12 +40,13 @@ class UnloadBudgetSheet
 
             $this->assertOnlyLoadedRecords($account, $budget, $year);
 
+            $lineCategoryIds = BudgetLine::query()->where('budget_id', $budget->id)->pluck('category_id')->map(fn (mixed $id): int => (int) $id)->all();
             $operations = FinancialOperation::query()->where('budget_id', $budget->id)->delete();
             BudgetLine::query()->where('budget_id', $budget->id)->delete();
             $budget->delete();
             $account->delete();
 
-            return ['operations' => $operations, 'categories_removed' => $this->removeNewCategories($user, $mapping)];
+            return ['operations' => $operations, 'categories_removed' => $this->removeNewCategories($user, $mapping, $lineCategoryIds)];
         });
     }
 
@@ -68,22 +69,25 @@ class UnloadBudgetSheet
     }
 
     /**
-     * Removes each new Category of the mapping only when it is archived, has no line or Month Plan item left and its
-     * Rhythm history is exactly what the load wrote: the one Running entry from `rhythm_start` (expense) or no entry
-     * (income without `rhythm_start`). A Category the user made stays.
+     * Removes each new Category of the mapping only when the unloaded Budget had a line for it, it is archived, has no
+     * line or Month Plan item left and its Rhythm history is exactly what the load wrote: the one Running entry from
+     * `rhythm_start` (expense) or no entry (income without `rhythm_start`). A Category the user made stays; the load
+     * refuses to reuse an archived one without lines (`SheetMappingCategoryCheck::newCategoryProblems`).
      *
+     * @param  array<int, int>  $lineCategoryIds  the Categories of the unloaded Budget's lines
      * @return list<string> the names of the removed Categories
      */
-    private function removeNewCategories(User $user, SheetMapping $mapping): array
+    private function removeNewCategories(User $user, SheetMapping $mapping, array $lineCategoryIds): array
     {
+        $candidates = Category::query()
+            ->where('user_id', $user->id)
+            ->whereIn('id', $lineCategoryIds)
+            ->get();
         $removed = [];
 
         foreach ($mapping->newCategories() as $new) {
-            $category = Category::query()
-                ->where('user_id', $user->id)
-                ->where('type', $new['type'])
-                ->where('name_key', CategoryNameKey::of($new['name']))
-                ->first();
+            $nameKey = CategoryNameKey::of($new['name']);
+            $category = $candidates->first(fn (Category $candidate): bool => $candidate->type === $new['type'] && $candidate->name_key === $nameKey);
 
             if ($category !== null && $this->isOnlyWhatTheLoadWrote($category, $new['rhythm_start'])) {
                 CategoryRhythm::query()->where('category_id', $category->id)->delete();

@@ -48,7 +48,7 @@ class LoadBudgetSheet
 
             $this->assertYearFree($user, $plan->year);
 
-            $problems = $this->categoryCheck->problems($user, $mapping);
+            $problems = [...$this->categoryCheck->problems($user, $mapping), ...$this->categoryCheck->newCategoryProblems($user, $mapping, $plan)];
 
             if ($problems !== []) {
                 throw new SheetLoadException("Kategorie {$plan->year}", implode(' ', $problems));
