@@ -19,13 +19,15 @@ services:
             - ./.env.prod:/var/www/html/.env:ro
         networks:
             - treasurer-internal
-            - proxy
+            # Shared only with Traefik (kostecki-dev-infra), no internet; the app reaches the
+            # internet (mail) through its own network above.
+            - proxy-treasurer
         depends_on:
             pgsql:
                 condition: service_healthy
         labels:
             - traefik.enable=true
-            - traefik.docker.network=proxy
+            - traefik.docker.network=proxy-treasurer
             - traefik.http.routers.treasurer.rule=Host(`budget.kostecki.dev`)
             - traefik.http.routers.treasurer.entrypoints=websecure
             - traefik.http.routers.treasurer.tls.certresolver=letsencrypt
@@ -68,7 +70,7 @@ services:
 networks:
     treasurer-internal:
         driver: bridge
-    proxy:
+    proxy-treasurer:
         external: true
 
 volumes:
