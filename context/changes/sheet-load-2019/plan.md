@@ -586,9 +586,9 @@ Brak migracji. Wycofanie: `budget:unload-sheet {user} 2019`, które usuwa też �
 
 #### Automated
 
-- [x] 3.1 Testy Sheet Load na PostgreSQL przechodzą
+- [x] 3.1 Testy Sheet Load na PostgreSQL przechodzą — 4a12fc8
 - [x] 3.2 --dry-run poprawionego pliku 2019 z sumami z Desired End State
-- [x] 3.3 --dry-run plików 2020–2025 z sumami z README
+- [x] 3.3 --dry-run plików 2020–2025 z sumami z README — 4a12fc8
 
 #### Manual
 
@@ -598,9 +598,9 @@ Brak migracji. Wycofanie: `budget:unload-sheet {user} 2019`, które usuwa też �
 
 #### Automated
 
-- [ ] 4.1 composer ci:check na PostgreSQL przechodzi
-- [ ] 4.2 Sloppy bez nowych znalezisk wysokiej wagi
-- [ ] 4.3 Pint bez zmian
+- [x] 4.1 composer ci:check na PostgreSQL przechodzi
+- [x] 4.2 Sloppy bez nowych znalezisk wysokiej wagi
+- [x] 4.3 Pint bez zmian
 
 #### Manual
 
