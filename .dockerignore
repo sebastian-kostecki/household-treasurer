@@ -11,6 +11,11 @@ context
 .zed
 .phpactor.json
 .npmrc
+.ai
+.claude
+.cursor
+.mcp.json
+CLAUDE.md
 
 # Dev dependencies (reinstalled inside the image)
 node_modules
@@ -18,16 +23,22 @@ vendor
 
 # Dev environment and compose
 compose.yaml
+compose.override.yaml
+docker-compose.prod.yml
 .env
 .env.*
 !.env.example
 !.env.prod.example
+auth.json
 
 # Tests and static analysis
 tests
 phpunit.xml
 phpunit.nfr.xml
 phpstan.neon
+playwright.config.ts
+.playwright
+.sloppy-baseline.json
 .phpunit.cache
 .phpunit.result.cache
 
@@ -36,13 +47,10 @@ public/hot
 public/build
 bootstrap/ssr
 
-# Local runtime data
-storage/logs
-storage/pail
-storage/framework/cache
-storage/framework/sessions
-storage/framework/views
-storage/app/backups
+# User data and runtime state: production bind-mounts ./storage, so the image needs none
+# of it (Dockerfile.prod creates the directories it needs). Snapshots of household budgets
+# under storage/app/private used to end up in the image.
+storage
 
 # Deploy scripts (run on the host)
 scripts
