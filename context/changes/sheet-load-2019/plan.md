@@ -613,4 +613,4 @@ Brak migracji. Wycofanie: `budget:unload-sheet {user} 2019`, które usuwa też �
 - [x] 5.1 Próba na kopii produkcji: wczytanie, compare, wycofanie, ponowne wczytanie — 2026-11-16, production-load-notes.md
 - [x] 5.2 SHA-256 pliku na serwerze = po poprawce — 2026-11-16, production-load-notes.md
 - [x] 5.3 Produkcja: --dry-run, wczytanie, compare --allow-additions kod 0 — 2026-11-16, production-load-notes.md
-- [ ] 5.4 Aplikacja na produkcji: lata 2019–2027, raport 2020 z kolumną 2019, Lata od 2019, Stypendium zarchiwizowana, saldo i szkic 2027 bez zmian
+- [x] 5.4 Aplikacja na produkcji: lata 2019–2027, raport 2020 z kolumną 2019, Lata od 2019, Stypendium zarchiwizowana, saldo i szkic 2027 bez zmian — potwierdzone przez użytkownika 2026-11-16

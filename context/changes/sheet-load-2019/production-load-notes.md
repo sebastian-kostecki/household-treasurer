@@ -50,10 +50,10 @@ Wykonane 2026-11-16 ok. 09:25–09:27 UTC:
 
 ## 4. Przegląd w aplikacji — Progress 5.4
 
-Salda zwykłych kont i szkic 2027 są potwierdzone liczbami kontrolnymi (zmieniły się tylko dodania). W UI zostaje do obejrzenia:
+Salda zwykłych kont i szkic 2027 są potwierdzone liczbami kontrolnymi (zmieniły się tylko dodania). Obejrzane w UI i potwierdzone przez użytkownika 2026-11-16:
 
-- [ ] Selektor roku: 2019–2027
-- [ ] Raport 2020 z kolumną 2019
-- [ ] Widok „Lata” od 2019
-- [ ] „Stypendium” zarchiwizowana na „Kategoriach”
-- [ ] Saldo „Na kontach” i szkic 2027 bez zmian
+- [x] Selektor roku: 2019–2027
+- [x] Raport 2020 z kolumną 2019
+- [x] Widok „Lata” od 2019
+- [x] „Stypendium” zarchiwizowana na „Kategoriach”
+- [x] Saldo „Na kontach” i szkic 2027 bez zmian
