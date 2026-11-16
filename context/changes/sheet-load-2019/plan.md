@@ -598,9 +598,9 @@ Brak migracji. Wycofanie: `budget:unload-sheet {user} 2019`, które usuwa też �
 
 #### Automated
 
-- [x] 4.1 composer ci:check na PostgreSQL przechodzi
-- [x] 4.2 Sloppy bez nowych znalezisk wysokiej wagi
-- [x] 4.3 Pint bez zmian
+- [x] 4.1 composer ci:check na PostgreSQL przechodzi — 850e902
+- [x] 4.2 Sloppy bez nowych znalezisk wysokiej wagi — 850e902
+- [x] 4.3 Pint bez zmian — 850e902
 
 #### Manual
 
