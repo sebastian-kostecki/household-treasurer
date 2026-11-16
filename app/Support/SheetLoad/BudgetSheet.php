@@ -3,8 +3,9 @@
 namespace App\Support\SheetLoad;
 
 /**
- * A whole year of the budget workbook: the year from `Ustawienia!B2` (2022-2025) or `grudzień!A1` (2020-2021), twelve months by month number (1-12)
- * and the sheet's own totals from `Analiza!B16` (income) and `Analiza!C16` (expense).
+ * A whole year of the budget workbook: the year from `Ustawienia!B2` (2022-2025), `grudzień!A1` (2020-2021) or `grudzień_19!C31` (2019),
+ * twelve months by month number (1-12) and the sheet's own totals from `Analiza!B16` (income) and `Analiza!C16` (expense),
+ * or from `Podsumowanie!I16` and `Podsumowanie!H16` in the 2019 workbook.
  */
 final readonly class BudgetSheet
 {

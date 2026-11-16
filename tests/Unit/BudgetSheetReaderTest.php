@@ -2,7 +2,10 @@
 
 use App\Support\SheetLoad\BudgetSheet;
 use App\Support\SheetLoad\BudgetSheetReader;
+use App\Support\SheetLoad\MonthSheet;
 use App\Support\SheetLoad\MonthSheetReader;
+use App\Support\SheetLoad\SheetEntry;
+use App\Support\SheetLoad\SheetListItem;
 use App\Support\SheetLoad\SheetReadException;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -333,4 +336,134 @@ test('warns when the Lekarz - dentysta row differs from its list', function () {
 
     expect($warnings)->toHaveCount(1)
         ->and($warnings[0]->message)->toContain('lista leczenia');
+});
+
+test('reads the 2019 workbook: year from grudzień_19!C31, twelve months in three variants, Podsumowanie totals and addresses', function () {
+    $sheet = readSheet(['layout' => '2019']);
+
+    expect($sheet->year)->toBe(2019)
+        ->and(array_keys($sheet->months))->toBe(range(1, 12))
+        ->and($sheet->months[1]->name)->toBe('styczeń_19')
+        ->and($sheet->months[12]->name)->toBe('grudzień_19')
+        ->and($sheet->analysisIncome->address)->toBe('Podsumowanie!I16')
+        ->and($sheet->analysisIncome->amountMinorUnits)->toBe(6 * 800_000 + 6 * 710_000)
+        ->and($sheet->analysisExpense->address)->toBe('Podsumowanie!H16')
+        ->and($sheet->analysisExpense->amountMinorUnits)->toBe(6 * 286_000 + 4 * 393_583 + 2 * 388_583)
+        ->and($sheet->months[1]->irregularTotal->amountMinorUnits)->toBe(0)
+        ->and($sheet->months[1]->irregularList)->toBe([])
+        ->and($sheet->months[1]->dailyBreakdown)->toBeNull()
+        ->and($sheet->warnings())->toBe([]);
+});
+
+test('2019 variants A and B read the actual in C and the list sum in B for list rows; a RichText label is read as text', function () {
+    $january = readSheet(['layout' => '2019'])->months[1];
+    $march = readSheet(['layout' => '2019'])->months[3];
+    $february = readSheet(['layout' => '2019'])->months[2];
+    $byLabel = fn (MonthSheet $month, string $label): SheetEntry => collect($month->expenses)->firstWhere('label', $label);
+
+    expect($byLabel($january, 'czynsz')->address)->toBe('styczeń_19!C11')
+        ->and($byLabel($january, 'czynsz')->amountMinorUnits)->toBe(125_000)
+        ->and($byLabel($january, 'osobiste: jana')->address)->toBe('styczeń_19!B16')
+        ->and($byLabel($january, 'osobiste: jana')->amountMinorUnits)->toBe(10_800)
+        ->and($byLabel($january, 'cele: sebastian')->amountMinorUnits)->toBe(12_000)
+        ->and($january->income[0]->address)->toBe('styczeń_19!B6')
+        ->and($byLabel($march, 'czynsz')->address)->toBe('marzec_19!C9')
+        ->and($march->income[0]->address)->toBe('marzec_19!B4')
+        ->and($february->income[0]->label)->toBe('praca: sebastian')
+        ->and($january->rowLists['styczeń_19!B17'])->toHaveCount(2)
+        ->and($january->rowLists['styczeń_19!B17'][0]->name)->toBe('fryzjer (Sebastian)')
+        ->and($january->rowLists['styczeń_19!B17'][0]->address)->toBe('styczeń_19!G7')
+        ->and($january->rowLists['styczeń_19!B16'][1]->name)->toBe('lekarstwa (Jana)')
+        ->and($january->rowLists['styczeń_19!B15'][0]->name)->toBe('raty za stół')
+        ->and($january->rowLists['styczeń_19!B15'][0]->address)->toBe('styczeń_19!I24')
+        ->and($march->rowLists['marzec_19!B13'][0]->address)->toBe('marzec_19!I22');
+});
+
+test('2019 June has one osobiste row that carries both personal lists', function () {
+    $june = readSheet(['layout' => '2019'])->months[6];
+    $personal = collect($june->expenses)->firstWhere('label', 'osobiste');
+
+    expect(collect($june->expenses)->pluck('label')->all())->not->toContain('osobiste: jana')
+        ->and($personal->address)->toStartWith('czerwiec_19!C')
+        ->and($personal->amountMinorUnits)->toBe(25_800)
+        ->and(array_map(fn (SheetListItem $item): string => $item->name, $june->rowLists[$personal->address]))
+        ->toBe(['fryzjer (Sebastian)', 'bilet (Sebastian)', 'filtr (Jana)', 'lekarstwa (Jana)'])
+        ->and($june->warnings)->toBe([]);
+});
+
+test('2019 variant C reads labels in B and the actual in D, income in C; from October the lists use the wydatek column', function () {
+    $sheet = readSheet(['layout' => '2019']);
+    $july = $sheet->months[7];
+    $october = $sheet->months[10];
+
+    expect($july->income[0]->address)->toBe('lipiec_19!C3')
+        ->and($july->expenses[0]->label)->toBe('rata kredytu')
+        ->and($july->expenses[0]->address)->toBe('lipiec_19!D8')
+        ->and(collect($july->expenses)->pluck('label')->all())->toContain('cele')->toContain('oszczędności (10%)')->not->toContain('pozostałe')
+        ->and($july->rowLists['lipiec_19!D13'][0]->address)->toBe('lipiec_19!H4')
+        ->and($july->rowLists['lipiec_19!D13'][2]->name)->toBe('filtr (Jana)')
+        ->and($july->rowLists['lipiec_19!D13'][2]->address)->toBe('lipiec_19!J4')
+        ->and($october->rowLists['październik_19!D13'][0]->address)->toBe('październik_19!I5')
+        ->and($october->rowLists['październik_19!D13'][0]->amountMinorUnits)->toBe(3_000)
+        ->and($october->rowLists['październik_19!D13'][2]->address)->toBe('październik_19!L5')
+        ->and($october->rowLists['październik_19!D14'][0]->address)->toBe('październik_19!L23')
+        ->and($october->rowLists['październik_19!D14'][0]->name)->toBe('farby');
+});
+
+test('2019 reads the daily breakdown of November and December from M13:O16 and leaves other months without it', function () {
+    $sheet = readSheet(['layout' => '2019']);
+    $november = $sheet->months[11];
+
+    expect($sheet->months[10]->dailyBreakdown)->toBeNull()
+        ->and($sheet->months[1]->dailyBreakdown)->toBeNull()
+        ->and($november->dailyBreakdown)->toHaveCount(4)
+        ->and($november->dailyBreakdown[1]->label)->toBe('higiena i kosmetyki')
+        ->and($november->dailyBreakdown[1]->address)->toBe('listopad_19!O14')
+        ->and($november->dailyBreakdown[1]->amountMinorUnits)->toBe(15_000)
+        ->and($sheet->months[12]->dailyBreakdown)->toHaveCount(4)
+        ->and($november->warnings)->toBe([]);
+});
+
+test('2019 warns when a row list differs from its row or the daily breakdown from Codzienne wydatki, without refusing', function () {
+    $sheet = readSheet(['layout' => '2019', 'mutate' => function (Spreadsheet $spreadsheet): void {
+        $spreadsheet->getSheetByName('lipiec_19')->setCellValue('D'.(8 + 5), 100.00);
+        $spreadsheet->getSheetByName('listopad_19')->setCellValue('D11', 900.00);
+    }]);
+
+    expect(array_map(fn ($warning): string => $warning->address, $sheet->warnings()))->toBe(['lipiec_19!D13', 'listopad_19!D11'])
+        ->and($sheet->warnings()[0]->message)->toContain('lista wiersza')
+        ->and($sheet->warnings()[1]->message)->toContain('rozpisanie');
+});
+
+test('2019 refuses a fixed row with a plan and an empty actual, naming the plan cell', function () {
+    $failure = readSheetFailure(['layout' => '2019', 'mutate' => function (Spreadsheet $spreadsheet): void {
+        $spreadsheet->getSheetByName('styczeń_19')->setCellValue('C11', null);
+    }]);
+
+    expect($failure->address)->toBe('styczeń_19!B11')
+        ->and($failure->getMessage())->toContain('Czynsz');
+});
+
+test('2019 refuses an unlabelled expense row with an amount and a list without its row', function () {
+    $amount = readSheetFailure(['layout' => '2019', 'mutate' => function (Spreadsheet $spreadsheet): void {
+        $spreadsheet->getSheetByName('luty_19')->setCellValue('A12', null)->setCellValue('C12', 10);
+    }]);
+    $orphan = readSheetFailure(['layout' => '2019', 'mutate' => function (Spreadsheet $spreadsheet): void {
+        $spreadsheet->getSheetByName('marzec_19')->setCellValue('A9', 'inne');
+        $spreadsheet->getSheetByName('marzec_19')->setCellValue('A'.(9 + 5), 'bez listy');
+    }]);
+
+    expect($amount->address)->toBe('luty_19!C12')
+        ->and($orphan)->toBeInstanceOf(SheetReadException::class);
+});
+
+test('2019 refuses a grudzień_19!C31 that is not 31 December and a month of an unknown variant, naming the cell', function () {
+    $date = readSheetFailure(['layout' => '2019', 'mutate' => fn (Spreadsheet $spreadsheet) => $spreadsheet->getSheetByName('grudzień_19')->setCellValue('C31', 43829)]);
+    $variant = readSheetFailure(['layout' => '2019', 'mutate' => fn (Spreadsheet $spreadsheet) => $spreadsheet->getSheetByName('kwiecień_19')->setCellValue('A3', 'Dochody')]);
+    $missing = readSheetFailure(['layout' => '2019', 'mutate' => fn (Spreadsheet $spreadsheet) => $spreadsheet->removeSheetByIndex($spreadsheet->getIndex($spreadsheet->getSheetByName('maj_19')))]);
+
+    expect($date->address)->toBe('grudzień_19!C31')
+        ->and($variant->address)->toBe('kwiecień_19!A2:A10')
+        ->and($variant->getMessage())->toContain('nieznany wariant')
+        ->and($missing->address)->toBe('maj_19');
 });

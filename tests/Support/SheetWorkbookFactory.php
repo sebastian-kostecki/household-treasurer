@@ -3,6 +3,7 @@
 namespace Tests\Support;
 
 use Closure;
+use PhpOffice\PhpSpreadsheet\RichText\RichText;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
@@ -21,6 +22,11 @@ use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
  *   2022 only), irregularTotal, balance, fund (zloty)
  * - analysis: [income, expense] in zloty, default the computed sums without the savings rows
  * - mutate: Closure(Spreadsheet): void, applied last, for cell-level edge cases
+ *
+ * Layout '2019' writes `grudzień_18`, the sheets `<month>_19` (variant A in January-February, B in March-June, C in
+ * July-December) and `Podsumowanie` (H16 and I16 as sums of the months, `analysis` overrides them), with 31 December 2019
+ * in `grudzień_19!C31`. Month overrides: expenses and income (label => zloty), sebastian / jana / home (list of [name, zloty]),
+ * goals (variants A and B) and daily (label => zloty, November-December). List rows hold SUM formulas.
  */
 final class SheetWorkbookFactory
 {
@@ -52,6 +58,11 @@ final class SheetWorkbookFactory
     public static function build(array $options = []): string
     {
         $layout = $options['layout'] ?? '2023';
+
+        if ($layout === '2019') {
+            return self::build2019($options);
+        }
+
         $spreadsheet = new Spreadsheet;
         $spreadsheet->removeSheetByIndex(0);
 
@@ -303,6 +314,261 @@ final class SheetWorkbookFactory
                 $sheet->setCellValue($columns[3].$row, $item[2]);
             }
         }
+    }
+
+    /**
+     * @param  array<string, mixed>  $options
+     */
+    private static function build2019(array $options): string
+    {
+        $spreadsheet = new Spreadsheet;
+        $spreadsheet->removeSheetByIndex(0);
+
+        $previous = new Worksheet($spreadsheet, 'grudzień_18');
+        $spreadsheet->addSheet($previous);
+        $previous->setCellValue('A1', 'Budżet miesięczny');
+        $previous->setCellValue('B5', 7520);
+
+        $summary = new Worksheet($spreadsheet, 'Podsumowanie');
+        $summary->fromArray(['Wydatki', 'Przychody'], null, 'H1');
+
+        foreach (self::MONTHS as $number => $name) {
+            $sheet = new Worksheet($spreadsheet, $name.'_19');
+            $spreadsheet->addSheet($sheet);
+            [$income, $expense] = $number <= 6
+                ? self::monthBefore2019Template($sheet, $number, $options['months'][$number] ?? [])
+                : self::monthOf2019Template($sheet, $number, $options['months'][$number] ?? []);
+            $summary->setCellValue('H'.(2 + $number), $expense / 100);
+            $summary->setCellValue('I'.(2 + $number), $income / 100);
+        }
+
+        $spreadsheet->addSheet($summary);
+        $summary->setCellValue('H16', isset($options['analysis']) ? $options['analysis'][1] : '=SUM(H3:H14)');
+        $summary->setCellValue('I16', isset($options['analysis']) ? $options['analysis'][0] : '=SUM(I3:I14)');
+        $spreadsheet->getSheetByName('grudzień_19')->setCellValue('C31', 43830);
+
+        if (isset($options['mutate'])) {
+            ($options['mutate'])($spreadsheet);
+        }
+
+        $path = tempnam(sys_get_temp_dir(), 'sheet-').'.xlsx';
+        (new Xlsx($spreadsheet))->save($path);
+        $spreadsheet->disconnectWorksheets();
+
+        return $path;
+    }
+
+    /**
+     * January-June: labels in A, plan in B, actual in C. Variant A ("Przychody" in A5) is two rows lower than variant B (A3);
+     * June has one "osobiste" row with an actual instead of the two personal rows. The personal lists sit in F-I.
+     *
+     * @param  array<string, mixed>  $month
+     * @return array{0: int, 1: int} income and expense in minor units, without the goals and savings rows
+     */
+    private static function monthBefore2019Template(Worksheet $sheet, int $number, array $month): array
+    {
+        $top = $number <= 2 ? 5 : 3;
+        $income = $month['income'] ?? ['praca: Sebastian' => 4000.00, 'praca: Jana' => 3000.00, 'stypendium' => 1000.00];
+        $expenses = $month['expenses'] ?? ['Czynsz' => 1250.00, 'prąd+gaz' => 0.0, 'Codzienne wydatki' => 900.00, 'Lekarze' => 150.00];
+        $sebastian = $month['sebastian'] ?? [['fryzjer', 30.00], ['bilet', 120.00]];
+        $jana = $month['jana'] ?? [['filtr', 58.00], ['lekarstwa', 50.00]];
+        $home = $month['home'] ?? [['raty za stół', 110.00], ['prąd', 192.00]];
+        $goals = $month['goals'] ?? [['ubezpieczenie samochodu', 120.00]];
+
+        $sheet->setCellValue('A1', 'Budżet miesięczny');
+        $sheet->setCellValue('A'.$top, 'Przychody');
+        $row = $top + 1;
+
+        foreach ($income as $label => $amount) {
+            $sheet->setCellValue('A'.$row, $number === 2 && $row === $top + 1 ? self::richText($label) : $label);
+            $sheet->setCellValue('B'.$row, $amount);
+            $row++;
+        }
+
+        $sheet->setCellValue('B'.$top, '='.implode('+', array_map(fn (int $r): string => 'B'.$r, range($top + 1, $row - 1))));
+        $expenseTop = $top + 5;
+        $sheet->setCellValue('A'.$expenseTop, 'Wydatki');
+        $row = $expenseTop + 1;
+
+        foreach ($expenses as $label => $amount) {
+            self::writeActualRow($sheet, $row++, $label, $amount);
+        }
+
+        $sheet->fromArray(['Wydatki osobiste'], null, 'F'.$top);
+        $sheet->setCellValue('F'.($top + 1), 'Sebastian');
+        $sheet->setCellValue('H'.($top + 1), 'Jana');
+        self::writeNamedAmounts($sheet, $sebastian, $top + 2, 'F', 'G');
+        self::writeNamedAmounts($sheet, $jana, $top + 2, 'H', 'I');
+        $sheet->setCellValue('F'.($top + 13), 'Cele (odkładane przez Sebastiana)');
+        self::writeNamedAmounts($sheet, $goals, $top + 14, 'F', 'I');
+        $sheet->setCellValue('F'.($top + 18), 'Dom i akcesoria');
+        self::writeNamedAmounts($sheet, $home, $top + 19, 'F', 'I');
+
+        $homeSum = '=SUM(I'.($top + 19).':I'.($top + 22).')';
+        $janaSum = 'SUM(I'.($top + 2).':I'.($top + 10).')';
+        $sebastianSum = 'SUM(G'.($top + 2).':G'.($top + 10).')';
+        $goalsSum = '=SUM(I'.($top + 14).':I'.($top + 16).')';
+
+        if ($number === 6) {
+            self::writeListRow($sheet, $row++, 'akcesoria do domu', $homeSum, true);
+            self::writeListRow($sheet, $row++, 'osobiste', '='.$sebastianSum.'+'.$janaSum, true);
+            self::writeListRow($sheet, $row++, 'cele: Sebastian', $goalsSum, true);
+        } else {
+            self::writeListRow($sheet, $row++, 'akcesoria do domu', $homeSum, false);
+            self::writeListRow($sheet, $row++, 'osobiste: Jana', '='.$janaSum, false);
+            self::writeListRow($sheet, $row++, 'osobiste: Sebastian', '='.$sebastianSum, false);
+            self::writeListRow($sheet, $row++, 'cele: Sebastian', $goalsSum, false);
+        }
+
+        $sheet->setCellValue('A'.$row, 'Oszczędności');
+        $sheet->setCellValue('B'.$row, 0);
+
+        $expenseTotal = array_sum(array_map(self::grosze(...), $expenses))
+            + self::sumAmounts($sebastian) + self::sumAmounts($jana) + self::sumAmounts($home);
+
+        return [array_sum(array_map(self::grosze(...), $income)), $expenseTotal];
+    }
+
+    /**
+     * July-December: income labels in A and amounts in C; expense labels in B, plan in C, actual in D, "Pozostałe" below
+     * the last row. The personal lists sit in G-J (G-L from October with "plan:" and "wydatek:" columns); "Cele do
+     * odłożenia" and "Dom i akcesoria" follow in G. In November and December "Codzienne wydatki" is broken down in M12:O16.
+     *
+     * @param  array<string, mixed>  $month
+     * @return array{0: int, 1: int} income and expense in minor units, without the goals and savings rows
+     */
+    private static function monthOf2019Template(Worksheet $sheet, int $number, array $month): array
+    {
+        $split = $number >= 10;
+        $income = $month['income'] ?? ['praca: Sebastian' => 4000.00, 'praca: Jana' => 3000.00, 'inne' => 100.00];
+        $expenses = $month['expenses'] ?? ['Rata kredytu' => 1000.00, 'Czynsz' => 500.00, 'Rachunki' => 180.00, 'Codzienne wydatki' => 900.00, 'Lekarze' => 400.00];
+        $sebastian = $month['sebastian'] ?? [['fryzjer', 30.00], ['bilet', 120.00]];
+        $jana = $month['jana'] ?? [['filtr', 58.00], ['lekarstwa', 50.00]];
+        $home = $month['home'] ?? [['farby', 259.83], ['tapeta', 438.00]];
+        $daily = $number >= 11 ? ($month['daily'] ?? ['Jedzenie' => 600.00, 'Higiena i kosmetyki' => 150.00, 'Środki czystości' => 100.00, 'Gospodarstwo domowe' => 0.0]) : null;
+
+        if ($daily !== null && isset($expenses['Codzienne wydatki'])) {
+            $expenses['Codzienne wydatki'] = array_sum($daily);
+        }
+
+        $sheet->setCellValue('A1', 'BUDŻET MIESIĘCZNY');
+        $sheet->setCellValue('A2', 'Przychody');
+        $row = 3;
+
+        foreach ($income as $label => $amount) {
+            $sheet->setCellValue('A'.$row, $label);
+            $sheet->setCellValue('C'.$row, $amount);
+            $row++;
+        }
+
+        $sheet->setCellValue('C2', '=SUM(C3:C6)');
+        $sheet->setCellValue('A7', 'Wydatki');
+        $row = 8;
+
+        foreach ($expenses as $label => $amount) {
+            $sheet->setCellValue('B'.$row, $label);
+            $sheet->setCellValue('C'.$row, $amount);
+            $sheet->setCellValue('D'.$row, $daily !== null && $label === 'Codzienne wydatki' ? '=SUM(O13:O16)' : $amount);
+            $row++;
+        }
+
+        $first = $split ? 5 : 4;
+        $janaName = $split ? 'J' : 'I';
+        [$sebastianPlan, $sebastianSpent, $janaPlan, $janaSpent, $homeSpent] = $split ? ['H', 'I', 'K', 'L', 'L'] : ['H', 'H', 'J', 'J', 'J'];
+
+        $sheet->setCellValue('G2', 'Wydatki osobiste');
+        $sheet->setCellValue('G3', 'Sebastian');
+        $sheet->setCellValue($janaName.'3', 'Jana');
+
+        if ($split) {
+            $sheet->fromArray(['plan:', 'wydatek:'], null, 'H4');
+            $sheet->fromArray(['plan:', 'wydatek:'], null, 'K4');
+        }
+
+        self::writeNamedAmounts($sheet, $sebastian, $first, 'G', $sebastianSpent, $split ? $sebastianPlan : null);
+        self::writeNamedAmounts($sheet, $jana, $first, $janaName, $janaSpent, $split ? $janaPlan : null);
+        $sheet->setCellValue('G16', 'Cele do odłożenia');
+        $sheet->setCellValue('G17', 'Fundusz spłaty kredytu');
+        $sheet->setCellValue($homeSpent.'17', 200);
+        $sheet->setCellValue('G22', 'Dom i akcesoria');
+        self::writeNamedAmounts($sheet, $home, 23, 'G', $homeSpent);
+
+        $personal = 'SUM('.$sebastianSpent.$first.':'.$sebastianSpent.($first + 8).')+SUM('.$janaSpent.$first.':'.$janaSpent.($first + 8).')';
+        $sheet->setCellValue('B'.$row, 'Osobiste');
+        $sheet->setCellValue('D'.$row++, '='.$personal);
+        $sheet->setCellValue('B'.$row, 'Akcesoria do domu');
+        $sheet->setCellValue('D'.$row++, '=SUM('.$homeSpent.'23:'.$homeSpent.'26)');
+        $sheet->setCellValue('B'.$row, 'Cele');
+        $sheet->setCellValue('D'.$row++, 200);
+        $sheet->setCellValue('B'.$row, 'Oszczędności (10%)');
+        $sheet->setCellValue('D'.$row++, 100);
+        $sheet->setCellValue('B'.$row, 'Pozostałe');
+
+        if ($daily !== null) {
+            $sheet->setCellValue('M12', 'Codzienne wydatki');
+            $dailyRow = 13;
+
+            foreach ($daily as $label => $amount) {
+                $sheet->setCellValue('M'.$dailyRow, $label);
+                $sheet->setCellValue('O'.$dailyRow++, $amount);
+            }
+        }
+
+        $expenseTotal = array_sum(array_map(self::grosze(...), $expenses))
+            + self::sumAmounts($sebastian) + self::sumAmounts($jana) + self::sumAmounts($home);
+
+        return [array_sum(array_map(self::grosze(...), $income)), $expenseTotal];
+    }
+
+    private static function writeActualRow(Worksheet $sheet, int $row, string $label, float $amount): void
+    {
+        $sheet->setCellValue('A'.$row, $label);
+        $sheet->setCellValue('B'.$row, $amount);
+        $sheet->setCellValue('C'.$row, $amount);
+    }
+
+    /**
+     * A list row of variants A and B: the list sum in B; from June also an actual in C that repeats it.
+     */
+    private static function writeListRow(Worksheet $sheet, int $row, string $label, string $sum, bool $withActual): void
+    {
+        $sheet->setCellValue('A'.$row, $label);
+        $sheet->setCellValue('B'.$row, $sum);
+
+        if ($withActual) {
+            $sheet->setCellValue('C'.$row, '=B'.$row);
+        }
+    }
+
+    /**
+     * @param  list<array{0: string, 1: float}>  $items
+     */
+    private static function writeNamedAmounts(Worksheet $sheet, array $items, int $start, string $nameColumn, string $amountColumn, ?string $planColumn = null): void
+    {
+        foreach ($items as $index => [$name, $amount]) {
+            $sheet->setCellValue($nameColumn.($start + $index), $name);
+            $sheet->setCellValue($amountColumn.($start + $index), $amount);
+
+            if ($planColumn !== null) {
+                $sheet->setCellValue($planColumn.($start + $index), $amount + 1);
+            }
+        }
+    }
+
+    /**
+     * @param  list<array{0: string, 1: float}>  $items
+     */
+    private static function sumAmounts(array $items): int
+    {
+        return array_sum(array_map(fn (array $item): int => self::grosze($item[1]), $items));
+    }
+
+    private static function richText(string $text): RichText
+    {
+        $richText = new RichText;
+        $richText->createText($text);
+
+        return $richText;
     }
 
     private static function grosze(mixed $amount): int

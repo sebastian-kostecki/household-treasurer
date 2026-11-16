@@ -17,11 +17,19 @@ final class BudgetSheetReader
         7 => 'lipiec', 8 => 'sierpień', 9 => 'wrzesień', 10 => 'październik', 11 => 'listopad', 12 => 'grudzień',
     ];
 
-    public function __construct(private readonly MonthSheetReader $monthReader = new MonthSheetReader) {}
+    public function __construct(
+        private readonly MonthSheetReader $monthReader = new MonthSheetReader,
+        private readonly MonthSheet2019Reader $month2019Reader = new MonthSheet2019Reader,
+    ) {}
 
     public function read(string $path): BudgetSheet
     {
         $spreadsheet = $this->load($path);
+        $suffix = $this->suffix2019($spreadsheet);
+
+        if ($suffix !== null) {
+            return $this->read2019($spreadsheet, $suffix);
+        }
 
         $layout = $this->layout($spreadsheet);
         $year = $layout === SheetLayout::Since2022 ? $this->settingsYear($spreadsheet) : $this->decemberYear($spreadsheet);
@@ -38,6 +46,61 @@ final class BudgetSheetReader
             new SheetEntry('przychody', 'przychody', $analysis->amount('B', 16), $analysis->address('B', 16)),
             new SheetEntry('wydatki', 'wydatki', $analysis->amount('C', 16), $analysis->address('C', 16)),
         );
+    }
+
+    /**
+     * The 2019 workbook has a `Podsumowanie` sheet and month sheets with a year suffix (`styczeń_19`); returns that suffix.
+     */
+    private function suffix2019(Spreadsheet $spreadsheet): ?string
+    {
+        if ($spreadsheet->getSheetByName('Podsumowanie') === null) {
+            return null;
+        }
+
+        foreach ($spreadsheet->getSheetNames() as $name) {
+            if (preg_match('/^'.preg_quote(self::MONTH_SHEETS[1], '/').'(_\d{2})$/u', $name, $matches) === 1) {
+                return $matches[1];
+            }
+        }
+
+        return null;
+    }
+
+    private function read2019(Spreadsheet $spreadsheet, string $suffix): BudgetSheet
+    {
+        $months = [];
+
+        foreach (self::MONTH_SHEETS as $number => $name) {
+            $months[$number] = $this->month2019Reader->read($spreadsheet->getSheetByName($name.$suffix) ?? $this->missing($name.$suffix), $number);
+        }
+
+        $summary = $this->sheet($spreadsheet, 'Podsumowanie');
+
+        return new BudgetSheet(
+            $this->year2019($spreadsheet, $suffix),
+            $months,
+            new SheetEntry('przychody', 'przychody', $summary->amount('I', 16), $summary->address('I', 16)),
+            new SheetEntry('wydatki', 'wydatki', $summary->amount('H', 16), $summary->address('H', 16)),
+        );
+    }
+
+    /**
+     * `grudzień_19!C31` is the last day of the month: 31 December of the year, which must agree with the sheet suffix.
+     */
+    private function year2019(Spreadsheet $spreadsheet, string $suffix): int
+    {
+        $december = $this->sheet($spreadsheet, self::MONTH_SHEETS[12].$suffix);
+        $serial = $december->serial('C', 31);
+
+        if ($serial !== null) {
+            $date = Date::excelToDateTimeObject($serial);
+
+            if ($date->format('m-d') === '12-31' && (int) $date->format('Y') % 100 === (int) substr($suffix, 1)) {
+                return (int) $date->format('Y');
+            }
+        }
+
+        throw new SheetReadException($december->address('C', 31), 'oczekiwana data 31 grudnia roku arkusza zgodnego z sufiksem '.$suffix.' (liczba będąca datą Excela)');
     }
 
     /**

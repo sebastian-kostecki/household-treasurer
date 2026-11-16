@@ -565,9 +565,9 @@ Brak migracji. Wycofanie: `budget:unload-sheet {user} 2019`, które usuwa też �
 
 #### Automated
 
-- [x] 1.1 ADR-0102 istnieje, a ADR-0096 decyzja 1 ma dopisek „Extended by ADR-0102”
-- [x] 1.2 Skrypt dowodu poprawki kończy się kodem 0 (dokładnie komórki z tabeli, wartości = silnik, H16 = 67 286,75, I16 = 78 039,29, unzip -t)
-- [x] 1.3 SHA-256 kopii przed-korekta równa się b99e9217…0f6
+- [x] 1.1 ADR-0102 istnieje, a ADR-0096 decyzja 1 ma dopisek „Extended by ADR-0102” — 592d854
+- [x] 1.2 Skrypt dowodu poprawki kończy się kodem 0 (dokładnie komórki z tabeli, wartości = silnik, H16 = 67 286,75, I16 = 78 039,29, unzip -t) — 592d854
+- [x] 1.3 SHA-256 kopii przed-korekta równa się b99e9217…0f6 — 592d854
 
 #### Manual
 
@@ -578,9 +578,9 @@ Brak migracji. Wycofanie: `budget:unload-sheet {user} 2019`, które usuwa też �
 
 #### Automated
 
-- [ ] 2.1 Testy czytnika przechodzą
-- [ ] 2.2 PHPStan i Pint bez błędów
-- [ ] 2.3 Czytnik na prawdziwym poprawionym pliku zwraca rok 2019, 12 miesięcy i sumy Podsumowania
+- [x] 2.1 Testy czytnika przechodzą
+- [x] 2.2 PHPStan i Pint bez błędów
+- [x] 2.3 Czytnik na prawdziwym poprawionym pliku zwraca rok 2019, 12 miesięcy i sumy Podsumowania
 
 ### Phase 3: Planer, mapowanie i nowe kategorie
 
