@@ -6,8 +6,9 @@ use App\Support\SheetLoad\SheetMapping;
  * The mapping of the old budget sheet to the Category list, accepted by the user (legacy-budget-import, ADR-0085).
  * Labels are normalised: lower case, no trailing `*`, "work:" written as "praca:". A target is a Category id,
  * SheetMapping::SKIP (a transfer, not an operation, outside "Analiza"), SheetMapping::FUND (a fund movement of 2020-2021,
- * ADR-0096: no operation, but "Analiza" counts it; only in `expenses` and `income`) or SheetMapping::NEW_CATEGORY
- * (the archived "Kosmetyki"; no label uses it since "Kosmetyki" became Category 42 "Chemia i kosmetyki").
+ * ADR-0096: no operation, but "Analiza" counts it; only in `expenses` and `income`) or the key of a `new_categories`
+ * entry (SheetMapping::NEW_CATEGORY is the archived "Kosmetyki", unused since it became Category 42 "Chemia i
+ * kosmetyki"; "stypendium" is the archived income Category of 2019, ADR-0102).
  * Ids come from production; `categories` holds the name and type each id must have in the target database (the
  * command refuses on any difference), as the list stands after it was rebuilt on 2026-11-13 (ADR-0096, decision 6).
  */
@@ -57,6 +58,29 @@ return [
         'święta' => SheetMapping::FUND,
         'prezenty' => SheetMapping::FUND,
         'nadpłata kredytu' => SheetMapping::FUND,
+
+        // 2019 (ADR-0102). "Rachunki" is split by `overrides` (Telefony, Internet), the rest is Prąd.
+        'prąd+gaz' => 15,
+        'rachunki (prąd+telefon+internet)' => 15,
+        'rachunki' => 15,
+        'samochód: inne' => 17,
+        'cinema city' => 23,
+        'rozrywka: inne' => 23,
+        'rozrywka - inne' => 23,
+        'wyjścia' => 23,
+        'lekarze' => 20,
+        'zdrowie i uroda: inne' => 20,
+        'apteka i kosmetyki' => 12,
+        'akcesoria do domu' => 37,
+        'osobiste' => 29,
+        'osobiste: jana' => 29,
+        'osobiste: sebastian' => 29,
+        'siłownia' => 49,
+        // The goals and savings are neither operations nor part of "Podsumowanie" (ADR-0102 decision 3).
+        'cele' => SheetMapping::SKIP,
+        'cele: sebastian' => SheetMapping::SKIP,
+        'oszczędności' => SheetMapping::SKIP,
+        'oszczędności (10%)' => SheetMapping::SKIP,
     ],
 
     // 2022: the breakdown of "Codzienne wydatki" in G25:I31; 2020-2021 add the two labels below.
@@ -133,6 +157,10 @@ return [
         // The same Category as the premie: the only negative cell (grudzień 2021) moves into the premie cell of its
         // month; in Category 7 it would be the lone cell of its source and the planner would refuse.
         'międzyokresowe' => 1,
+
+        // 2019 (ADR-0102): the scholarship is a new archived Category of income; "z poprzedniego" is a carry-over.
+        'stypendium' => 'stypendium',
+        'z poprzedniego' => SheetMapping::SKIP,
     ],
 
     // Part of a cell becomes a separate operation in another Category.
@@ -140,6 +168,19 @@ return [
         ['year' => 2023, 'month' => 2, 'label' => 'pozostałe', 'amount_minor_units' => 683_107, 'category' => 6, 'description' => 'Zwrot podatku'],
         ['year' => 2024, 'month' => 2, 'label' => 'pozostałe', 'amount_minor_units' => 582_320, 'category' => 6, 'description' => 'Zwrot podatku'],
         ['year' => 2025, 'month' => 2, 'label' => 'pozostałe', 'amount_minor_units' => 579_012, 'category' => 6, 'description' => 'Zwrot podatku'],
+
+        // 2019 (ADR-0102): "Rachunki" of July-December is one cell, split by the components of its formula; the rest is Prąd (15).
+        ['year' => 2019, 'month' => 7, 'label' => 'rachunki (prąd+telefon+internet)', 'amount_minor_units' => 13_100, 'category' => 14, 'description' => 'Play (arkusz 2019)', 'type' => 'expense'],
+        ['year' => 2019, 'month' => 8, 'label' => 'rachunki', 'amount_minor_units' => 13_000, 'category' => 14, 'description' => 'Play (arkusz 2019)', 'type' => 'expense'],
+        ['year' => 2019, 'month' => 8, 'label' => 'rachunki', 'amount_minor_units' => 5_999, 'category' => 44, 'description' => 'UPC (arkusz 2019)', 'type' => 'expense'],
+        ['year' => 2019, 'month' => 9, 'label' => 'rachunki', 'amount_minor_units' => 13_021, 'category' => 14, 'description' => 'Play (arkusz 2019)', 'type' => 'expense'],
+        ['year' => 2019, 'month' => 9, 'label' => 'rachunki', 'amount_minor_units' => 9_518, 'category' => 44, 'description' => 'UPC (arkusz 2019)', 'type' => 'expense'],
+        ['year' => 2019, 'month' => 10, 'label' => 'rachunki', 'amount_minor_units' => 13_813, 'category' => 14, 'description' => 'Play (arkusz 2019)', 'type' => 'expense'],
+        ['year' => 2019, 'month' => 10, 'label' => 'rachunki', 'amount_minor_units' => 5_099, 'category' => 44, 'description' => 'UPC (arkusz 2019)', 'type' => 'expense'],
+        ['year' => 2019, 'month' => 11, 'label' => 'rachunki', 'amount_minor_units' => 13_014, 'category' => 14, 'description' => 'Play (arkusz 2019)', 'type' => 'expense'],
+        ['year' => 2019, 'month' => 11, 'label' => 'rachunki', 'amount_minor_units' => 5_099, 'category' => 44, 'description' => 'UPC (arkusz 2019)', 'type' => 'expense'],
+        ['year' => 2019, 'month' => 12, 'label' => 'rachunki', 'amount_minor_units' => 13_115, 'category' => 14, 'description' => 'Play (arkusz 2019)', 'type' => 'expense'],
+        ['year' => 2019, 'month' => 12, 'label' => 'rachunki', 'amount_minor_units' => 5_099, 'category' => 44, 'description' => 'UPC (arkusz 2019)', 'type' => 'expense'],
     ],
 
     'categories' => [
@@ -182,14 +223,26 @@ return [
         42 => ['name' => 'Chemia i kosmetyki', 'type' => 'expense'],
         44 => ['name' => 'Internet', 'type' => 'expense'],
         45 => ['name' => 'Streaming', 'type' => 'expense'],
+        49 => ['name' => 'Sport', 'type' => 'expense'],
     ],
 
-    // Created archived, without joining the drafts, with one Running entry of the Rhythm from 2022-01.
-    'new_category' => [
-        'name' => 'Kosmetyki',
-        'type' => 'expense',
-        'icon' => 'sparkles',
-        'color' => '#ec4899',
-        'rhythm_start' => '2022-01',
+    // Created archived, without joining the drafts, keyed by the target that stands for them. An expense Category gets
+    // one Running entry of the Rhythm from `rhythm_start` ("Kosmetyki": 2022-01); an income Category has no Rhythm.
+    'new_categories' => [
+        'kosmetyki' => [
+            'name' => 'Kosmetyki',
+            'type' => 'expense',
+            'icon' => 'sparkles',
+            'color' => '#ec4899',
+            'rhythm_start' => '2022-01',
+        ],
+        // 2019 (ADR-0102): the scholarship, only in 2019.
+        'stypendium' => [
+            'name' => 'Stypendium',
+            'type' => 'income',
+            'icon' => 'graduation-cap',
+            'color' => '#6366f1',
+            'rhythm_start' => null,
+        ],
     ],
 ];

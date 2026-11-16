@@ -6,6 +6,23 @@ Domain terms (_Current Plan_, _Own Transfer_, _Capital Movement_…) come from t
 
 ## [Unreleased]
 
+## [1.5.1] — 2026-11-16
+
+The year 2019 can be loaded from its own budget workbook (ADR-0102).
+
+### Added
+
+- `budget:load-sheet` reads `Budżet_2019.xlsx`, a workbook with the sheets `<month>_19` in three variants and `Podsumowanie` instead of "Analiza" (the year comes from `grudzień_19!C31`). The totals are checked against `Podsumowanie!I16`/`H16`; the goals ("Cele") and savings are skipped, as `Podsumowanie` does not count them. The personal lists of Sebastian and Jana and "Dom i akcesoria" become one operation per item in the Category of their row, and "Rachunki" (July–December) is split into Telefony, Internet and Prąd. `Budżet_2019.xlsx` has to be the copy with the fixed `Podsumowanie!H3:H14` and `marzec_19!B3` (SHA-256 in the README, "Wczytanie arkusza") (`sheet-load-2019`, ADR-0102, extends ADR-0085 and ADR-0096).
+- Loading 2019 creates the archived income Category "Stypendium"; `budget:unload-sheet 2019` removes it again when nothing else uses it (ADR-0102).
+
+### Changed
+
+- `--dry-run` refuses a mapping target that is neither a mapped Category nor a new Category, so a typo fails the preview instead of the write.
+
+### Fixed
+
+- `budget:unload-sheet` removes a new Category ("Kosmetyki", "Stypendium") only when the unloaded Budget had a line for it, and the load refuses to reuse an archived one without lines, so a Category the user made is never deleted by an unload (ADR-0102).
+
 ## [1.5.0] — 2026-11-15
 
 Milestone M-4: "Raporty" (Reports) compare every Category across the years 2020–2026, the year report ranks Categories from the largest and opens a panel of one Category, "Kategorie" (Categories) is split into tabs with search and filters, and the "Rok budżetu" (budget year) menu shows which year is current and which is a draft. Production moves to `budget.kostecki.dev`.
@@ -271,7 +288,8 @@ The first version (MVP) deployed to production: a yearly household budget and li
 - Polish landing page, the Geist typeface with `latin-ext`, the first design system with colour tokens and amber non-blocking warnings.
 - Production Docker stack (behind Traefik and Cloudflare, HTTPS), a deploy script from `main`, CI in GitHub Actions, the NFR-PERF-01 performance test on PostgreSQL, PHPStan at level 7.
 
-[Unreleased]: https://github.com/sebastian-kostecki/household-treasurer/compare/v1.5.0...HEAD
+[Unreleased]: https://github.com/sebastian-kostecki/household-treasurer/compare/v1.5.1...HEAD
+[1.5.1]: https://github.com/sebastian-kostecki/household-treasurer/compare/v1.5.0...v1.5.1
 [1.5.0]: https://github.com/sebastian-kostecki/household-treasurer/compare/v1.4.5...v1.5.0
 [1.4.5]: https://github.com/sebastian-kostecki/household-treasurer/compare/v1.4.4...v1.4.5
 [1.4.4]: https://github.com/sebastian-kostecki/household-treasurer/compare/v1.4.3...v1.4.4

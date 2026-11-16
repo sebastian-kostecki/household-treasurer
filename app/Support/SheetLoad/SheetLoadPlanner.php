@@ -27,12 +27,15 @@ final class SheetLoadPlanner
         $transfers = [];
         $operations = [];
         $fundMovements = [];
+        $usedOverrides = [];
 
         foreach ($sheet->months as $month) {
-            array_push($operations, ...$this->expenseOperations($sheet->year, $month, $remainders, $fundMovements));
+            array_push($operations, ...$this->expenseOperations($sheet->year, $month, $remainders, $fundMovements, $usedOverrides));
         }
 
-        array_push($operations, ...$this->incomeOperations($sheet, $transfers, $fundMovements));
+        array_push($operations, ...$this->incomeOperations($sheet, $transfers, $fundMovements, $usedOverrides));
+        $this->assertOverridesUsed($sheet->year, $usedOverrides);
+        $this->assertTargetsDefined($operations);
 
         $plan = new SheetLoadPlan(
             $sheet->year, $operations, $sheet->warnings(), $transfers, $remainders,
@@ -48,15 +51,20 @@ final class SheetLoadPlanner
     /**
      * @param  list<SheetWarning>  $remainders
      * @param  list<FundMovement>  $fundMovements
+     * @param  array<int, true>  $usedOverrides
      * @return list<PlannedOperation>
      */
-    private function expenseOperations(int $year, MonthSheet $month, array &$remainders, array &$fundMovements): array
+    private function expenseOperations(int $year, MonthSheet $month, array &$remainders, array &$fundMovements, array &$usedOverrides): array
     {
         $date = $this->lastDay($year, $month->month);
         $operations = [];
 
         foreach ($month->expenses as $entry) {
-            $target = $this->mapping->expense($entry->label) ?? $this->unknownLabel($entry->address, $entry->rawLabel);
+            $target = $this->rowTarget($entry);
+
+            if (isset($month->rowLists[$entry->address]) && in_array($target, [SheetMapping::FUND, SheetMapping::SKIP], true)) {
+                throw new SheetLoadException($entry->address, 'wiersz z listą pozycji nie może mieć celu „'.$target.'” w mapowaniu');
+            }
 
             if ($target === SheetMapping::FUND) {
                 $this->recordFund($fundMovements, $entry, $entry->amountMinorUnits, FinancialOperationType::Expense);
@@ -67,7 +75,8 @@ final class SheetLoadPlanner
             $block = $this->listedBlock($year, $month, $entry);
 
             if ($block === null) {
-                $operations[] = $this->rowOperation($year, $date, FinancialOperationType::Expense, $target, $entry);
+                $amount = $this->applyExpenseOverrides($year, $month->month, $entry, $target, $operations, $usedOverrides);
+                $operations[] = $this->rowOperation($year, $date, FinancialOperationType::Expense, $target, $entry, $amount);
 
                 continue;
             }
@@ -81,18 +90,23 @@ final class SheetLoadPlanner
     }
 
     /**
-     * The list that replaces the row of a block: medical, exams or (2022) the breakdown of Codzienne wydatki.
+     * The list that replaces the row of a block: the list bound to the row (2019), medical, exams or (2022) the
+     * breakdown of Codzienne wydatki. `remainder` is the target of what the list does not explain.
      *
-     * @return array{name: string, remainder: 'medical'|'daily', items: list<array{name: ?string, amount: int, address: string, target: int|string}>}|null
+     * @return array{name: string, remainder: int|string, items: list<array{name: ?string, amount: int, address: string, target: int|string}>}|null
      */
     private function listedBlock(int $year, MonthSheet $month, SheetEntry $entry): ?array
     {
+        if (isset($month->rowLists[$entry->address])) {
+            return ['name' => $entry->label, 'remainder' => $this->rowTarget($entry), 'items' => $this->listItems($month->rowLists[$entry->address], $entry)];
+        }
+
         if (in_array($entry->label, MonthSheet::TREATMENT_ROWS, true)) {
-            return ['name' => $entry->label, 'remainder' => 'medical', 'items' => $this->listItems($month->medicalList, $entry)];
+            return ['name' => $entry->label, 'remainder' => $this->mapping->remainder('medical'), 'items' => $this->listItems($month->medicalList, $entry)];
         }
 
         if ($entry->label === 'badania') {
-            return ['name' => 'badania', 'remainder' => 'medical', 'items' => $this->listItems($month->examsList, $entry)];
+            return ['name' => 'badania', 'remainder' => $this->mapping->remainder('medical'), 'items' => $this->listItems($month->examsList, $entry)];
         }
 
         if ($month->dailyBreakdown !== null && str_starts_with($entry->label, 'codzienne')) {
@@ -103,7 +117,7 @@ final class SheetLoadPlanner
                 'target' => $this->mapping->dailyBreakdown($item->label) ?? $this->unknownLabel($item->address, $item->rawLabel),
             ], $month->dailyBreakdown);
 
-            return ['name' => 'codzienne wydatki', 'remainder' => 'daily', 'items' => $items];
+            return ['name' => 'codzienne wydatki', 'remainder' => $this->mapping->remainder('daily'), 'items' => $items];
         }
 
         return null;
@@ -115,7 +129,7 @@ final class SheetLoadPlanner
      */
     private function listItems(array $list, SheetEntry $row): array
     {
-        $target = $this->mapping->expense($row->label) ?? $this->unknownLabel($row->address, $row->rawLabel);
+        $target = $this->rowTarget($row);
 
         return array_map(fn (SheetListItem $item): array => [
             'name' => $item->name,
@@ -125,8 +139,13 @@ final class SheetLoadPlanner
         ], $list);
     }
 
+    private function rowTarget(SheetEntry $row): int|string
+    {
+        return $this->mapping->expense($row->label) ?? $this->unknownLabel($row->address, $row->rawLabel);
+    }
+
     /**
-     * @param  array{name: string, remainder: 'medical'|'daily', items: list<array{name: ?string, amount: int, address: string, target: int|string}>}  $block
+     * @param  array{name: string, remainder: int|string, items: list<array{name: ?string, amount: int, address: string, target: int|string}>}  $block
      * @param  list<SheetWarning>  $remainders
      * @return list<PlannedOperation>
      */
@@ -136,7 +155,7 @@ final class SheetLoadPlanner
         $listSum = array_sum(array_column($block['items'], 'amount'));
 
         if ($row->amountMinorUnits !== $listSum) {
-            $operations[] = $this->remainderOperation($year, $month, $row, $block['name'], $this->mapping->remainder($block['remainder']), $row->amountMinorUnits - $listSum, $remainders);
+            $operations[] = $this->remainderOperation($year, $month, $row, $block['name'], $block['remainder'], $row->amountMinorUnits - $listSum, $remainders);
         }
 
         return $operations;
@@ -196,7 +215,7 @@ final class SheetLoadPlanner
     /**
      * @param  list<SheetWarning>  $remainders
      */
-    private function remainderOperation(int $year, MonthSheet $month, SheetEntry $block, string $blockName, int $category, int $amount, array &$remainders): PlannedOperation
+    private function remainderOperation(int $year, MonthSheet $month, SheetEntry $block, string $blockName, int|string $category, int $amount, array &$remainders): PlannedOperation
     {
         $description = 'reszta bez rozpisania: '.$blockName.' (arkusz '.$year.', '.$month->name.')';
         $remainders[] = new SheetWarning($block->address, $description.': '.MinorUnits::toMajorDisplay($amount).' zł');
@@ -219,12 +238,13 @@ final class SheetLoadPlanner
     /**
      * @param  list<SheetWarning>  $transfers
      * @param  list<FundMovement>  $fundMovements
+     * @param  array<int, true>  $usedOverrides
      * @return list<PlannedOperation>
      */
-    private function incomeOperations(BudgetSheet $sheet, array &$transfers, array &$fundMovements): array
+    private function incomeOperations(BudgetSheet $sheet, array &$transfers, array &$fundMovements, array &$usedOverrides): array
     {
         $operations = [];
-        $groups = $this->incomeGroups($sheet, $operations, $fundMovements);
+        $groups = $this->incomeGroups($sheet, $operations, $fundMovements, $usedOverrides);
 
         foreach ($groups as $cells) {
             $this->assertPositiveYear($cells);
@@ -244,12 +264,12 @@ final class SheetLoadPlanner
      *
      * @param  list<PlannedOperation>  $operations  receives the override operations
      * @param  list<FundMovement>  $fundMovements  receives the cells mapped to `SheetMapping::FUND`, which join no group
+     * @param  array<int, true>  $usedOverrides
      * @return array<int|string, list<array{month: int, entry: SheetEntry, amount: int}>>
      */
-    private function incomeGroups(BudgetSheet $sheet, array &$operations, array &$fundMovements): array
+    private function incomeGroups(BudgetSheet $sheet, array &$operations, array &$fundMovements, array &$usedOverrides): array
     {
         $overrides = $this->mapping->overrides($sheet->year);
-        $used = [];
         $groups = [];
 
         foreach ($sheet->months as $month) {
@@ -264,9 +284,9 @@ final class SheetLoadPlanner
                 }
 
                 foreach ($overrides as $index => $override) {
-                    if ($override['month'] === $month->month && $override['label'] === $entry->label) {
-                        $amount = $this->applyOverride($override, $entry, $amount, $sheet->year, $operations);
-                        $used[$index] = true;
+                    if (($override['type'] ?? 'income') === 'income' && $override['month'] === $month->month && $override['label'] === $entry->label) {
+                        $amount = $this->applyOverride($override, FinancialOperationType::Income, $entry, $amount, $sheet->year, $operations);
+                        $usedOverrides[$index] = true;
                     }
                 }
 
@@ -276,27 +296,58 @@ final class SheetLoadPlanner
             }
         }
 
-        foreach ($overrides as $index => $override) {
-            if (! isset($used[$index])) {
-                throw new SheetLoadException('mapowanie', 'nadpisanie '.$override['year'].'-'.$override['month'].' „'.$override['label'].'” nie pasuje do żadnej komórki');
-            }
-        }
-
         return $groups;
     }
 
     /**
-     * @param  array{year: int, month: int, label: string, amount_minor_units: int, category: int, description: string}  $override
+     * Takes the expense overrides of the row's cell off the cell, each as an operation in its own Category; the rest
+     * of the cell stays the row's amount. A row with a list is not split, so its override stays unused and is refused.
+     *
+     * @param  list<PlannedOperation>  $operations  receives the override operations
+     * @param  array<int, true>  $usedOverrides
+     */
+    private function applyExpenseOverrides(int $year, int $month, SheetEntry $entry, int|string $target, array &$operations, array &$usedOverrides): int
+    {
+        $amount = $entry->amountMinorUnits;
+
+        foreach ($this->mapping->overrides($year) as $index => $override) {
+            if (($override['type'] ?? 'income') === 'expense' && $override['month'] === $month && $override['label'] === $entry->label) {
+                if ($target === SheetMapping::SKIP) {
+                    throw new SheetLoadException($entry->address, 'wiersz z celem „'.$target.'” w mapowaniu nie może mieć nadpisania wydatku');
+                }
+
+                $amount = $this->applyOverride($override, FinancialOperationType::Expense, $entry, $amount, $year, $operations);
+                $usedOverrides[$index] = true;
+            }
+        }
+
+        return $amount;
+    }
+
+    /**
+     * @param  array<int, true>  $usedOverrides
+     */
+    private function assertOverridesUsed(int $year, array $usedOverrides): void
+    {
+        foreach ($this->mapping->overrides($year) as $index => $override) {
+            if (! isset($usedOverrides[$index])) {
+                throw new SheetLoadException('mapowanie', 'nadpisanie '.$override['year'].'-'.$override['month'].' „'.$override['label'].'” nie pasuje do żadnej komórki');
+            }
+        }
+    }
+
+    /**
+     * @param  array{year: int, month: int, label: string, amount_minor_units: int, category: int, description: string, type?: 'income'|'expense'}  $override
      * @param  list<PlannedOperation>  $operations
      */
-    private function applyOverride(array $override, SheetEntry $entry, int $amount, int $year, array &$operations): int
+    private function applyOverride(array $override, FinancialOperationType $type, SheetEntry $entry, int $amount, int $year, array &$operations): int
     {
         if ($override['amount_minor_units'] > $amount) {
             throw new SheetLoadException($entry->address, 'nadpisanie '.MinorUnits::toMajorDisplay($override['amount_minor_units']).' zł przekracza kwotę komórki '.MinorUnits::toMajorDisplay($amount).' zł');
         }
 
         $operations[] = new PlannedOperation(
-            $this->lastDay($year, $override['month']), FinancialOperationType::Income, $override['category'],
+            $this->lastDay($year, $override['month']), $type, $override['category'],
             $override['amount_minor_units'], mb_substr($override['description'], 0, self::DESCRIPTION_LIMIT), $entry->address,
         );
 
@@ -368,6 +419,27 @@ final class SheetLoadPlanner
         }
 
         throw new SheetLoadException($cells[$from]['entry']->address, 'ujemny przychód −'.MinorUnits::toMajorDisplay($deficit).' zł nie mieści się w żadnym innym miesiącu źródła');
+    }
+
+    /**
+     * Every operation goes to a Category the mapping checks (`categories`) or to one of its new Categories, so a typo in
+     * a target fails the dry run instead of the write.
+     *
+     * @param  list<PlannedOperation>  $operations
+     */
+    private function assertTargetsDefined(array $operations): void
+    {
+        $expected = $this->mapping->expectedCategories();
+
+        foreach ($operations as $operation) {
+            $defined = is_int($operation->category)
+                ? isset($expected[$operation->category])
+                : $this->mapping->isNewCategory($operation->category);
+
+            if (! $defined) {
+                throw new SheetLoadException($operation->address, 'cel „'.$operation->category.'” nie jest kategorią z sekcji `categories` ani nową kategorią mapowania');
+            }
+        }
     }
 
     private function assertTotal(int $planned, int $fund, SheetEntry $analysis, string $name): void

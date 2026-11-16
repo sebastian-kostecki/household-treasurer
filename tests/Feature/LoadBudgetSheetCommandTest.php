@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\CategoryType;
 use App\Models\Category;
 use App\Models\User;
 use App\Support\ControlNumbers;
@@ -71,6 +72,48 @@ test('dry-run names the new Category only when the plan writes to it', function 
         $this->artisan('budget:load-sheet', ['user' => (string) $user->id, 'path' => $path, '--dry-run' => true])
             ->expectsOutputToContain('Kategoria „Kosmetyki” zostanie utworzona')
             ->assertExitCode(0);
+    });
+});
+
+test('dry-run of a 2019 workbook announces the archived Stypendium, prints no fund section and the totals without fund movements', function () {
+    $user = sheetLoadUserWithMappedCategories();
+    $before = app(ControlNumbers::class)->collect();
+
+    SheetWorkbookFactory::with(['layout' => '2019', 'year' => 2019, 'months' => SheetWorkbookFactory::bills2019Months()], function (string $path) use ($user): void {
+        $this->artisan('budget:load-sheet', ['user' => (string) $user->id, 'path' => $path, '--dry-run' => true])
+            ->expectsOutputToContain('Arkusz 2019')
+            ->expectsOutputToContain('Kategoria „Stypendium” zostanie utworzona (zarchiwizowana).')
+            ->expectsOutputToContain('„Analiza” Podsumowanie!I16:')
+            ->expectsOutputToContain('„Analiza” Podsumowanie!H16:')
+            ->doesntExpectOutputToContain('Ruchy funduszu')
+            ->doesntExpectOutputToContain('+ ruchy funduszu')
+            ->doesntExpectOutputToContain('Kosmetyki')
+            ->assertExitCode(0);
+    });
+
+    expect(app(ControlNumbers::class)->collect())->toBe($before)
+        ->and(Category::query()->where('name', 'Stypendium')->exists())->toBeFalse();
+});
+
+test('dry-run of a 2019 workbook says that an existing Stypendium will be used', function () {
+    $user = sheetLoadUserWithMappedCategories();
+    $existing = Category::factory()->create(['user_id' => $user->id, 'name' => 'Stypendium', 'type' => CategoryType::Income]);
+
+    SheetWorkbookFactory::with(['layout' => '2019', 'year' => 2019, 'months' => SheetWorkbookFactory::bills2019Months()], function (string $path) use ($user, $existing): void {
+        $this->artisan('budget:load-sheet', ['user' => (string) $user->id, 'path' => $path, '--dry-run' => true])
+            ->expectsOutputToContain("Kategoria „Stypendium” już istnieje (id {$existing->id}) i zostanie użyta.")
+            ->assertExitCode(0);
+    });
+});
+
+test('dry-run of a 2019 workbook refuses an archived Stypendium without lines', function () {
+    $user = sheetLoadUserWithMappedCategories();
+    $archived = Category::factory()->create(['user_id' => $user->id, 'name' => 'Stypendium', 'type' => CategoryType::Income, 'archived_at' => now()]);
+
+    SheetWorkbookFactory::with(['layout' => '2019', 'year' => 2019, 'months' => SheetWorkbookFactory::bills2019Months()], function (string $path) use ($user, $archived): void {
+        $this->artisan('budget:load-sheet', ['user' => (string) $user->id, 'path' => $path, '--dry-run' => true])
+            ->expectsOutputToContain("Kategoria „Stypendium” (id {$archived->id}) jest zarchiwizowana i nie ma linii w żadnym Budżecie")
+            ->assertExitCode(1);
     });
 });
 

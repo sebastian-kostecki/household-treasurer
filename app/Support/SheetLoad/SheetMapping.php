@@ -3,10 +3,12 @@
 namespace App\Support\SheetLoad;
 
 use App\Enums\CategoryType;
+use InvalidArgumentException;
 
 /**
  * The accepted mapping of sheet labels to Category ids (`database/sheet-load/mapping.php`), read-only.
- * A target is a Category id, `SKIP`, `FUND` or `NEW_CATEGORY`; an unknown label is null.
+ * A target is a Category id, `SKIP`, `FUND` or the key of a new Category (`NEW_CATEGORY` is "Kosmetyki", ADR-0102
+ * adds "stypendium"); an unknown label is null.
  *
  * `SKIP` is a transfer that is neither an operation nor part of "Analiza". `FUND` is a fund movement (ADR-0096):
  * no operation, but "Analiza" counts it, so the planner adds it to the reconciliation. `FUND` is allowed only in the
@@ -65,7 +67,9 @@ final readonly class SheetMapping
     }
 
     /**
-     * @return list<array{year: int, month: int, label: string, amount_minor_units: int, category: int, description: string}>
+     * An override without `type` is an income override; `'type' => 'expense'` splits an expense cell (ADR-0102).
+     *
+     * @return list<array{year: int, month: int, label: string, amount_minor_units: int, category: int, description: string, type?: 'income'|'expense'}>
      */
     public function overrides(int $year): array
     {
@@ -92,14 +96,37 @@ final readonly class SheetMapping
     }
 
     /**
-     * @return array{name: string, type: CategoryType, icon: string, color: string, rhythm_start: string}
+     * The definitions of the Categories a load may create, keyed by the target they stand for.
+     *
+     * @return array<string, array{name: string, type: CategoryType, icon: string, color: string, rhythm_start: ?string}>
      */
-    public function newCategory(): array
+    public function newCategories(): array
     {
-        $category = $this->data['new_category'];
-        $category['type'] = CategoryType::from($category['type']);
+        $definitions = [];
 
-        return $category;
+        foreach ($this->data['new_categories'] ?? [] as $key => $category) {
+            $category['type'] = CategoryType::from($category['type']);
+            $definitions[(string) $key] = $category;
+        }
+
+        return $definitions;
+    }
+
+    /**
+     * The target of the new Category with this key.
+     */
+    public function newCategoryTarget(string $key): string
+    {
+        if (! isset($this->data['new_categories'][$key])) {
+            throw new InvalidArgumentException("No new Category with the key \"{$key}\" in the mapping.");
+        }
+
+        return $key;
+    }
+
+    public function isNewCategory(int|string $target): bool
+    {
+        return is_string($target) && isset($this->data['new_categories'][$target]);
     }
 
     /**
@@ -111,7 +138,7 @@ final readonly class SheetMapping
             return $this->expectedCategories()[$target]['name'] ?? '(brak w mapowaniu)';
         }
 
-        return $this->data['new_category']['name'];
+        return $this->data['new_categories'][$target]['name'] ?? '(brak w mapowaniu)';
     }
 
     private function lookup(string $section, string $key): int|string|null

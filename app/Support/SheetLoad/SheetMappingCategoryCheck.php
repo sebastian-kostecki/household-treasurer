@@ -2,6 +2,7 @@
 
 namespace App\Support\SheetLoad;
 
+use App\Models\BudgetLine;
 use App\Models\Category;
 use App\Models\User;
 use App\Support\CategoryList\CategoryNameKey;
@@ -38,11 +39,39 @@ final class SheetMappingCategoryCheck
     }
 
     /**
-     * The expense Category that a load would reuse instead of creating "Kosmetyki", if there is one.
+     * The new Categories of the plan that a load must not reuse: an archived Category without a Budget Line whose
+     * definition has no `rhythm_start` looks exactly like one the load created, so an unload would delete it (ADR-0102).
+     *
+     * @return list<string>
      */
-    public function existingNewCategory(User $user, SheetMapping $mapping): ?Category
+    public function newCategoryProblems(User $user, SheetMapping $mapping, SheetLoadPlan $plan): array
     {
-        $new = $mapping->newCategory();
+        $problems = [];
+
+        foreach (array_keys($plan->categoryTotals()) as $target) {
+            if (! $mapping->isNewCategory($target)) {
+                continue;
+            }
+
+            $existing = $this->existingNewCategory($user, $mapping, (string) $target);
+
+            if ($existing !== null
+                && $mapping->newCategories()[(string) $target]['rhythm_start'] === null
+                && $existing->archived_at !== null
+                && ! BudgetLine::query()->where('category_id', $existing->id)->exists()) {
+                $problems[] = "Kategoria „{$existing->name}” (id {$existing->id}) jest zarchiwizowana i nie ma linii w żadnym Budżecie: wycofanie nie odróżniłoby jej od kategorii utworzonej przez wczytanie. Przywróć ją z archiwum albo zmień jej nazwę.";
+            }
+        }
+
+        return $problems;
+    }
+
+    /**
+     * The Category that a load would reuse instead of creating the new Category with this key, if there is one.
+     */
+    public function existingNewCategory(User $user, SheetMapping $mapping, string $key): ?Category
+    {
+        $new = $mapping->newCategories()[$key];
 
         return Category::query()
             ->where('user_id', $user->id)

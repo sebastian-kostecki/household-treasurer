@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\CategoryType;
 use App\Enums\FinancialOperationType;
 use App\Support\SheetLoad\BudgetSheetReader;
 use App\Support\SheetLoad\PlannedOperation;
@@ -7,6 +8,7 @@ use App\Support\SheetLoad\SheetLoadException;
 use App\Support\SheetLoad\SheetLoadPlan;
 use App\Support\SheetLoad\SheetLoadPlanner;
 use App\Support\SheetLoad\SheetMapping;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use Tests\Support\SheetWorkbookFactory;
 
 /**
@@ -306,3 +308,230 @@ test('a negative międzyokresowe cell moves into the premie cell of the same mon
         ->and((string) $plan->transfers[0])->toContain('grudzień!H7')
         ->and(collect($plan->operations)->where('description', 'międzyokresowe (arkusz 2020)')->all())->toBe([]);
 });
+
+/**
+ * @param  array<string, mixed>  $options
+ * @param  Closure(array<string, mixed>): array<string, mixed>  $edit  changes the data of the real mapping
+ */
+function planSheetWithMapping(array $options, Closure $edit): SheetLoadPlan
+{
+    $plan = null;
+
+    SheetWorkbookFactory::with($options, function (string $path) use (&$plan, $edit): void {
+        $data = $edit(require __DIR__.'/../../database/sheet-load/mapping.php');
+        $plan = (new SheetLoadPlanner(new SheetMapping($data)))->plan((new BudgetSheetReader)->read($path));
+    });
+
+    return $plan;
+}
+
+/**
+ * The 2019 fixture with the cell of the January "osobiste: Jana" row set to $zloty (the list there sums to 108,00) and
+ * "Podsumowanie" adjusted by the difference, so only the remainder is in play.
+ *
+ * @return array<string, mixed>
+ */
+function janaRowOptions(float $zloty): array
+{
+    $base = planSheet(['layout' => '2019', 'year' => 2019]);
+
+    return [
+        'layout' => '2019',
+        'year' => 2019,
+        'analysis' => [$base->analysisIncome->amountMinorUnits / 100, ($base->analysisExpense->amountMinorUnits + (int) round($zloty * 100) - 10_800) / 100],
+        'mutate' => fn (Spreadsheet $spreadsheet) => $spreadsheet->getSheetByName('styczeń_19')->setCellValue('B16', $zloty),
+    ];
+}
+
+/**
+ * @param  array<string, mixed>  $data
+ * @return array<string, mixed>
+ */
+function onlyOverridesOf2019Until(array $data, int $lastMonth): array
+{
+    $data['overrides'] = array_values(array_filter(
+        $data['overrides'],
+        fn (array $override): bool => $override['year'] === 2019 && $override['month'] <= $lastMonth,
+    ));
+
+    return $data;
+}
+
+test('2019 reconciles with Podsumowanie to the grosz: goals and savings skipped, no fund movement, the scholarship in its new Category', function () {
+    $plan = planSheet(['layout' => '2019', 'year' => 2019]);
+    $descriptions = collect($plan->operations)->pluck('description')->implode('|');
+
+    expect($plan->year)->toBe(2019)
+        ->and($plan->incomeTotal())->toBe($plan->analysisIncome->amountMinorUnits)
+        ->and($plan->expenseTotal())->toBe($plan->analysisExpense->amountMinorUnits)
+        ->and($plan->fundMovements)->toBe([])
+        ->and($plan->remainders)->toBe([])
+        ->and($plan->categoryTotals())->toHaveKey('stypendium')
+        ->and($plan->categoryTotals())->not->toHaveKey('kosmetyki')
+        ->and($descriptions)->not->toContain('cele')->not->toContain('Oszczędności')
+        ->and(collect($plan->operations)->firstWhere('description', 'stypendium (arkusz 2019)')->category)->toBe('stypendium')
+        ->and(operationsOf($plan, '2019-12-31', 8))->not->toBeEmpty();
+});
+
+test('a row list becomes operations in the Category of its row, named with the person', function () {
+    $plan = planSheet(['layout' => '2019', 'year' => 2019]);
+    $personal = operationsOf($plan, '2019-01-31', 29);
+    $january = collect($personal)->pluck('amountMinorUnits', 'description');
+
+    expect($personal)->toHaveCount(4)
+        ->and($january['filtr (Jana)'])->toBe(5_800)
+        ->and($january['lekarstwa (Jana)'])->toBe(5_000)
+        ->and($january['fryzjer (Sebastian)'])->toBe(3_000)
+        ->and(collect(operationsOf($plan, '2019-01-31', 37))->pluck('description')->all())->toContain('raty za stół');
+});
+
+test('what a row list does not explain is a remainder in the Category of the row, positive and negative', function () {
+    $above = planSheet(janaRowOptions(120.00));
+    $below = planSheet(janaRowOptions(100.00));
+
+    $positive = collect($above->operations)->firstWhere('description', 'reszta bez rozpisania: osobiste: jana (arkusz 2019, styczeń_19)');
+    $negative = collect($below->operations)->firstWhere('description', 'reszta bez rozpisania: osobiste: jana (arkusz 2019, styczeń_19)');
+
+    expect($positive->category)->toBe(29)
+        ->and($positive->amountMinorUnits)->toBe(1_200)
+        ->and($negative->category)->toBe(29)
+        ->and($negative->amountMinorUnits)->toBe(-800)
+        ->and($above->remainders)->toHaveCount(1)
+        ->and($above->remainders[0]->address)->toBe('styczeń_19!B16')
+        ->and($above->expenseTotal())->toBe($above->analysisExpense->amountMinorUnits)
+        ->and($below->expenseTotal())->toBe($below->analysisExpense->amountMinorUnits);
+});
+
+test('refuses a row with a list whose target is a fund movement or a skip, naming the row', function (string $target) {
+    $failure = null;
+
+    try {
+        planSheetWithMapping(['layout' => '2019', 'year' => 2019], function (array $data) use ($target): array {
+            $data['expenses']['osobiste: jana'] = $target;
+
+            return $data;
+        });
+    } catch (SheetLoadException $e) {
+        $failure = $e;
+    }
+
+    expect($failure)->toBeInstanceOf(SheetLoadException::class)
+        ->and($failure->address)->toBe('styczeń_19!B16')
+        ->and($failure->getMessage())->toContain('listą');
+})->with([SheetMapping::FUND, SheetMapping::SKIP]);
+
+test('an expense override splits the cell into its own operations and the rest stays in the row Category', function () {
+    $months = [
+        7 => ['expenses' => ['Rachunki (prąd+telefon+internet)' => 248.05]],
+        8 => ['expenses' => ['Rachunki' => 268.62]],
+        9 => ['expenses' => ['Rachunki' => 225.39]],
+    ];
+    $plan = planSheetWithMapping(['layout' => '2019', 'year' => 2019, 'months' => $months], fn (array $data): array => onlyOverridesOf2019Until($data, 9));
+    $amounts = fn (string $date, int $category): array => array_map(fn (PlannedOperation $op): int => $op->amountMinorUnits, operationsOf($plan, $date, $category));
+
+    expect($amounts('2019-07-31', 14))->toBe([13_100])
+        ->and($amounts('2019-07-31', 44))->toBe([])
+        ->and($amounts('2019-07-31', 15))->toBe([11_705])
+        ->and($amounts('2019-08-31', 14))->toBe([13_000])
+        ->and($amounts('2019-08-31', 44))->toBe([5_999])
+        ->and($amounts('2019-08-31', 15))->toBe([7_863])
+        ->and($amounts('2019-09-30', 14))->toBe([13_021])
+        ->and($amounts('2019-09-30', 44))->toBe([9_518])
+        ->and($amounts('2019-09-30', 15))->toBe([])
+        ->and(collect($plan->operations)->where('description', 'UPC (arkusz 2019)')->first()->type)->toBe(FinancialOperationType::Expense)
+        ->and($plan->expenseTotal())->toBe($plan->analysisExpense->amountMinorUnits);
+});
+
+test('refuses an expense override above its cell and an expense override without a cell', function () {
+    $above = null;
+    $missing = null;
+
+    try {
+        planSheetWithMapping(['layout' => '2019', 'year' => 2019, 'months' => [8 => ['expenses' => ['Rachunki' => 180.00]]]], fn (array $data): array => onlyOverridesOf2019Until($data, 8));
+    } catch (SheetLoadException $e) {
+        $above = $e;
+    }
+
+    try {
+        planSheetWithMapping(['layout' => '2019', 'year' => 2019], fn (array $data): array => onlyOverridesOf2019Until($data, 7));
+    } catch (SheetLoadException $e) {
+        $missing = $e;
+    }
+
+    expect($above)->toBeInstanceOf(SheetLoadException::class)
+        ->and($above->getMessage())->toContain('przekracza')
+        ->and($above->address)->toBe('sierpień_19!D8')
+        ->and($missing)->toBeInstanceOf(SheetLoadException::class)
+        ->and($missing->getMessage())->toContain('nie pasuje');
+});
+
+test('the real mapping defines the new Categories and the 2019 Rachunki overrides sum to the agreed split', function () {
+    $mapping = new SheetMapping(require __DIR__.'/../../database/sheet-load/mapping.php');
+    $overrides = $mapping->overrides(2019);
+    $byCategory = fn (int $category): int => array_sum(array_column(array_filter($overrides, fn (array $o): bool => $o['category'] === $category), 'amount_minor_units'));
+
+    expect(array_keys($mapping->newCategories()))->toBe(['kosmetyki', 'stypendium'])
+        ->and($mapping->newCategoryTarget('stypendium'))->toBe('stypendium')
+        ->and($mapping->isNewCategory('stypendium'))->toBeTrue()
+        ->and($mapping->isNewCategory(SheetMapping::SKIP))->toBeFalse()
+        ->and($mapping->targetName('stypendium'))->toBe('Stypendium')
+        ->and($mapping->expectedCategories()[49])->toBe(['name' => 'Sport', 'type' => CategoryType::Expense])
+        ->and($mapping->expense('siłownia'))->toBe(49)
+        ->and($byCategory(14))->toBe(79_063)
+        ->and($byCategory(44))->toBe(30_814)
+        ->and(array_filter($overrides, fn (array $o): bool => ($o['type'] ?? null) !== 'expense'))->toBe([])
+        ->and(array_filter($mapping->overrides(2023), fn (array $o): bool => isset($o['type'])))->toBe([]);
+});
+
+test('the real mapping maps every 2019 label of ADR-0102', function () {
+    $mapping = new SheetMapping(require __DIR__.'/../../database/sheet-load/mapping.php');
+    $expenses = [
+        'prąd+gaz' => 15, 'rachunki (prąd+telefon+internet)' => 15, 'rachunki' => 15, 'samochód: inne' => 17,
+        'cinema city' => 23, 'rozrywka: inne' => 23, 'rozrywka - inne' => 23, 'wyjścia' => 23, 'lekarze' => 20,
+        'zdrowie i uroda: inne' => 20, 'apteka i kosmetyki' => 12, 'akcesoria do domu' => 37, 'osobiste' => 29,
+        'osobiste: jana' => 29, 'osobiste: sebastian' => 29, 'siłownia' => 49, 'cele' => SheetMapping::SKIP,
+        'cele: sebastian' => SheetMapping::SKIP, 'oszczędności' => SheetMapping::SKIP, 'oszczędności (10%)' => SheetMapping::SKIP,
+    ];
+    $income = ['stypendium' => 'stypendium', 'z poprzedniego' => SheetMapping::SKIP, 'inne' => 7, 'oszczędności' => SheetMapping::SKIP];
+
+    expect(array_map(fn (string $label): int|string|null => $mapping->expense($label), array_combine(array_keys($expenses), array_keys($expenses))))->toBe($expenses)
+        ->and(array_map(fn (string $label): int|string|null => $mapping->income($label), array_combine(array_keys($income), array_keys($income))))->toBe($income);
+});
+
+test('refuses an expense override on a row the mapping skips', function () {
+    $failure = null;
+
+    try {
+        planSheetWithMapping(['layout' => '2019', 'year' => 2019, 'months' => SheetWorkbookFactory::bills2019Months()], function (array $data): array {
+            $data['expenses']['rachunki'] = SheetMapping::SKIP;
+
+            return $data;
+        });
+    } catch (SheetLoadException $e) {
+        $failure = $e;
+    }
+
+    expect($failure)->toBeInstanceOf(SheetLoadException::class)
+        ->and($failure->address)->toStartWith('sierpień_19!D')
+        ->and($failure->getMessage())->toContain('nie może mieć nadpisania wydatku');
+});
+
+test('refuses a target that is neither a mapped Category nor a new Category, before anything is written', function (string $section, string $label, int|string $target) {
+    $failure = null;
+
+    try {
+        planSheetWithMapping(['layout' => '2019', 'year' => 2019, 'months' => SheetWorkbookFactory::bills2019Months()], function (array $data) use ($section, $label, $target): array {
+            $data[$section][$label] = $target;
+
+            return $data;
+        });
+    } catch (SheetLoadException $e) {
+        $failure = $e;
+    }
+
+    expect($failure)->toBeInstanceOf(SheetLoadException::class)
+        ->and($failure->getMessage())->toContain('cel „'.$target.'” nie jest kategorią');
+})->with([
+    'a typo in a new Category key' => ['income', 'stypendium', 'stypendum'],
+    'an id outside categories' => ['expenses', 'czynsz', 999],
+]);

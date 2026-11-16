@@ -22,6 +22,7 @@ final readonly class MonthSheet
      * @param  list<SheetListItem>  $examsList
      * @param  list<SheetEntry>|null  $dailyBreakdown
      * @param  list<SheetWarning>  $warnings
+     * @param  array<string, list<SheetListItem>>  $rowLists  items of a list that belongs to one expense row (2019), keyed by the address of that row's amount cell
      */
     public function __construct(
         public int $month,
@@ -36,5 +37,6 @@ final readonly class MonthSheet
         public array $examsList,
         public ?array $dailyBreakdown,
         public array $warnings,
+        public array $rowLists = [],
     ) {}
 }

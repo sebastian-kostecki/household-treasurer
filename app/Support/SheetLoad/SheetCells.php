@@ -99,6 +99,34 @@ final class SheetCells
         return is_int($value) || is_float($value) || (is_string($value) && is_numeric($value)) ? $value + 0 : null;
     }
 
+    /**
+     * The row as a sheet entry: the normalised label of one column and the amount of another, addressed by the amount.
+     */
+    public function entry(string $labelColumn, string $amountColumn, int $row): SheetEntry
+    {
+        $raw = $this->text($labelColumn, $row) ?? '';
+
+        return new SheetEntry(self::normalizeLabel($raw), $raw, $this->amount($amountColumn, $row), $this->address($amountColumn, $row));
+    }
+
+    /**
+     * The first row from $from to $to (the last row by default) whose label in the column is $label.
+     *
+     * @throws SheetReadException naming the searched range when there is none
+     */
+    public function requireLabel(string $column, string $label, int $from, ?int $to = null): int
+    {
+        $to ??= $this->highestRow();
+
+        for ($row = $from; $row <= $to; $row++) {
+            if ($this->label($column, $row) === $label) {
+                return $row;
+            }
+        }
+
+        throw new SheetReadException($this->rangeAddress($column, $from, max($from, $to)), 'brak etykiety „'.$label.'”');
+    }
+
     public static function normalizeLabel(string $text): string
     {
         $label = mb_strtolower(trim(str_replace("\u{00A0}", ' ', $text)));

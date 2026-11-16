@@ -35,7 +35,7 @@ milestone_status: done
 
 ## Vision recap
 
-Raporty porównują dziś tylko okres z tym samym okresem rok wcześniej (ADR-0074), a Trend pokazuje miesiące jednego roku (ADR-0077). Od wczytania arkusza (ADR-0085, ADR-0096) aplikacja ma budżety 2020–2027 na jednej liście kategorii (ADR-0063), ale nie ma miejsca, w którym widać dłuższy trend kategorii, np. że Wakacje urosły prawie czterokrotnie, a Czynsz o 29%. Ten kamień dodaje taki odczyt i łączy go z raportem roku, a przy okazji wdraża w aplikacji projekty Kategorii i menu roku, które użytkownik wybrał w design systemie.
+Raporty porównują dziś tylko okres z tym samym okresem rok wcześniej (ADR-0074), a Trend pokazuje miesiące jednego roku (ADR-0077). Od wczytania arkusza (ADR-0085, ADR-0096, ADR-0102) aplikacja ma budżety 2019–2027 na jednej liście kategorii (ADR-0063), ale nie ma miejsca, w którym widać dłuższy trend kategorii, np. że Wakacje urosły prawie czterokrotnie, a Czynsz o 29%. Ten kamień dodaje taki odczyt i łączy go z raportem roku, a przy okazji wdraża w aplikacji projekty Kategorii i menu roku, które użytkownik wybrał w design systemie.
 
 ## North star
 
@@ -71,7 +71,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 
 - **Frontend:** present — strony Inertia/Vue, w tym `Categories.vue` i `Reports.vue` (Rok, Miesiąc, 12 miesięcy, Trend), wykresy przez shadcn-vue chart i Unovis (ADR-0071), menu roku `BudgetYearSwitcher.vue` (ADR-0087), design system Atrament z kartami docelowych widoków.
 - **Backend / API:** present — `ReportController` z `PeriodReport`, `ReportTrend`, `ReportTwelveMonthWindow` i `ReportComparisonPeriod`, który już liczy okres do tego samego dnia rok wcześniej (ADR-0074).
-- **Data:** present — jedna lista kategorii przez lata (ADR-0063), scalanie z przeniesieniem historii (ADR-0078), budżety 2020–2027 wczytane z arkusza (ADR-0085, ADR-0096), wzorzec migracji danych z kopią przed wdrożeniem (ADR-0064).
+- **Data:** present — jedna lista kategorii przez lata (ADR-0063), scalanie z przeniesieniem historii (ADR-0078), budżety 2019–2027 wczytane z arkusza (ADR-0085, ADR-0096, ADR-0102), wzorzec migracji danych z kopią przed wdrożeniem (ADR-0064).
 - **Auth:** present — Fortify, 2FA, passkeys, polityki w `app/Policies`.
 - **Deploy / infra:** partial — ręczne `scripts/deploy.sh` z kopią bazy; CI testuje na PostgreSQL, nie wdraża i nie uruchamia E2E.
 - **Observability:** partial — log plikowy, `/up`, `backup:monitor`. Ten kamień nic tu nie wymaga.
