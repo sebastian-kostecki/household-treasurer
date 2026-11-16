@@ -47,7 +47,7 @@ $cells = function ($s) {
         }
     }
 
-return $r;
+    return $r;
 };
 $co = $cells($so);
 $cn = $cells($sn);
