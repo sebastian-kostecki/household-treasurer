@@ -4,8 +4,8 @@ use PhpOffice\PhpSpreadsheet\Calculation\Calculation;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\RichText\RichText;
 
-// Proof of the 2019 workbook fix (context/changes/sheet-load-2019/workbook-fix.md). Run from the repo root on the host:
-// php context/changes/sheet-load-2019/workbook-fix/verify.php "$PWD" storage/app/private/Budżet_2019.przed-korekta.xlsx storage/app/private/Budżet_2019.xlsx
+// Proof of the 2019 workbook fix (context/archive/2026-11-16-sheet-load-2019/workbook-fix.md). Run from the repo root on the host:
+// php context/archive/2026-11-16-sheet-load-2019/workbook-fix/verify.php "$PWD" storage/app/private/Budżet_2019.przed-korekta.xlsx storage/app/private/Budżet_2019.xlsx
 // usage: verify.php <repo> <original> <fixed>
 require $argv[1].'/vendor/autoload.php';
 [$_, $repo, $o, $n] = $argv;

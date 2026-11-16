@@ -1,7 +1,7 @@
 <!-- IMPL-REVIEW-REPORT -->
 # Implementation Review: Wczytanie roku 2019 ze starego arkusza budżetu
 
-- **Plan**: context/changes/sheet-load-2019/plan.md
+- **Plan**: context/archive/2026-11-16-sheet-load-2019/plan.md
 - **Scope**: Phases 1–4 of 5 (faza 5, wczytanie na produkcji, jeszcze nie ruszyła)
 - **Reviewed phases**: 1, 2, 3, 4
 - **Date**: 2026-11-16
@@ -98,7 +98,7 @@ User: „napraw samodzielnie według rekomendacji”. After the fixes:
 - **Severity**: ⚠️ WARNING
 - **Impact**: 🏃 LOW — quick decision; fix is obvious and narrowly scoped
 - **Dimension**: Success Criteria
-- **Location**: context/changes/sheet-load-2019/plan.md:574-575, 595, 607
+- **Location**: context/archive/2026-11-16-sheet-load-2019/plan.md:574-575, 595, 607
 - **Detail**: Fazę 1 zamyka uwaga „zatrzymaj się na potwierdzenie użytkownika (lista kategorii i akceptacja poprawki), zanim ruszy Faza 2”. Mimo to 1.4 i 1.5 są nieodhaczone, a fazy 2–4 są zacommitowane. Wiersz 1.4 jest faktycznie spełniony: `production-categories.md` podaje 49 „Sport”. Wiersz 1.5 (akceptacja poprawionego `H` i `marzec_19!B3`) nie ma śladu. Pozostałe wiersze: 3.4 (przegląd tabeli kategorii 2019, wyżej w Verification run) i 4.4 (README) czekają. Wiersz 3.2 nie ma sha commitu.
 - **Fix**: Przed fazą 5 potwierdzić 1.5, 3.4 i 4.4, odhaczyć 1.4 (sha 592d854) i dopisać sha do 3.2.
 - **Decision**: FIXED (in part): 1.4 checked (592d854), 3.2 has its sha (4a12fc8). 1.5, 3.4 and 4.4 are the user's sign-offs and stay unchecked until the user gives them.

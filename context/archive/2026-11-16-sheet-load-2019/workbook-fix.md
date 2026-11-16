@@ -64,7 +64,7 @@ Skrypty jednorazowe uruchomione na hoście (php 8.4, `vendor` głównego checkou
    - każda podmiana sprawdzona na dokładnie jedno wystąpienie;
    - żadna z tych komórek nie jest częścią formuły współdzielonej (jedyna współdzielona w `marzec_19` to `D9:D14`);
    - pozostałe wpisy archiwum bez zmian.
-4. Dowód: `context/changes/sheet-load-2019/workbook-fix/verify.php`, kod wyjścia 0, wynik „PASS”:
+4. Dowód: `context/archive/2026-11-16-sheet-load-2019/workbook-fix/verify.php`, kod wyjścia 0, wynik „PASS”:
    - zmieniły się dokładnie 3 wpisy archiwum (`xl/workbook.xml`, `sheet4.xml`, `sheet15.xml`);
    - formuła lub zapisana wartość różni się w dokładnie 16 komórkach z tabeli, a liczba komórek jest ta sama;
    - zapisane nowe wartości równają się wynikowi silnika na poprawionym pliku;
@@ -74,5 +74,5 @@ Skrypty jednorazowe uruchomione na hoście (php 8.4, `vendor` głównego checkou
    Uruchomienie z katalogu repo:
 
    ```bash
-   php context/changes/sheet-load-2019/workbook-fix/verify.php "$PWD" storage/app/private/Budżet_2019.przed-korekta.xlsx storage/app/private/Budżet_2019.xlsx
+   php context/archive/2026-11-16-sheet-load-2019/workbook-fix/verify.php "$PWD" storage/app/private/Budżet_2019.przed-korekta.xlsx storage/app/private/Budżet_2019.xlsx
    ```

@@ -1,7 +1,7 @@
 # Wczytanie roku 2019 ze starego arkusza — Plan Brief
 
-> Full plan: `context/changes/sheet-load-2019/plan.md`
-> Research: `context/changes/sheet-load-2019/research.md`
+> Full plan: `context/archive/2026-11-16-sheet-load-2019/plan.md`
+> Research: `context/archive/2026-11-16-sheet-load-2019/research.md`
 
 ## What & Why
 

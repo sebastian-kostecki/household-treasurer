@@ -13,7 +13,7 @@ Sheet Load (ADR-0085, ADR-0096, `budget:load-sheet`) ma wczytać `Budżet_2019.x
 
 ## Current State Analysis
 
-Pełne ustalenia są w `context/changes/sheet-load-2019/research.md`, a decyzje użytkownika w `change.md` (sekcja „Decyzje użytkownika”). Najważniejsze:
+Pełne ustalenia są w `context/archive/2026-11-16-sheet-load-2019/research.md`, a decyzje użytkownika w `change.md` (sekcja „Decyzje użytkownika”). Najważniejsze:
 
 - **Czytnik odrzuca plik przy rozpoznaniu układu.** Szuka arkuszy `styczeń`…`grudzień` (`app/Support/SheetLoad/BudgetSheetReader.php:15`) oraz `Analiza` (`:28`) i zna tylko `Ustawienia` albo „kategoria” w `styczeń!I3` (`:46`). `MonthSheetReader` ma na stałe wydatki B/D, „wydatki nieregularne” i „oszczędności” w G (`MonthSheetReader.php:18-23`), więc 2019 nie da się opisać trzecim `SheetLayout`.
 - **Skoroszyt 2019 (SHA-256 `b99e9217…0f6`) ma trzy warianty miesięcy i `grudzień_18`** (research §1):
@@ -177,7 +177,7 @@ Zapisuje decyzje przed kodem, ustala kategorię sportową z produkcji i poprawia
 
 #### 3. Kategoria sportowa z produkcji
 
-**File**: `context/changes/sheet-load-2019/production-categories.md`
+**File**: `context/archive/2026-11-16-sheet-load-2019/production-categories.md`
 
 **Intent**: Wykonane 2026-11-16 w trakcie planowania (odczyt tylko do odczytu przez SSH, bez `user:backup`): kategoria sportowa to **49 „Sport”**. Notatka zapisuje id, nazwę, typ i stan archiwum kategorii sportowej oraz pełną listę id → nazwa dla id spoza `mapping.php` (13, 26, 38, 40, 41, 43, 46–49).
 
@@ -185,7 +185,7 @@ Zapisuje decyzje przed kodem, ustala kategorię sportową z produkcji i poprawia
 
 #### 4. Poprawka `Budżet_2019.xlsx`
 
-**File**: `storage/app/private/Budżet_2019.xlsx` (poza repo, gitignored) i zapis w `context/changes/sheet-load-2019/workbook-fix.md`
+**File**: `storage/app/private/Budżet_2019.xlsx` (poza repo, gitignored) i zapis w `context/archive/2026-11-16-sheet-load-2019/workbook-fix.md`
 
 **Status**: wykonane 2026-11-16 przed implementacją (na prośbę użytkownika): plik poprawiony, dowód `workbook-fix/verify.php` PASS, zapis w `workbook-fix.md` (SHA-256 po poprawce `73fc70cf…4c86`). Implementacja tej pozycji tylko uruchamia dowód; nie poprawia pliku drugi raz.
 
@@ -204,7 +204,7 @@ Zapisuje decyzje przed kodem, ustala kategorię sportową z produkcji i poprawia
 #### Automated Verification:
 
 - ADR-0102 istnieje, a ADR-0096 decyzja 1 ma dopisek „Extended by ADR-0102”: `grep -n "ADR-0102" context/foundation/adr/0096-sheet-load-of-2020-and-2021.md`
-- Skrypt dowodu poprawki kończy się kodem 0 (`php context/changes/sheet-load-2019/workbook-fix/verify.php "$PWD" storage/app/private/Budżet_2019.przed-korekta.xlsx storage/app/private/Budżet_2019.xlsx`):
+- Skrypt dowodu poprawki kończy się kodem 0 (`php context/archive/2026-11-16-sheet-load-2019/workbook-fix/verify.php "$PWD" storage/app/private/Budżet_2019.przed-korekta.xlsx storage/app/private/Budżet_2019.xlsx`):
   - różnią się dokładnie komórki z tabeli `workbook-fix.md` (poza komórkami `TODAY()`);
   - zapisane nowe wartości równają się wynikowi silnika;
   - `Podsumowanie!H16` = 67 286,75, `I16` = 78 039,29;
@@ -490,7 +490,7 @@ Próba na kopii produkcji, potem wczytanie 2019 na produkcji według README, z d
 
 #### 1. Notatki z wczytania
 
-**File**: `context/changes/sheet-load-2019/production-load-notes.md`
+**File**: `context/archive/2026-11-16-sheet-load-2019/production-load-notes.md`
 
 **Intent**: Ślad wykonania jak w `context/archive/2026-11-13-sheet-load-2020-2021/production-load-notes.md`: wdrożony commit, SHA-256 pliku na serwerze (= poprawiony), pliki snapshotu i liczb kontrolnych „przed”, wynik `--dry-run`, id Budżetu, konta arkusza i „Stypendium”, wynik `--compare`.
 
@@ -547,8 +547,8 @@ Brak migracji. Wycofanie: `budget:unload-sheet {user} 2019`, które usuwa też �
 
 ## References
 
-- Research: `context/changes/sheet-load-2019/research.md`
-- Decyzje użytkownika: `context/changes/sheet-load-2019/change.md`
+- Research: `context/archive/2026-11-16-sheet-load-2019/research.md`
+- Decyzje użytkownika: `context/archive/2026-11-16-sheet-load-2019/change.md`
 - Decyzje bazowe: `context/foundation/adr/0085-sheet-load-of-past-years.md`, `context/foundation/adr/0096-sheet-load-of-2020-and-2021.md`
 - Poprzednia zmiana: `context/archive/2026-11-13-sheet-load-2020-2021/plan.md`, `workbook-fix.md`, `production-load-notes.md`
 - Czytnik: `app/Support/SheetLoad/BudgetSheetReader.php:15,28,46,100`, `MonthSheetReader.php:14-40`, `MonthSheet.php`
@@ -610,7 +610,7 @@ Brak migracji. Wycofanie: `budget:unload-sheet {user} 2019`, które usuwa też �
 
 #### Manual
 
-- [ ] 5.1 Próba na kopii produkcji: wczytanie, compare, wycofanie, ponowne wczytanie
-- [ ] 5.2 SHA-256 pliku na serwerze = po poprawce
-- [ ] 5.3 Produkcja: --dry-run, wczytanie, compare --allow-additions kod 0
-- [ ] 5.4 Aplikacja na produkcji: lata 2019–2027, raport 2020 z kolumną 2019, Lata od 2019, Stypendium zarchiwizowana, saldo i szkic 2027 bez zmian
+- [x] 5.1 Próba na kopii produkcji: wczytanie, compare, wycofanie, ponowne wczytanie — 2026-11-16, production-load-notes.md
+- [x] 5.2 SHA-256 pliku na serwerze = po poprawce — 2026-11-16, production-load-notes.md
+- [x] 5.3 Produkcja: --dry-run, wczytanie, compare --allow-additions kod 0 — 2026-11-16, production-load-notes.md
+- [x] 5.4 Aplikacja na produkcji: lata 2019–2027, raport 2020 z kolumną 2019, Lata od 2019, Stypendium zarchiwizowana, saldo i szkic 2027 bez zmian — potwierdzone przez użytkownika 2026-11-16
