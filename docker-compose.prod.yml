@@ -10,6 +10,11 @@ services:
         image: household-treasurer-app:prod
         container_name: treasurer-app
         restart: unless-stopped
+        # Caps so a runaway import or request cannot take the memory of the other apps and
+        # Vaultwarden on the shared VPS (same limits as root-keeper).
+        mem_limit: 1g
+        cpus: 1.0
+        pids_limit: 256
         environment:
             WWWUSER: ${WWWUSER:-1000}
             SUPERVISOR_PHP_USER: sail
@@ -48,6 +53,9 @@ services:
         image: postgres:18-alpine
         container_name: treasurer-pgsql
         restart: unless-stopped
+        mem_limit: 512m
+        cpus: 0.5
+        pids_limit: 128
         environment:
             PGPASSWORD: ${DB_PASSWORD}
             POSTGRES_DB: ${DB_DATABASE}
