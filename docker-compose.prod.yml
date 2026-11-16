@@ -29,6 +29,8 @@ services:
             - traefik.http.routers.treasurer.rule=Host(`budget.kostecki.dev`)
             - traefik.http.routers.treasurer.entrypoints=websecure
             - traefik.http.routers.treasurer.tls.certresolver=letsencrypt
+            # Security headers shared by the apps: kostecki-dev-infra traefik/dynamic/app-security.yml
+            - traefik.http.routers.treasurer.middlewares=app-security@file
             - traefik.http.services.treasurer.loadbalancer.server.port=80
             # Old address treasurer.kostecki.dev: permanent redirect, path and query kept (301 GET, 308 POST).
             - traefik.http.routers.treasurer-old.rule=Host(`treasurer.kostecki.dev`)

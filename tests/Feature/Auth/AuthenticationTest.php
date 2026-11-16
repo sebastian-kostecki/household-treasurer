@@ -37,6 +37,8 @@ class AuthenticationTest extends TestCase
         $user = User::factory()->create();
 
         $response = $this->withServerVariables([
+            // Traefik, on the Docker proxy network
+            'REMOTE_ADDR' => '172.18.0.5',
             'HTTPS' => '',
             'HTTP_X_FORWARDED_PROTO' => 'https',
             'HTTP_X_FORWARDED_PORT' => '443',
