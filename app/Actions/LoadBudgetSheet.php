@@ -54,9 +54,7 @@ class LoadBudgetSheet
                 throw new SheetLoadException("Kategorie {$plan->year}", implode(' ', $problems));
             }
 
-            $newCategoryId = array_key_exists(SheetMapping::NEW_CATEGORY, $plan->categoryTotals())
-                ? $this->newCategoryId($user, $mapping)
-                : 0;
+            $newCategoryIds = $this->newCategoryIds($user, $plan, $mapping);
             $budget = Budget::query()->create([
                 'user_id' => $user->id,
                 'year' => $plan->year,
@@ -75,8 +73,8 @@ class LoadBudgetSheet
                 'sheet_year' => $plan->year,
             ]);
 
-            $lines = $this->createLines($budget, $plan, $newCategoryId);
-            $this->insertOperations($user, $budget, $account, $plan, $lines, $newCategoryId);
+            $lines = $this->createLines($budget, $plan, $newCategoryIds);
+            $this->insertOperations($user, $budget, $account, $plan, $lines, $newCategoryIds);
             $this->writeExecution($budget);
             $this->assertSums($budget, $account, $plan);
 
@@ -96,21 +94,40 @@ class LoadBudgetSheet
     }
 
     /**
-     * The existing expense Category of the new Category's key, or a new archived one with a single Running entry.
-     * `ChangeCategoryRhythm` runs only for the new one, since it deletes the entries from the given month.
+     * The Category id of every new Category the plan writes to, keyed by its target.
+     *
+     * @return array<string, int>
      */
-    private function newCategoryId(User $user, SheetMapping $mapping): int
+    private function newCategoryIds(User $user, SheetLoadPlan $plan, SheetMapping $mapping): array
     {
-        $existing = $this->categoryCheck->existingNewCategory($user, $mapping);
+        $ids = [];
+
+        foreach (array_keys($plan->categoryTotals()) as $target) {
+            if ($mapping->isNewCategory($target)) {
+                $ids[(string) $target] = $this->newCategoryId($user, $mapping, (string) $target);
+            }
+        }
+
+        return $ids;
+    }
+
+    /**
+     * The existing Category of the new Category's key, or a new archived one; an expense Category gets a single
+     * Running entry from `rhythm_start`, an income Category no Rhythm. `ChangeCategoryRhythm` runs only for the new one,
+     * since it deletes the entries from the given month.
+     */
+    private function newCategoryId(User $user, SheetMapping $mapping, string $key): int
+    {
+        $existing = $this->categoryCheck->existingNewCategory($user, $mapping, $key);
 
         if ($existing !== null) {
             return $existing->id;
         }
 
-        $new = $mapping->newCategory();
+        $new = $mapping->newCategories()[$key];
         $name = CategoryNameKey::trim($new['name']);
         $nameKey = CategoryNameKey::of($name);
-        CategoryNameGuard::assertFree($user->id, CategoryType::Expense, $nameKey);
+        CategoryNameGuard::assertFree($user->id, $new['type'], $nameKey);
 
         $category = Category::query()->create([
             'user_id' => $user->id,
@@ -118,12 +135,14 @@ class LoadBudgetSheet
             'name_key' => $nameKey,
             'icon' => $new['icon'],
             'color' => $new['color'],
-            'type' => CategoryType::Expense,
-            'sort_order' => CategoryListSequence::nextSortOrder($user->id, CategoryType::Expense),
+            'type' => $new['type'],
+            'sort_order' => CategoryListSequence::nextSortOrder($user->id, $new['type']),
             'archived_at' => now(),
         ]);
 
-        $this->changeCategoryRhythm->handle($category, Rhythm::Running, CarbonImmutable::parse($new['rhythm_start'].'-01'));
+        if ($new['type'] === CategoryType::Expense && $new['rhythm_start'] !== null) {
+            $this->changeCategoryRhythm->handle($category, Rhythm::Running, CarbonImmutable::parse($new['rhythm_start'].'-01'));
+        }
 
         return $category->id;
     }
@@ -131,14 +150,15 @@ class LoadBudgetSheet
     /**
      * Lines only for Categories with operations, plan 0 until the operations are in.
      *
+     * @param  array<string, int>  $newCategoryIds
      * @return array<int, int> Category id => Budget Line id
      */
-    private function createLines(Budget $budget, SheetLoadPlan $plan, int $newCategoryId): array
+    private function createLines(Budget $budget, SheetLoadPlan $plan, array $newCategoryIds): array
     {
         $now = now();
         $rows = array_map(fn (int|string $target): array => [
             'budget_id' => $budget->id,
-            'category_id' => $this->categoryId($target, $newCategoryId),
+            'category_id' => $this->categoryId($target, $newCategoryIds),
             'planned_amount_minor_units' => 0,
             'initial_plan_minor_units' => 0,
             'execution_minor_units' => 0,
@@ -156,15 +176,16 @@ class LoadBudgetSheet
 
     /**
      * @param  array<int, int>  $lines
+     * @param  array<string, int>  $newCategoryIds
      */
-    private function insertOperations(User $user, Budget $budget, Account $account, SheetLoadPlan $plan, array $lines, int $newCategoryId): void
+    private function insertOperations(User $user, Budget $budget, Account $account, SheetLoadPlan $plan, array $lines, array $newCategoryIds): void
     {
         $now = now();
         $rows = array_map(fn (PlannedOperation $operation): array => [
             'user_id' => $user->id,
             'type' => $operation->type->value,
             'account_id' => $account->id,
-            'budget_line_id' => $lines[$this->categoryId($operation->category, $newCategoryId)],
+            'budget_line_id' => $lines[$this->categoryId($operation->category, $newCategoryIds)],
             'budget_id' => $budget->id,
             'operation_date' => $operation->date,
             'amount_minor_units' => $operation->amountMinorUnits,
@@ -220,8 +241,11 @@ class LoadBudgetSheet
         }
     }
 
-    private function categoryId(int|string $target, int $newCategoryId): int
+    /**
+     * @param  array<string, int>  $newCategoryIds
+     */
+    private function categoryId(int|string $target, array $newCategoryIds): int
     {
-        return $target === SheetMapping::NEW_CATEGORY ? $newCategoryId : (int) $target;
+        return is_string($target) ? $newCategoryIds[$target] : $target;
     }
 }

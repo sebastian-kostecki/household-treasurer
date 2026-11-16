@@ -38,11 +38,11 @@ final class SheetMappingCategoryCheck
     }
 
     /**
-     * The expense Category that a load would reuse instead of creating "Kosmetyki", if there is one.
+     * The Category that a load would reuse instead of creating the new Category with this key, if there is one.
      */
-    public function existingNewCategory(User $user, SheetMapping $mapping): ?Category
+    public function existingNewCategory(User $user, SheetMapping $mapping, string $key): ?Category
     {
-        $new = $mapping->newCategory();
+        $new = $mapping->newCategories()[$key];
 
         return Category::query()
             ->where('user_id', $user->id)

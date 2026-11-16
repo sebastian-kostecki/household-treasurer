@@ -17,12 +17,12 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * Undoes the Sheet Load of one year (ADR-0085): operations, lines, the Budget and the Sheet Account, plus the
- * archived "Kosmetyki" Category when the load created it and no Budget Line uses it.
+ * archived new Categories ("Kosmetyki", "Stypendium") when the load created them and no Budget Line uses them.
  */
 class UnloadBudgetSheet
 {
     /**
-     * @return array{operations: int, category_removed: bool}
+     * @return array{operations: int, categories_removed: list<string>}
      *
      * @throws SheetLoadException when the year holds anything the load did not write
      */
@@ -45,7 +45,7 @@ class UnloadBudgetSheet
             $budget->delete();
             $account->delete();
 
-            return ['operations' => $operations, 'category_removed' => $this->removeNewCategory($user, $mapping)];
+            return ['operations' => $operations, 'categories_removed' => $this->removeNewCategories($user, $mapping)];
         });
     }
 
@@ -68,19 +68,36 @@ class UnloadBudgetSheet
     }
 
     /**
-     * Removes "Kosmetyki" only when it is archived, has no line or Month Plan item left and its Rhythm history is
-     * exactly the one Running entry the load wrote. A Category the user made stays.
+     * Removes each new Category of the mapping only when it is archived, has no line or Month Plan item left and its
+     * Rhythm history is exactly what the load wrote: the one Running entry from `rhythm_start` (expense) or no entry
+     * (income without `rhythm_start`). A Category the user made stays.
+     *
+     * @return list<string> the names of the removed Categories
      */
-    private function removeNewCategory(User $user, SheetMapping $mapping): bool
+    private function removeNewCategories(User $user, SheetMapping $mapping): array
     {
-        $new = $mapping->newCategory();
-        $category = Category::query()
-            ->where('user_id', $user->id)
-            ->where('type', $new['type'])
-            ->where('name_key', CategoryNameKey::of($new['name']))
-            ->first();
+        $removed = [];
 
-        if ($category === null || $category->archived_at === null) {
+        foreach ($mapping->newCategories() as $new) {
+            $category = Category::query()
+                ->where('user_id', $user->id)
+                ->where('type', $new['type'])
+                ->where('name_key', CategoryNameKey::of($new['name']))
+                ->first();
+
+            if ($category !== null && $this->isOnlyWhatTheLoadWrote($category, $new['rhythm_start'])) {
+                CategoryRhythm::query()->where('category_id', $category->id)->delete();
+                $category->delete();
+                $removed[] = $new['name'];
+            }
+        }
+
+        return $removed;
+    }
+
+    private function isOnlyWhatTheLoadWrote(Category $category, ?string $rhythmStart): bool
+    {
+        if ($category->archived_at === null) {
             return false;
         }
 
@@ -89,19 +106,17 @@ class UnloadBudgetSheet
             return false;
         }
 
-        [$year, $month] = array_map('intval', explode('-', $new['rhythm_start']));
         $entries = CategoryRhythm::query()->where('category_id', $category->id)->get();
 
-        if ($entries->count() !== 1
-            || $entries[0]->start_year !== $year
-            || $entries[0]->start_month !== $month
-            || $entries[0]->rhythm !== Rhythm::Running) {
-            return false;
+        if ($rhythmStart === null) {
+            return $entries->isEmpty();
         }
 
-        $entries[0]->delete();
-        $category->delete();
+        [$year, $month] = array_map('intval', explode('-', $rhythmStart));
 
-        return true;
+        return $entries->count() === 1
+            && $entries[0]->start_year === $year
+            && $entries[0]->start_month === $month
+            && $entries[0]->rhythm === Rhythm::Running;
     }
 }

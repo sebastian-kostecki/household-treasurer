@@ -578,17 +578,17 @@ Brak migracji. Wycofanie: `budget:unload-sheet {user} 2019`, które usuwa też �
 
 #### Automated
 
-- [x] 2.1 Testy czytnika przechodzą
-- [x] 2.2 PHPStan i Pint bez błędów
-- [x] 2.3 Czytnik na prawdziwym poprawionym pliku zwraca rok 2019, 12 miesięcy i sumy Podsumowania
+- [x] 2.1 Testy czytnika przechodzą — d513a39
+- [x] 2.2 PHPStan i Pint bez błędów — d513a39
+- [x] 2.3 Czytnik na prawdziwym poprawionym pliku zwraca rok 2019, 12 miesięcy i sumy Podsumowania — d513a39
 
 ### Phase 3: Planer, mapowanie i nowe kategorie
 
 #### Automated
 
-- [ ] 3.1 Testy Sheet Load na PostgreSQL przechodzą
-- [ ] 3.2 --dry-run poprawionego pliku 2019 z sumami z Desired End State
-- [ ] 3.3 --dry-run plików 2020–2025 z sumami z README
+- [x] 3.1 Testy Sheet Load na PostgreSQL przechodzą
+- [x] 3.2 --dry-run poprawionego pliku 2019 z sumami z Desired End State
+- [x] 3.3 --dry-run plików 2020–2025 z sumami z README
 
 #### Manual
 

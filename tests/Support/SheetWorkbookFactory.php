@@ -430,6 +430,28 @@ final class SheetWorkbookFactory
     }
 
     /**
+     * The "Rachunki" cells of July-December 2019 as the real sheet has them, which the 2019 mapping splits by `overrides`.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public static function bills2019Months(): array
+    {
+        $months = [];
+
+        foreach ([7 => 248.05, 8 => 268.62, 9 => 225.39, 10 => 266.82, 11 => 181.13, 12 => 182.14] as $number => $bills) {
+            $months[$number] = ['expenses' => [
+                'Rata kredytu' => 1000.00,
+                'Czynsz' => 500.00,
+                $number === 7 ? 'Rachunki (prąd+telefon+internet)' : 'Rachunki' => $bills,
+                'Codzienne wydatki' => 900.00,
+                'Lekarze' => 400.00,
+            ]];
+        }
+
+        return $months;
+    }
+
+    /**
      * July-December: income labels in A and amounts in C; expense labels in B, plan in C, actual in D, "Pozostałe" below
      * the last row. The personal lists sit in G-J (G-L from October with "plan:" and "wydatek:" columns); "Cele do
      * odłożenia" and "Dom i akcesoria" follow in G. In November and December "Codzienne wydatki" is broken down in M12:O16.

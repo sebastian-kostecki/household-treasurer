@@ -43,7 +43,14 @@ class UnloadBudgetSheetCommand extends Command
             return self::FAILURE;
         }
 
-        $this->components->info("Wycofano rok {$year}: usunięto {$result['operations']} operacji".($result['category_removed'] ? ' i kategorię „Kosmetyki”.' : '.'));
+        $names = array_map(fn (string $name): string => "„{$name}”", $result['categories_removed']);
+        $categories = match (count($names)) {
+            0 => '.',
+            1 => ' i kategorię '.$names[0].'.',
+            default => ' i kategorie '.implode(', ', $names).'.',
+        };
+
+        $this->components->info("Wycofano rok {$year}: usunięto {$result['operations']} operacji".$categories);
 
         return self::SUCCESS;
     }

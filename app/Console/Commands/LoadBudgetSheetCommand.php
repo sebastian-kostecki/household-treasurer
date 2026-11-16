@@ -88,7 +88,7 @@ class LoadBudgetSheetCommand extends Command
         $rows = [];
 
         foreach ($plan->categoryTotals() as $category => $amount) {
-            $rows[] = [$category === SheetMapping::NEW_CATEGORY ? 'nowa' : $category, $mapping->targetName($category), MinorUnits::toMajorDisplay($amount)];
+            $rows[] = [$mapping->isNewCategory($category) ? 'nowa' : $category, $mapping->targetName($category), MinorUnits::toMajorDisplay($amount)];
         }
 
         $this->table(['Id', 'Kategoria', 'Kwota (zł)'], $rows);
@@ -130,7 +130,7 @@ class LoadBudgetSheetCommand extends Command
     }
 
     /**
-     * The new Category is named only when the plan writes to it, as `LoadBudgetSheet` creates it only then.
+     * A new Category is named only when the plan writes to it, as `LoadBudgetSheet` creates it only then.
      *
      * @param  list<string>  $problems
      */
@@ -144,12 +144,14 @@ class LoadBudgetSheetCommand extends Command
             $this->components->info('Kategorie z mapowania istnieją u użytkownika z oczekiwaną nazwą i typem.');
         }
 
-        if (! array_key_exists(SheetMapping::NEW_CATEGORY, $plan->categoryTotals())) {
-            return;
-        }
+        foreach (array_keys($plan->categoryTotals()) as $target) {
+            if (! $mapping->isNewCategory($target)) {
+                continue;
+            }
 
-        $existing = $check->existingNewCategory($user, $mapping);
-        $name = $mapping->newCategory()['name'];
-        $this->line($existing === null ? "Kategoria „{$name}” zostanie utworzona (zarchiwizowana)." : "Kategoria „{$name}” już istnieje (id {$existing->id}) i zostanie użyta.");
+            $existing = $check->existingNewCategory($user, $mapping, (string) $target);
+            $name = $mapping->targetName($target);
+            $this->line($existing === null ? "Kategoria „{$name}” zostanie utworzona (zarchiwizowana)." : "Kategoria „{$name}” już istnieje (id {$existing->id}) i zostanie użyta.");
+        }
     }
 }

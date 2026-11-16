@@ -66,7 +66,7 @@ final readonly class SheetLoadPlan
     }
 
     /**
-     * Net amount per Category id (or `SheetMapping::NEW_CATEGORY`), in minor units.
+     * Net amount per Category id (or the key of a new Category, e.g. `SheetMapping::NEW_CATEGORY`), in minor units.
      *
      * @return array<int|string, int>
      */

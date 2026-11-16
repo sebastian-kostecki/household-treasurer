@@ -292,6 +292,62 @@ it('keeps an existing Kosmetyki with its Rhythm entries, on load and on unload',
         ->and(CategoryRhythm::query()->where('category_id', $cosmetics->id)->orderBy('id')->pluck('id')->all())->toBe($entries);
 });
 
+it('loads 2019 as additions only, creates an archived Stypendium without a Rhythm and the unload takes it back', function (): void {
+    [$user] = householdBeforeSheetLoad();
+    $before = app(ControlNumbers::class)->collect();
+    $file = tempnam(sys_get_temp_dir(), 'cn');
+    file_put_contents($file, json_encode($before));
+    $categoriesBefore = Category::query()->where('user_id', $user->id)->count();
+
+    expect(loadSheetYear($user, ['layout' => '2019', 'year' => 2019, 'months' => SheetWorkbookFactory::bills2019Months()]))->toBe(0);
+
+    $this->artisan('app:control-numbers', ['--compare' => $file, '--allow-additions' => true])->assertExitCode(0);
+
+    $scholarship = Category::query()->where('user_id', $user->id)->where('name', 'Stypendium')->sole();
+    $budget = $user->budgets()->where('year', 2019)->firstOrFail();
+    $lines = BudgetLine::query()->where('category_id', $scholarship->id)->get();
+
+    expect($scholarship->type)->toBe(CategoryType::Income)
+        ->and($scholarship->archived_at)->not->toBeNull()
+        ->and(CategoryRhythm::query()->where('category_id', $scholarship->id)->count())->toBe(0)
+        ->and($lines)->toHaveCount(1)
+        ->and($lines[0]->budget_id)->toBe($budget->id)
+        ->and($lines[0]->execution_minor_units)->toBe(6 * 100_000)
+        ->and(Category::query()->where('user_id', $user->id)->count())->toBe($categoriesBefore + 1)
+        ->and($budget->financialOperations()->where('account_id', '!=', $user->accounts()->where('sheet_year', 2019)->value('id'))->count())->toBe(0);
+
+    $this->artisan('budget:unload-sheet', ['user' => (string) $user->id, 'year' => 2019, '--force' => true])
+        ->expectsOutputToContain('kategorię „Stypendium”')
+        ->assertExitCode(0);
+
+    expect(Category::query()->where('user_id', $user->id)->where('name', 'Stypendium')->exists())->toBeFalse()
+        ->and(app(ControlNumbers::class)->collect())->toBe($before);
+    unlink($file);
+});
+
+it('keeps an existing Stypendium of the user on load and on unload, also when it has other lines', function (): void {
+    [$user] = householdBeforeSheetLoad();
+    $active = Category::factory()->create(['user_id' => $user->id, 'name' => 'Stypendium', 'type' => CategoryType::Income]);
+
+    loadSheetYear($user, ['layout' => '2019', 'year' => 2019, 'months' => SheetWorkbookFactory::bills2019Months()]);
+
+    expect(Category::query()->where('user_id', $user->id)->where('name', 'Stypendium')->count())->toBe(1)
+        ->and(BudgetLine::query()->where('category_id', $active->id)->exists())->toBeTrue();
+
+    $this->artisan('budget:unload-sheet', ['user' => (string) $user->id, 'year' => 2019, '--force' => true])->assertExitCode(0);
+
+    expect(Category::query()->whereKey($active->id)->exists())->toBeTrue();
+
+    $active->update(['archived_at' => now()]);
+    $draft = $user->budgets()->where('year', 2027)->firstOrFail();
+    BudgetLine::factory()->for($draft)->create(['category_id' => $active->id]);
+
+    loadSheetYear($user, ['layout' => '2019', 'year' => 2019, 'months' => SheetWorkbookFactory::bills2019Months()]);
+    $this->artisan('budget:unload-sheet', ['user' => (string) $user->id, 'year' => 2019, '--force' => true])->assertExitCode(0);
+
+    expect(Category::query()->whereKey($active->id)->exists())->toBeTrue();
+});
+
 it('refuses an unload when the Budget has a Month Plan', function (): void {
     [$user] = householdBeforeSheetLoad();
 
