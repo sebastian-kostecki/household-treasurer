@@ -695,3 +695,121 @@ it('imports the real BNP statement end to end with the balance matching the deri
         ->and($account->refresh()->current_balance_minor_units)->toBe(100000 + 1292377)
         ->and($account->current_balance_minor_units)->toBe(AccountBalanceOnDate::for($account, now()));
 });
+
+/*
+ * Fresh exports (plan phase 5): the user's mBank CSVs for September and October 2026 and
+ * a BNP XLSX for October 2026, anonymized (texts, numbers and amounts replaced, layout,
+ * encoding, BOM, CRLF and amount formats kept). They hold a household's real statement
+ * shape, so they stay out of git in storage/app/private/import-fixtures and the tests
+ * below are skipped, loudly, where the files are missing (CI included).
+ */
+function importIntegrityPrivateStatement(string $name): string
+{
+    $path = storage_path("app/private/import-fixtures/{$name}");
+
+    if (! is_file($path)) {
+        test()->markTestSkipped("Private statement fixture storage/app/private/import-fixtures/{$name} is missing (kept out of git, testing-import-integrity phase 5).");
+    }
+
+    return $path;
+}
+
+/**
+ * Commits every preview row in the session, typed by the sign of its amount.
+ *
+ * @param  list<int>  $skippedIndexes
+ */
+function importIntegrityCommitAllPreviewRows(User $user, BudgetLine $incomeLine, BudgetLine $expenseLine, array $skippedIndexes = []): TestResponse
+{
+    $rows = [];
+
+    foreach (session(CsvImportSession::SESSION_KEY.'.rows') as $index => $row) {
+        $income = $row['amount_minor_units'] > 0;
+        $rows[] = in_array($index, $skippedIndexes, true)
+            ? ['index' => $index, 'selected' => false]
+            : importIntegrityRow($index, $income ? 'income' : 'expense', ['category_id' => $income ? $incomeLine->category_id : $expenseLine->category_id]);
+    }
+
+    return importIntegrityCommit($user, $rows);
+}
+
+/**
+ * @return list<bool>
+ */
+function importIntegrityDuplicateFlags(): array
+{
+    return collect(session(CsvImportSession::SESSION_KEY.'.rows'))->pluck('import_duplicate')->all();
+}
+
+it('imports fresh mBank exports of two months and flags exactly the rows a real overlap shares', function (): void {
+    $september = importIntegrityPrivateStatement('mbank-2026-09.csv');
+    $overlap = importIntegrityPrivateStatement('mbank-2026-09-overlap.csv');
+    $october = importIntegrityPrivateStatement('mbank-2026-10.csv');
+    $this->travelTo('2026-11-17 12:00:00');
+
+    $user = User::factory()->create();
+    $account = importIntegrityAccount($user, 'eKonto', 100000, '2026-08-31');
+    $budget = importIntegrityExecutionBudget($user, 2026);
+    $incomeLine = BudgetLine::factory()->for($budget)->income()->create(['planned_amount_minor_units' => 5000000, 'execution_minor_units' => 0]);
+    $expenseLine = BudgetLine::factory()->for($budget)->expense()->create(['planned_amount_minor_units' => 5000000, 'execution_minor_units' => 0]);
+
+    importIntegrityStatementPreview($user, $account, 'mbank', $september, 'mbank.csv')->assertRedirect(route('operations.import.preview'));
+
+    // The 9 data rows of mbank-2026-09.csv read from the anonymized file, in file order; its own summary line
+    // says +990,00 and -891,45, so the month nets +98,55.
+    expect(importIntegrityPreviewTuples())->toBe([
+        ['2026-09-24', -4765], ['2026-09-20', -10000], ['2026-09-15', -10000], ['2026-09-10', -8245], ['2026-09-07', 43000],
+        ['2026-09-03', -22543], ['2026-09-03', -27100], ['2026-09-03', 56000], ['2026-09-01', -6492],
+    ])->and(importIntegrityDuplicateFlags())->toBe(array_fill(0, 9, false));
+
+    importIntegrityCommitAllPreviewRows($user, $incomeLine, $expenseLine)->assertRedirect(route('operations'));
+
+    expect(DB::table('financial_operations')->count())->toBe(9)
+        ->and($account->refresh()->current_balance_minor_units)->toBe(100000 + 9855)
+        ->and($account->current_balance_minor_units)->toBe(AccountBalanceOnDate::for($account, now()));
+
+    // The overlap 15.09-15.10 holds the 6 October rows and, under them, the 3 September rows dated 15.09 or later.
+    importIntegrityStatementPreview($user, $account, 'mbank', $overlap, 'mbank.csv')->assertRedirect(route('operations.import.preview'));
+
+    expect(importIntegrityDuplicateFlags())->toBe([false, false, false, false, false, false, true, true, true]);
+
+    $afterSeptember = importIntegritySnapshot();
+
+    importIntegrityCommitAllPreviewRows($user, $incomeLine, $expenseLine, [7, 8])->assertSessionHasErrors('duplicate_warning_acknowledged');
+
+    expect(importIntegritySnapshot())->toBe($afterSeptember);
+
+    importIntegrityCommitAllPreviewRows($user, $incomeLine, $expenseLine, [6, 7, 8])->assertRedirect(route('operations'));
+
+    // October nets +430,00 - 435,68 = -5,68 (its own summary line).
+    expect(DB::table('financial_operations')->count())->toBe(15)
+        ->and($account->refresh()->current_balance_minor_units)->toBe(100000 + 9855 - 568)
+        ->and($account->current_balance_minor_units)->toBe(AccountBalanceOnDate::for($account, now()));
+
+    importIntegrityStatementPreview($user, $account, 'mbank', $october, 'mbank.csv')->assertRedirect(route('operations.import.preview'));
+
+    expect(importIntegrityDuplicateFlags())->toBe(array_fill(0, 6, true));
+});
+
+it('imports a fresh BNP export with every row, the hold included, and the balance matching the derived balance', function (): void {
+    $statement = importIntegrityPrivateStatement('bnp-2026-10.xlsx');
+    $this->travelTo('2026-11-17 12:00:00');
+
+    $user = User::factory()->create();
+    $account = importIntegrityAccount($user, 'Konto Osobiste', 100000, '2026-09-30');
+    $budget = importIntegrityExecutionBudget($user, 2026);
+    $incomeLine = BudgetLine::factory()->for($budget)->income()->create(['planned_amount_minor_units' => 5000000, 'execution_minor_units' => 0]);
+    $expenseLine = BudgetLine::factory()->for($budget)->expense()->create(['planned_amount_minor_units' => 5000000, 'execution_minor_units' => 0]);
+
+    importIntegrityStatementPreview($user, $account, 'bnp_paribas', $statement, 'bnp.xlsx')->assertRedirect(route('operations.import.preview'));
+
+    // 125 data rows under the header of the 14-column export (Nadawca and Odbiorca apart), one of them a hold
+    // without a booking date; the amounts sum to +309,83 (written by the anonymizer, not read by the parser).
+    expect(session(CsvImportSession::SESSION_KEY.'.rows'))->toHaveCount(125);
+
+    importIntegrityCommitAllPreviewRows($user, $incomeLine, $expenseLine)->assertRedirect(route('operations'));
+
+    expect(DB::table('financial_operations')->count())->toBe(125)
+        ->and($account->refresh()->current_balance_minor_units)->toBe(100000 + 30983)
+        ->and($account->current_balance_minor_units)->toBe(AccountBalanceOnDate::for($account, now()));
+});

@@ -531,6 +531,15 @@ Ktoś, kto zna jedną prawdziwą transakcję (dzień i rodzaj), może zgadnąć 
 - Warianty BNP obejmują dodaną kolumnę na początku i przestawienie (`Kwota` jako pierwsza).
 - Numery issue B i C są w osobnej sekcji `change.md` („Issue (faza 3)”), a nie w Notes.
 
+### Faza 5: świeże eksporty poza gitem (2026-11-17)
+
+Decyzja użytkownika: zanonimizowane fixture zostają poza gitem, a anonimizacja obejmuje też kwoty. Zmienia to kontrakty fazy 5 §2 i §3:
+
+- **Miejsce.** Fixture leżą w `storage/app/private/import-fixtures/` (gitignored): `mbank-2026-09.csv`, `mbank-2026-10.csv`, `mbank-2026-09-overlap.csv`, `bnp-2026-10.xlsx`. Testy są pomijane z komunikatem, gdy plików brak, więc w CI się nie uruchamiają. Skrypty `tools/anonymize.php` i `tools/verify.php` leżą obok, bo tabela zamian zawiera prawdziwe nazwy.
+- **Kwoty.** Każda kwota ma nowe cyfry w tym samym formacie i z tą samą liczbą cyfr. Ta sama kwota daje tę samą nową, więc przelew BNP → mBank dalej się zgadza. Podsumowania mBanku i saldo BNP są przeliczone. Daty, układ, kodowanie, BOM, CRLF i liczba wierszy są bez zmian. Wyrocznią są liczby i sumy zapisane przez generator, sprawdzone ręcznie z podsumowaniem pliku, nie odczyt parsera.
+- **Nakładka.** Eksporty mBanku obejmują wrzesień i październik bez części wspólnej. Nakładkę 15.09–15.10 złożono ręcznie z linii obu zanonimizowanych plików, bajt w bajt: 6 wierszy października i 3 wiersze września. Test sprawdza też, że sąsiednie miesiące nie dają fałszywych duplikatów.
+- **Co wykryły.** mBank ma dziś końce linii CRLF, kwotę z sufiksem ` PLN` i dodatkowy `;;`. BNP ma 14 kolumn (`Nadawca` i `Odbiorca` osobno) i wieloliniowe komórki. Import czyta wszystkie wiersze: 9, 6 i 125, w tym blokadę bez daty księgowania. Luki B na tych plikach nie ma, więc komentarz do #271 nie był potrzebny.
+
 ---
 
 ## Testing Strategy
@@ -627,12 +636,12 @@ Brak migracji. Jedyna zmiana zachowania: żądanie zatwierdzenia z powtórzonym 
 
 #### Automated
 
-- [ ] 5.1 Testy na świeżych eksportach przechodzą albo są pominięte z odnośnikiem do issue B
-- [ ] 5.2 Żaden oryginał z `storage/app/private/statements/` nie jest śledzony w gicie
+- [x] 5.1 Testy na świeżych eksportach przechodzą albo są pominięte z odnośnikiem do issue B
+- [x] 5.2 Żaden oryginał z `storage/app/private/statements/` nie jest śledzony w gicie
 
 #### Manual
 
-- [ ] 5.3 Trzy eksporty dostarczone do `storage/app/private/statements/`
+- [x] 5.3 Trzy eksporty dostarczone do `storage/app/private/statements/`
 - [ ] 5.4 Przegląd zanonimizowanych fixture: brak danych osobowych i numerów rachunków
 - [ ] 5.5 Potwierdzone ręczne liczby wierszy i wierszy wspólnych w nakładce
 
