@@ -636,8 +636,8 @@ Brak migracji. Jedyna zmiana zachowania: żądanie zatwierdzenia z powtórzonym 
 
 #### Automated
 
-- [x] 5.1 Testy na świeżych eksportach przechodzą albo są pominięte z odnośnikiem do issue B
-- [x] 5.2 Żaden oryginał z `storage/app/private/statements/` nie jest śledzony w gicie
+- [x] 5.1 Testy na świeżych eksportach przechodzą albo są pominięte z odnośnikiem do issue B — f7b3fea
+- [x] 5.2 Żaden oryginał z `storage/app/private/statements/` nie jest śledzony w gicie — f7b3fea
 
 #### Manual
 
