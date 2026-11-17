@@ -506,6 +506,33 @@ Przenieść korekty z research do `context/foundation/test-plan.md` i zapisać w
 
 ---
 
+## Addendum z przeglądu implementacji (2026-11-17)
+
+Przegląd: `reviews/impl-review.md`. Repo jest publiczne, więc zestaw referencyjny zmienił się przed pierwszym pushem, a poprawka weszła do commita fazy 4 (`0ff90fc`).
+
+### Zestaw referencyjny bez nazw i bez kolejności id
+
+- Kategorie nazywają się „Kategoria <klucz>”. Pomiar nazw nie czyta, a prawdziwe nazwy z datami wierszy dawały dziennik wypłat, leczenia i rekolekcji.
+- Klucz kategorii nie jest id z produkcji ani pozycją w snapshocie. Numeracja idzie w kolejności HMAC id z sekretem wyliczonym z treści snapshotu, bo `database/sheet-load/mapping.php` i `production-categories.md` nazywają id. Ten sam snapshot daje te same klucze. To odchodzi od kontraktu fazy 4 §1 („kluczowane po id kategorii listy”): wiersze nadal łączy klucz, nigdy nazwa.
+- Słowa wiersza są posortowane. Model czyta wiersz jako zbiór słów, więc ranking się nie zmienia. Generator porównuje go z precyzją modelu (9 miejsc), bo inna kolejność dodawania wag przesuwa wynik o ostatni bit. Plik bazowy po regeneracji jest bajtowo identyczny.
+
+### Ryzyko resztkowe zestawu referencyjnego
+
+Świadomie zostaje w publicznym repo:
+- data, typ i klucz kategorii każdego wiersza;
+- liczba słów w wierszu i to, które pseudonimy wiersze dzielą.
+
+Ktoś, kto zna jedną prawdziwą transakcję (dzień i rodzaj), może zgadnąć jej wiersz i odczytać, w których innych wierszach występują te same słowa, ale nie same słowa. Warunek ponownej oceny: zestaw z drugiego gospodarstwa albo zestaw z opisami dłuższymi niż wyciąg bankowy (np. notatki użytkownika).
+
+### Pozostałe odchylenia od planu
+
+- Benchmark zapisuje w `raw_statement_description` klucz wiersza, a nie pseudonimizowany tekst, żeby odwzorować id na klucz. Model tego pola nie czyta. 13 wierszy z pustym tekstem dostaje `description = '-'` (kolumna jest `NOT NULL`).
+- Filtr historii jest zapisany dwa razy: SQL w `loadHistory` i `learnsFrom` dla snapshotu. Zgodność pilnuje test „a backup of a user gives the rows the suggester learns from” (backup prawdziwego użytkownika kontra `loadHistory`).
+- Warianty BNP obejmują dodaną kolumnę na początku i przestawienie (`Kwota` jako pierwsza).
+- Numery issue B i C są w osobnej sekcji `change.md` („Issue (faza 3)”), a nie w Notes.
+
+---
+
 ## Testing Strategy
 
 ### Integration Tests (Feature, PostgreSQL):
@@ -574,7 +601,7 @@ Brak migracji. Jedyna zmiana zachowania: żądanie zatwierdzenia z powtórzonym 
 
 - [x] 3.1 Testy formatów przechodzą na PostgreSQL: `PGTEST tests/Feature/ImportIntegrityTest.php` — d4c28ab
 - [x] 3.2 Celowe zepsucie mapowania mBank czerwieni test przestawionych kolumn; po cofnięciu zielony — d4c28ab
-- [x] 3.3 Issue B i C istnieją na GitHubie z etykietą `needs-triage` — d4c28ab — d4c28ab
+- [x] 3.3 Issue B i C istnieją na GitHubie z etykietą `needs-triage` — d4c28ab
 
 #### Manual
 
@@ -584,12 +611,12 @@ Brak migracji. Jedyna zmiana zachowania: żądanie zatwierdzenia z powtórzonym 
 
 #### Automated
 
-- [x] 4.1 Testy generatora przechodzą: `PGTEST tests/Feature/ImportSuggestionReferenceCommandTest.php` — a93cc49
-- [x] 4.2 Generator na snapshocie kończy się kodem 0 i zapisuje 1031 wierszy — a93cc49
-- [x] 4.3 Oryginalne tokeny ze snapshotu nie występują w zestawie referencyjnym — a93cc49
-- [x] 4.4 Test benchmarku przechodzi na PostgreSQL — a93cc49
-- [x] 4.5 Celowe zepsucie `NEIGHBOURS` czerwieni benchmark z listą wierszy; po cofnięciu zielony — a93cc49
-- [x] 4.6 `pint`, PHPStan i `vendor/bin/sloppy ci` są zielone dla nowych plików — a93cc49
+- [x] 4.1 Testy generatora przechodzą: `PGTEST tests/Feature/ImportSuggestionReferenceCommandTest.php` — 0ff90fc
+- [x] 4.2 Generator na snapshocie kończy się kodem 0 i zapisuje 1031 wierszy — 0ff90fc
+- [x] 4.3 Oryginalne tokeny ze snapshotu nie występują w zestawie referencyjnym — 0ff90fc
+- [x] 4.4 Test benchmarku przechodzi na PostgreSQL — 0ff90fc
+- [x] 4.5 Celowe zepsucie `NEIGHBOURS` czerwieni benchmark z listą wierszy; po cofnięciu zielony — 0ff90fc
+- [x] 4.6 `pint`, PHPStan i `vendor/bin/sloppy ci` są zielone dla nowych plików — 0ff90fc
 
 #### Manual
 
@@ -613,9 +640,9 @@ Brak migracji. Jedyna zmiana zachowania: żądanie zatwierdzenia z powtórzonym 
 
 #### Automated
 
-- [x] 6.1 Pełna bramka `composer ci:check` na PostgreSQL w kontenerze — d3f6d17
-- [x] 6.2 `vendor/bin/sloppy ci` w obrazie `sail-8.5/app` jest zielone — d3f6d17
-- [x] 6.3 `S-16` nie występuje w poprawionych wierszach i akapitach planu testów — d3f6d17
+- [x] 6.1 Pełna bramka `composer ci:check` na PostgreSQL w kontenerze — 78873e3
+- [x] 6.2 `vendor/bin/sloppy ci` w obrazie `sail-8.5/app` jest zielone — 78873e3
+- [x] 6.3 `S-16` nie występuje w poprawionych wierszach i akapitach planu testów — 78873e3
 
 #### Manual
 

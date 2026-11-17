@@ -2,7 +2,7 @@
 
 namespace App\Support\CsvImport;
 
-use InvalidArgumentException;
+use LogicException;
 
 /**
  * The reference set of the suggestion benchmark: the Import history of one year
@@ -35,9 +35,12 @@ class ImportCategorySuggestionReference
 
     /**
      * @param  array<string, mixed>  $snapshot
+     *
+     * @throws ImportSuggestionReferenceException
      */
     public function latestYear(array $snapshot): ?int
     {
+        $this->assertSupportedVersion($snapshot);
         $latest = null;
 
         foreach ($this->importedOperations($snapshot) as $operation) {
@@ -58,15 +61,12 @@ class ImportCategorySuggestionReference
      *     rows: list<array{key: int, date: string, type: string, text: string, category_key: int}>,
      * }
      *
-     * @throws InvalidArgumentException
+     * @throws ImportSuggestionReferenceException a snapshot the set cannot be built from
+     * @throws LogicException a ranking that differs after the words are replaced
      */
     public function build(array $snapshot, int $year, array $source): array
     {
-        $version = $snapshot['version'] ?? null;
-
-        if (! is_int($version) || $version < self::MIN_SNAPSHOT_VERSION) {
-            throw new InvalidArgumentException('The snapshot version must be at least '.self::MIN_SNAPSHOT_VERSION.', got '.json_encode($version).'.');
-        }
+        $this->assertSupportedVersion($snapshot);
 
         $operations = array_values(array_filter(
             $this->importedOperations($snapshot),
@@ -74,7 +74,7 @@ class ImportCategorySuggestionReference
         ));
 
         if ($operations === []) {
-            throw new InvalidArgumentException("The snapshot has no imported rows in {$year}.");
+            throw new ImportSuggestionReferenceException("The snapshot has no imported rows in {$year}.");
         }
 
         $categoryKeys = $this->categoryKeys($snapshot, $operations);
@@ -121,11 +121,28 @@ class ImportCategorySuggestionReference
     }
 
     /**
+     * @param  array<string, mixed>  $snapshot
+     *
+     * @throws ImportSuggestionReferenceException
+     */
+    private function assertSupportedVersion(array $snapshot): void
+    {
+        $version = $snapshot['version'] ?? null;
+
+        if (! is_int($version) || $version < self::MIN_SNAPSHOT_VERSION) {
+            throw new ImportSuggestionReferenceException('The snapshot version must be at least '.self::MIN_SNAPSHOT_VERSION.', got '.json_encode($version).'.');
+        }
+    }
+
+    /**
      * The imported operations the history learns from, in the order of the
-     * replay: date, then id.
+     * replay: date, then id. A type or a line the history cannot read is an
+     * error, never a guess.
      *
      * @param  array<string, mixed>  $snapshot
      * @return list<array{id: int, type: 'income'|'expense', category_id: int, description: string, counterparty: string|null, operation_date: string}>
+     *
+     * @throws ImportSuggestionReferenceException
      */
     private function importedOperations(array $snapshot): array
     {
@@ -142,10 +159,22 @@ class ImportCategorySuggestionReference
                 continue;
             }
 
+            $type = $operation['type'] ?? null;
+
+            if ($type !== 'income' && $type !== 'expense') {
+                throw new ImportSuggestionReferenceException("Operation {$operation['id']} has an unknown type ".json_encode($type).'.');
+            }
+
+            $line = $operation['budget_line_id'] ?? null;
+
+            if (! is_int($line) || ! isset($categoryByLine[$line])) {
+                throw new ImportSuggestionReferenceException("Operation {$operation['id']} points at a Budget Line outside the snapshot.");
+            }
+
             $operations[] = [
                 'id' => (int) $operation['id'],
-                'type' => $operation['type'] === 'income' ? 'income' : 'expense',
-                'category_id' => $categoryByLine[$operation['budget_line_id']],
+                'type' => $type,
+                'category_id' => $categoryByLine[$line],
                 'description' => (string) $operation['description'],
                 'counterparty' => $operation['counterparty'] ?? null,
                 'operation_date' => substr((string) $operation['operation_date'], 0, 10),
@@ -180,7 +209,7 @@ class ImportCategorySuggestionReference
 
         foreach ($operations as $operation) {
             if (! isset($keys[$operation['category_id']])) {
-                throw new InvalidArgumentException('A row points at a Category outside the snapshot.');
+                throw new ImportSuggestionReferenceException('A row points at a Category outside the snapshot.');
             }
         }
 
@@ -285,7 +314,7 @@ class ImportCategorySuggestionReference
             $after = ImportCategorySuggestionModel::fromHistory(array_slice($reference, 0, $position))->rank($entry['type'], $reference[$position]['text']);
 
             if ($atModelPrecision($before) !== $atModelPrecision($after)) {
-                throw new InvalidArgumentException("The ranking of row {$entry['id']} differs after the words are replaced.");
+                throw new LogicException("The ranking of row {$entry['id']} differs after the words are replaced: ".json_encode(['original' => $before, 'reference' => $after]));
             }
         }
     }

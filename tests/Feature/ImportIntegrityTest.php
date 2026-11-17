@@ -13,7 +13,9 @@ use App\Support\CsvImport\CsvImportSession;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
 use Illuminate\Testing\TestResponse;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
@@ -22,6 +24,10 @@ uses(RefreshDatabase::class);
 
 beforeEach(function (): void {
     $this->travelTo('2026-03-31 12:00:00');
+});
+
+afterEach(function (): void {
+    File::deleteDirectory(storage_path('framework/testing/import-integrity'));
 });
 
 /**
@@ -496,7 +502,8 @@ function importIntegrityPreviewTuples(): array
 }
 
 /**
- * A copy of tests/Fixtures/bnp-paribas-basic.xlsx with exactly one edit, saved to a temp file.
+ * A copy of tests/Fixtures/bnp-paribas-basic.xlsx with exactly one edit, saved under
+ * storage/framework/testing/import-integrity (removed after each test).
  */
 function importIntegrityBnpVariant(string $variant): string
 {
@@ -506,15 +513,33 @@ function importIntegrityBnpVariant(string $variant): string
     match ($variant) {
         'extra-sheet-after-data' => $spreadsheet->createSheet()->setTitle('Summary')->setCellValue('A1', 'Not a statement'),
         'extra-leading-column' => $data->insertNewColumnBefore('A'),
+        'amount-column-moved-first' => importIntegrityMoveColumnFirst($data, 'D'),
         'title-row-above-header' => $data->insertNewRowBefore(1)->setCellValue('A1', 'Historia rachunku'),
         'cover-sheet-first' => $spreadsheet->addSheet((new Worksheet)->setTitle('Cover')->setCellValue('A1', 'Statement cover'), 0),
         'renamed-amount-header' => $data->setCellValue('D1', 'Kwota brutto'),
     };
 
-    $path = tempnam(sys_get_temp_dir(), 'bnp-variant-').'.xlsx';
+    $directory = storage_path('framework/testing/import-integrity');
+    File::ensureDirectoryExists($directory);
+    $path = "{$directory}/bnp-{$variant}.xlsx";
     (new Xlsx($spreadsheet))->save($path);
 
     return $path;
+}
+
+/**
+ * Moves a column (header and every data cell) to the first position; the other columns keep their order.
+ */
+function importIntegrityMoveColumnFirst(Worksheet $sheet, string $column): Worksheet
+{
+    $sheet->insertNewColumnBefore('A');
+    $shifted = Coordinate::stringFromColumnIndex(Coordinate::columnIndexFromString($column) + 1);
+
+    foreach (range(1, $sheet->getHighestDataRow()) as $row) {
+        $sheet->setCellValue("A{$row}", $sheet->getCell("{$shifted}{$row}")->getValue());
+    }
+
+    return $sheet->removeColumn($shifted);
 }
 
 // (operation date, signed minor units) of the 7 data rows of tests/Fixtures/mbank-basic.csv, read by hand from the
@@ -573,6 +598,7 @@ it('keeps all 7 rows of the real BNP statement, both holds without a booking dat
 })->with([
     'extra sheet after the data' => 'extra-sheet-after-data',
     'extra leading column' => 'extra-leading-column',
+    'amount column moved first' => 'amount-column-moved-first',
 ]);
 
 it('fails loudly instead of previewing a statement whose header no longer matches', function (string $format, string $variant): void {

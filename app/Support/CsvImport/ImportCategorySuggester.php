@@ -66,10 +66,15 @@ class ImportCategorySuggester
     /**
      * The rule behind the `where` clauses of `loadHistory`, for readers that
      * hold the rows outside the database (the reference set of the benchmark).
+     * SQL `<>` drops a NULL description, so this does too. Change both together:
+     * `ImportSuggestionReferenceCommandTest` checks that a snapshot of the same
+     * user gives the rows `loadHistory` reads.
      */
     public function learnsFrom(?string $rawStatementDescription, ?string $description): bool
     {
-        return $rawStatementDescription !== null && $description !== ImportRowFields::EMPTY_DESCRIPTION_FALLBACK;
+        return $rawStatementDescription !== null
+            && $description !== null
+            && $description !== ImportRowFields::EMPTY_DESCRIPTION_FALLBACK;
     }
 
     /**
@@ -93,7 +98,8 @@ class ImportCategorySuggester
     /**
      * The imported operations the model learns from, in no particular order and
      * as a one-shot generator. `ImportCategorySuggestionAccuracy` reads the same
-     * query, so a measurement cannot drift from what the preview learns.
+     * query, so a measurement cannot drift from what the preview learns. Its
+     * `where` clauses are spelled again in `learnsFrom` for snapshot readers.
      *
      * @return \Generator<int, array{
      *     id: int,

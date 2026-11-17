@@ -47,7 +47,7 @@
   - Tradeoff: Lista różniących się wierszy w czerwonym benchmarku pokaże „Kategoria 20” zamiast nazwy; rebase przepisuje 3 lokalne commity (p4, p6, zapis SHA), więc SHA w Progress trzeba poprawić.
   - Confidence: HIGH — nazwy sprawdzone `jq`, publiczność repo sprawdzona `gh`, brak pushu sprawdzony gitem.
   - Blind spot: Nie sprawdzono, czy `research.md` i treść issue #271/#272 (już publiczne) nie zawierają fragmentów prawdziwego tekstu z banku.
-- **Decision**: PENDING
+- **Decision**: FIXED — nazwy „Kategoria <klucz>”, a klucze w kolejności HMAC id z sekretem z treści snapshotu (podczas poprawki wyszło, że klucze równe id z produkcji da się odczytać z publicznego `database/sheet-load/mapping.php`); test generatora na brak nazw i na klucze niezależne od id; poprawka wcielona do commita fazy 4 przed pierwszym pushem (`0ff90fc`), w historii fixture nie ma prawdziwej nazwy.
 
 ### F2 — Pseudonimy zachowują strukturę tekstu, a daty pozwalają łączyć wiersze ze znanymi zdarzeniami
 
@@ -66,7 +66,7 @@
   - Tradeoff: Nowa infrastruktura (sekret, pobieranie), lokalne uruchomienie wymaga pliku; sprzeczne z decyzją planu „poziom bazowy w repo”.
   - Confidence: MED — działa, ale zmienia decyzję z planowania.
   - Blind spot: Nie sprawdzono, czy CI ma już mechanizm prywatnych artefaktów.
-- **Decision**: PENDING
+- **Decision**: FIXED via Fix A — słowa wiersza posortowane, numeracja pseudonimów bez zmian (alfabetyczna zdradzałaby litery); generator porównuje ranking z precyzją modelu (9 miejsc), bo inna kolejność dodawania wag przesuwa wynik o ostatni bit; plik bazowy po regeneracji bajtowo identyczny; ryzyko resztkowe zapisane w planie („Addendum z przeglądu implementacji”).
 
 ### F3 — Filtr historii skopiowany zamiast współdzielony
 
@@ -85,7 +85,7 @@
   - Tradeoff: Rozjazd dalej niczym niechroniony.
   - Confidence: HIGH — to tylko dokumentacja.
   - Blind spot: None significant.
-- **Decision**: PENDING
+- **Decision**: FIXED via Fix A (wariant) — test zgodności robi backup prawdziwego użytkownika przez `BackupUserData` i porównuje wiersze generatora z `loadHistory` (czerwony po usunięciu warunku opisu zastępczego z `learnsFrom`); `learnsFrom` odrzuca NULL jak SQL `<>`; docblocki obu metod odsyłają do siebie i do testu.
 
 ### F4 — Komenda nie chroni pliku wejściowego, testy błędów piszą w domyślną ścieżkę fixture
 
@@ -95,7 +95,7 @@
 - **Location**: app/Console/Commands/ImportSuggestionReferenceCommand.php:59-61, tests/Feature/ImportSuggestionReferenceCommandTest.php:165, :176
 - **Detail**: `--output` równe ścieżce snapshotu nadpisze jedyną kopię zapasową zestawem referencyjnym; siostrzana `ImportSuggestionAccuracyCommand` ma do tego `optionError()` z `isSameFile()` (`:76-101`). Testy „stara wersja” i „rok nie jest liczbą” nie podają `--output`, więc regresja walidacji nadpisałaby commitowany `tests/Fixtures/suggestions/reference-2026.json` 3-wierszowym zestawem testowym. Nowa komenda waliduje `--year` dopiero po wczytaniu całego snapshotu, a siostrzana przed I/O.
 - **Fix**: Przenieść `isSameFile` do wspólnego traitu `ReadsAndWritesJsonFiles` i użyć go w nowej komendzie przed odczytem; w każdym teście błędu podać `--output => referencePath(...)` i sprawdzić, że plik nie powstał.
-- **Decision**: PENDING
+- **Decision**: FIXED — `isSameFile` i `filledOption` we wspólnym `ReadsAndWritesJsonFiles`; komenda waliduje `--year` i `--output` przed odczytem i odmawia nadpisania snapshotu; testy błędów podają `--output` i sprawdzają, że plik nie powstał. Przy okazji: `filledOption` przyjmował tylko stringi, więc `--year` podane w teście jako liczba było ignorowane i zastępowane najnowszym rokiem; teraz przyjmuje każdą wartość skalarną.
 
 ### F5 — Drobne odchylenia od planu niezapisane w planie
 
@@ -105,7 +105,7 @@
 - **Location**: tests/Feature/ImportIntegrityTest.php:501-518, tests/Feature/ImportSuggestionAccuracyBenchmarkTest.php:31-32, :69, app/Support/CsvImport/ImportCategorySuggestionReference.php:156-171, context/changes/testing-import-integrity/change.md
 - **Detail**: (1) Wariant BNP „przestawione i dodane kolumny” to tylko `insertNewColumnBefore('A')`: przesunięcie bez przestawienia. (2) `key` kategorii to numer w kolejności snapshotu, nie id kategorii listy (spójne z „bez id z produkcji”, ale różne od kontraktu). (3) Benchmark zapisuje w `raw_statement_description` klucz wiersza, nie pseudonimizowany tekst (opisane w docblocku), a 13 pustych tekstów dostaje `description = '-'` (nieopisane). (4) Numery issue trafiły do nowej sekcji „Issue (faza 3)” zamiast do Notes. (5) Progress 3.3 ma SHA dwa razy.
 - **Fix**: Dopisać w planie krótki addendum z punktami 2–3, dodać w teście BNP prawdziwe przestawienie dwóch kolumn i usunąć zdublowane SHA w 3.3.
-- **Decision**: PENDING
+- **Decision**: FIXED — addendum w planie (klucz kategorii, `raw_statement_description` = klucz, `description = '-'`, miejsce numerów issue), wariant BNP z przestawioną kolumną `Kwota`, zdublowane SHA w Progress 3.3 usunięte, SHA faz 4 i 6 poprawione po przepisaniu historii.
 
 ### F6 — §6.2 planu testów obiecuje więcej, niż robią testy
 
@@ -115,7 +115,7 @@
 - **Location**: context/foundation/test-plan.md:142-143
 - **Detail**: „porównuje liczbę i krotki operacji” — migawka trzyma liczności, salda i wykonanie, nie krotki operacji. „ręczne krotki (data, kwota, opis)” — testy mają krotki (data, kwota w groszach), bez opisu. Cookbook poprowadzi następny test w złą stronę.
 - **Fix**: Zmienić na „porównuje liczności, salda kont i wykonanie pozycji” oraz „ręczne krotki (data, kwota w groszach)”.
-- **Decision**: PENDING
+- **Decision**: FIXED — §6.2 opisuje liczności, salda kont i lokat, wykonanie pozycji i krotki (data, kwota w groszach); opis zestawu referencyjnego w §6 uzupełniony o sortowanie słów i nazwy „Kategoria N”.
 
 ### F7 — Komenda: drobne ścieżki błędu bez sygnału albo bez przyczyny
 
@@ -125,7 +125,7 @@
 - **Location**: app/Console/Commands/ImportSuggestionReferenceCommand.php:39, :50, :53-56; app/Support/CsvImport/ImportCategorySuggestionReference.php:136, :251-261
 - **Detail**: `hash_file(...) ?: ''` zapisuje `"sha256": ""` jako sukces. `latestYear()` działa przed sprawdzeniem wersji w `build()`, więc stary snapshot bez `--year` może paść ErrorException zamiast komunikatu o wersji. Nieznany typ operacji po cichu staje się `expense`. Niezgodność rankingu (błąd logiki, nie danych) jest `InvalidArgumentException` łapanym razem z błędami danych i wypisywanym bez kontekstu; tej ścieżki nie pokrywa żaden test (mapowanie jest różnowartościowe, więc dziś nie da się jej wywołać).
 - **Fix**: `hash_file` false → błąd i FAILURE; walidacja wersji przed `latestYear`; nieznany typ → wyjątek; osobny wyjątek dla błędów danych, a niezgodność rankingu jako `LogicException` z kluczem wiersza.
-- **Decision**: PENDING
+- **Decision**: FIXED — `ImportSuggestionReferenceException` dla błędów danych (łapany przez komendę), niezgodność rankingu jako `LogicException` z oboma rankingami w komunikacie (niełapany); wersja sprawdzana przed `latestYear`; nieznany typ i linia spoza snapshotu to błąd z testem; `hash_file` false kończy się FAILURE. Ścieżka niezgodności rankingu nadal bez testu: mapowanie jest różnowartościowe, więc nie da się jej wywołać.
 
 ### F8 — Pliki tymczasowe w teście BNP i zapis bazy bez pokazania spadków
 
@@ -135,4 +135,14 @@
 - **Location**: tests/Feature/ImportIntegrityTest.php:514, tests/Feature/ImportSuggestionAccuracyBenchmarkTest.php:127-135
 - **Detail**: `importIntegrityBnpVariant` tworzy `tempnam(...)` i `.xlsx` i nigdy ich nie usuwa (4–5 plików na przebieg). `SUGGESTION_BASELINE_WRITE=1` nadpisuje bazę bez wypisania `differences()`, więc obniżenie poziomu widać tylko jako „skipped” i diff w gicie, co jest sprzeczne z anty-wzorcem z planu testów („próg obniżony do bieżącego wyniku po spadku”).
 - **Fix**: `unlink` obu plików w `finally`/`afterEach`; przed zapisem bazy wypisać spadki z `differences()` w komunikacie pominięcia.
-- **Decision**: PENDING
+- **Decision**: FIXED — pliki BNP w `storage/framework/testing/import-integrity`, usuwane w `afterEach`; zapis bazy wypisuje w komunikacie pominięcia wynik `differences()` względem poprzedniej bazy.
+
+## Triage (2026-11-17)
+
+Użytkownik: „napraw według rekomendacji”.
+
+- Fixed: F1, F2 (Fix A), F3 (Fix A, backup zamiast restore), F4, F5, F6, F7, F8 (8)
+- Skipped: —
+- Accepted: —
+
+Weryfikacja po poprawkach: `composer ci:check` na PostgreSQL w kontenerze i `vendor/bin/sloppy ci` (wynik w commicie z poprawkami).

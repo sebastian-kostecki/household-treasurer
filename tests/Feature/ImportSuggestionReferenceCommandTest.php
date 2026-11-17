@@ -1,12 +1,28 @@
 <?php
 
+use App\Actions\BackupUserData;
+use App\Enums\FinancialOperationType;
+use App\Models\Account;
+use App\Models\Budget;
+use App\Models\BudgetLine;
+use App\Models\FinancialOperation;
+use App\Models\User;
+use App\Support\CsvImport\ImportCategorySuggester;
+use App\Support\CsvImport\ImportCategorySuggestionModel;
+use App\Support\CsvImport\ImportRowFields;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Storage;
 
 /*
  * `import:suggestion-reference` turns a snapshot into the pseudonymised reference
  * set of the suggestion benchmark. The snapshot of the tests is written by hand,
- * so the checks do not depend on the code that reads it.
+ * so the checks do not depend on the code that reads it; one test instead backs
+ * up a real user, so the filter of the snapshot reader cannot drift from the
+ * query of `ImportCategorySuggester::loadHistory`.
  */
+uses(RefreshDatabase::class);
+
 afterEach(function (): void {
     File::deleteDirectory(referenceDirectory());
 });
@@ -205,25 +221,100 @@ test('without --year the latest year of imported rows is used', function () {
     expect(referenceRead('out.json')['year'])->toBe(2026);
 });
 
-test('a missing file, a snapshot of an older version and a year without rows exit 1', function () {
+test('a missing file, a snapshot of an older version and a year without rows exit 1 and write nothing', function () {
     $snapshot = referenceSnapshot();
     $snapshot['version'] = 9;
 
-    $this->artisan('import:suggestion-reference', ['snapshot' => referencePath('missing.json')])
+    $this->artisan('import:suggestion-reference', ['snapshot' => referencePath('missing.json'), '--output' => referencePath('out.json')])
         ->expectsOutputToContain('the file does not exist')
         ->assertExitCode(1);
-    $this->artisan('import:suggestion-reference', ['snapshot' => referenceWrite('old.json', $snapshot), '--year' => 2026])
+    $this->artisan('import:suggestion-reference', ['snapshot' => referenceWrite('old.json', $snapshot), '--year' => 2026, '--output' => referencePath('out.json')])
         ->expectsOutputToContain('The snapshot version must be at least 10, got 9.')
         ->assertExitCode(1);
-    $this->artisan('import:suggestion-reference', ['snapshot' => referenceWrite('snapshot.json', referenceSnapshot()), '--year' => 2024])
+    $this->artisan('import:suggestion-reference', ['snapshot' => referenceWrite('old.json', $snapshot), '--output' => referencePath('out.json')])
+        ->expectsOutputToContain('The snapshot version must be at least 10, got 9.')
+        ->assertExitCode(1);
+    $this->artisan('import:suggestion-reference', ['snapshot' => referenceWrite('snapshot.json', referenceSnapshot()), '--year' => 2024, '--output' => referencePath('out.json')])
         ->expectsOutputToContain('The snapshot has no imported rows in 2024.')
         ->assertExitCode(1);
 
-    expect(File::exists(base_path('tests/Fixtures/suggestions/reference-2024.json')))->toBeFalse();
+    expect(File::exists(referencePath('out.json')))->toBeFalse();
 });
 
-test('a year that is not a number exits 1', function () {
-    $this->artisan('import:suggestion-reference', ['snapshot' => referenceWrite('snapshot.json', referenceSnapshot()), '--year' => 'abc'])
+test('a year that is not a number exits 1 and writes nothing', function () {
+    $this->artisan('import:suggestion-reference', ['snapshot' => referenceWrite('snapshot.json', referenceSnapshot()), '--year' => 'abc', '--output' => referencePath('out.json')])
         ->expectsOutputToContain('--year must be a year, got "abc".')
         ->assertExitCode(1);
+
+    expect(File::exists(referencePath('out.json')))->toBeFalse();
+});
+
+test('an output that names the snapshot exits 1 and leaves the snapshot as it was', function () {
+    $snapshot = referenceWrite('snapshot.json', referenceSnapshot());
+    $before = File::get($snapshot);
+
+    $this->artisan('import:suggestion-reference', ['snapshot' => $snapshot, '--year' => 2026, '--output' => $snapshot])
+        ->expectsOutputToContain('--output names the snapshot: the run would overwrite it.')
+        ->assertExitCode(1);
+
+    expect(File::get($snapshot))->toBe($before);
+});
+
+test('an operation of an unknown type or on a line outside the snapshot exits 1', function () {
+    $unknownType = referenceSnapshot();
+    $unknownType['financial_operations'][] = referenceOperation(907, '2026-05-01', 'Sklepik', type: 'refund');
+    $unknownLine = referenceSnapshot();
+    $unknownLine['financial_operations'][] = referenceOperation(908, '2026-05-01', 'Sklepik', line: 99);
+
+    $this->artisan('import:suggestion-reference', ['snapshot' => referenceWrite('type.json', $unknownType), '--year' => 2026, '--output' => referencePath('out.json')])
+        ->expectsOutputToContain('Operation 907 has an unknown type "refund".')
+        ->assertExitCode(1);
+    $this->artisan('import:suggestion-reference', ['snapshot' => referenceWrite('line.json', $unknownLine), '--year' => 2026, '--output' => referencePath('out.json')])
+        ->expectsOutputToContain('Operation 908 points at a Budget Line outside the snapshot.')
+        ->assertExitCode(1);
+
+    expect(File::exists(referencePath('out.json')))->toBeFalse();
+});
+
+test('a backup of a user gives the rows the suggester learns from', function () {
+    Storage::fake('local');
+
+    $user = User::factory()->create();
+    $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+    $expense = BudgetLine::factory()->for($budget)->expense()->create(['name' => 'Zakupy']);
+    $income = BudgetLine::factory()->for($budget)->income()->create(['name' => 'Pensja']);
+    $account = Account::factory()->for($user)->create();
+    $operation = fn (BudgetLine $line, FinancialOperationType $type, string $date, string $description, ?string $raw, ?string $counterparty = null): FinancialOperation => FinancialOperation::factory()->for($user)->create([
+        'type' => $type,
+        'account_id' => $account->id,
+        'budget_line_id' => $line->id,
+        'budget_id' => $budget->id,
+        'operation_date' => $date,
+        'description' => $description,
+        'counterparty' => $counterparty,
+        'raw_statement_description' => $raw,
+    ]);
+
+    $operation($expense, FinancialOperationType::Expense, '2026-03-01', 'Sklepik osiedlowy karta', 'RAW', 'Sklepik spółka');
+    $operation($income, FinancialOperationType::Income, '2026-03-02', 'Wypłata marzec', 'RAW');
+    $operation($expense, FinancialOperationType::Expense, '2026-03-03', 'Wpis ręczny', null);
+    $operation($expense, FinancialOperationType::Expense, '2026-03-04', ImportRowFields::EMPTY_DESCRIPTION_FALLBACK, 'RAW');
+    $operation($expense, FinancialOperationType::Expense, '2026-03-05', 'Sklepik osiedlowy', 'RAW');
+
+    $learned = collect(iterator_to_array(app(ImportCategorySuggester::class)->loadHistory($user), false))
+        ->sortBy([['operation_date', 'asc'], ['id', 'asc']])
+        ->map(fn (array $entry): array => [$entry['operation_date'], $entry['type'], count(ImportCategorySuggestionModel::tokens($entry['text']))])
+        ->values()
+        ->all();
+
+    $this->artisan('import:suggestion-reference', ['snapshot' => app(BackupUserData::class)->handle($user), '--year' => 2026, '--output' => referencePath('out.json')])->assertExitCode(0);
+
+    $reference = array_map(
+        fn (array $row): array => [$row['date'], $row['type'], count(explode(' ', $row['text']))],
+        referenceRead('out.json')['rows'],
+    );
+
+    // Three rows learn (the manual entry and the fallback description do not), with 4, 2 and 2 distinct words.
+    expect($reference)->toBe($learned)
+        ->and($learned)->toBe([['2026-03-01', 'expense', 4], ['2026-03-02', 'income', 2], ['2026-03-05', 'expense', 2]]);
 });

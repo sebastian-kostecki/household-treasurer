@@ -129,9 +129,14 @@ test('the suggestions do not get worse than the stored level on the reference se
             $this->fail('The baseline is not written in CI.');
         }
 
+        // A lowered level must be visible in the run, not only in the git diff of the file.
+        $previous = File::exists(base_path(SUGGESTION_BASELINE))
+            ? app(ImportCategorySuggestionAccuracy::class)->differences(readSuggestionFile(SUGGESTION_BASELINE), $measured)
+            : ['error' => 'no previous baseline', 'drops' => []];
+
         File::put(base_path(SUGGESTION_BASELINE), json_encode($measured, JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR)."\n");
 
-        $this->markTestSkipped('baseline written');
+        $this->markTestSkipped('baseline written; against the previous one: '.($previous['error'] ?? ($previous['drops'] === [] ? 'no drop' : 'DROPS '.implode('; ', $previous['drops']))));
     }
 
     $baseline = readSuggestionFile(SUGGESTION_BASELINE);
