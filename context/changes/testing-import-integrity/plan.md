@@ -563,10 +563,10 @@ Brak migracji. Jedyna zmiana zachowania: żądanie zatwierdzenia z powtórzonym 
 
 #### Automated
 
-- [x] 2.1 Test powtórzonego `index` jest czerwony przed dodaniem `distinct`
-- [x] 2.2 Testy fazy przechodzą na PostgreSQL po zmianie: `PGTEST tests/Feature/ImportIntegrityTest.php`
-- [x] 2.3 Istniejące testy Importu przechodzą: `PGTEST tests/Feature/CsvImportTest.php`
-- [x] 2.4 `pint` i `vendor/bin/sloppy ci` są zielone dla zmienionych plików
+- [x] 2.1 Test powtórzonego `index` jest czerwony przed dodaniem `distinct` — dc2fcea
+- [x] 2.2 Testy fazy przechodzą na PostgreSQL po zmianie: `PGTEST tests/Feature/ImportIntegrityTest.php` — dc2fcea
+- [x] 2.3 Istniejące testy Importu przechodzą: `PGTEST tests/Feature/CsvImportTest.php` — dc2fcea
+- [x] 2.4 `pint` i `vendor/bin/sloppy ci` są zielone dla zmienionych plików — dc2fcea
 
 ### Phase 3: Formaty na istniejących fixture i issue B, C
 
