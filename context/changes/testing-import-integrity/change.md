@@ -23,3 +23,8 @@ After creating the folder, follow the downstream continuation rule.
 - Zestaw referencyjny trafności: pseudonimy tokenów ze snapshotu `1-20261112070312.json` (1031 wierszy z 2026), bez tekstu z banku i bez kwot.
 - Próg trafności: zero spadku (reguła `--compare` z S-23), poprawa przechodzi, bazę podnosi się świadomie.
 - Równoczesne podwójne zatwierdzenie: zaakceptowane ryzyko w §7 planu testów.
+
+## Issue (faza 3)
+
+- B (wiersz znika po zmianie formatu komórki): #271
+- C (BNP ignoruje `Waluta`): #272

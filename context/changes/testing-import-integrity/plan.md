@@ -572,9 +572,9 @@ Brak migracji. Jedyna zmiana zachowania: żądanie zatwierdzenia z powtórzonym 
 
 #### Automated
 
-- [ ] 3.1 Testy formatów przechodzą na PostgreSQL: `PGTEST tests/Feature/ImportIntegrityTest.php`
-- [ ] 3.2 Celowe zepsucie mapowania mBank czerwieni test przestawionych kolumn; po cofnięciu zielony
-- [ ] 3.3 Issue B i C istnieją na GitHubie z etykietą `needs-triage`
+- [x] 3.1 Testy formatów przechodzą na PostgreSQL: `PGTEST tests/Feature/ImportIntegrityTest.php`
+- [x] 3.2 Celowe zepsucie mapowania mBank czerwieni test przestawionych kolumn; po cofnięciu zielony
+- [x] 3.3 Issue B i C istnieją na GitHubie z etykietą `needs-triage`
 
 #### Manual
 

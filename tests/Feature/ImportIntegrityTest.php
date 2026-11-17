@@ -14,6 +14,9 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Testing\TestResponse;
+use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 uses(RefreshDatabase::class);
 
@@ -462,5 +465,207 @@ it('flags exactly the overlapping rows of a later real mBank statement as duplic
 
     expect(DB::table('financial_operations')->count())->toBe(9)
         ->and($account->refresh()->current_balance_minor_units)->toBe(100000 + 73723 - 5230 - 1875)
+        ->and($account->current_balance_minor_units)->toBe(AccountBalanceOnDate::for($account, now()));
+});
+
+/**
+ * Previews a statement file in a named bank format and returns the response, so a test can
+ * assert either the redirect to the preview or the validation error.
+ */
+function importIntegrityStatementPreview(User $user, Account $account, string $format, string $path, string $name): TestResponse
+{
+    return test()->actingAs($user)
+        ->from(route('operations.import.create'))
+        ->post(route('operations.import.preview.store'), [
+            'file' => new UploadedFile($path, $name, null, UPLOAD_ERR_OK, true),
+            'account_id' => $account->id,
+            'import_format' => $format,
+        ]);
+}
+
+/**
+ * The preview rows of the Import in the session as [operation date, signed minor units].
+ *
+ * @return list<array{0: ?string, 1: ?int}>
+ */
+function importIntegrityPreviewTuples(): array
+{
+    return collect(session(CsvImportSession::SESSION_KEY.'.rows'))
+        ->map(fn (array $row): array => [$row['operation_date'], $row['amount_minor_units']])
+        ->all();
+}
+
+/**
+ * A copy of tests/Fixtures/bnp-paribas-basic.xlsx with exactly one edit, saved to a temp file.
+ */
+function importIntegrityBnpVariant(string $variant): string
+{
+    $spreadsheet = IOFactory::load(base_path('tests/Fixtures/bnp-paribas-basic.xlsx'));
+    $data = $spreadsheet->getSheet(0);
+
+    match ($variant) {
+        'extra-sheet-after-data' => $spreadsheet->createSheet()->setTitle('Summary')->setCellValue('A1', 'Not a statement'),
+        'extra-leading-column' => $data->insertNewColumnBefore('A'),
+        'title-row-above-header' => $data->insertNewRowBefore(1)->setCellValue('A1', 'Historia rachunku'),
+        'cover-sheet-first' => $spreadsheet->addSheet((new Worksheet)->setTitle('Cover')->setCellValue('A1', 'Statement cover'), 0),
+        'renamed-amount-header' => $data->setCellValue('D1', 'Kwota brutto'),
+    };
+
+    $path = tempnam(sys_get_temp_dir(), 'bnp-variant-').'.xlsx';
+    (new Xlsx($spreadsheet))->save($path);
+
+    return $path;
+}
+
+// (operation date, signed minor units) of the 7 data rows of tests/Fixtures/mbank-basic.csv, read by hand from the
+// file in file order: -355,91, +1 000,00, -100,00, +400,00, -134,83, -30,99, -41,04.
+const IMPORT_INTEGRITY_MBANK_TUPLES = [
+    ['2025-01-09', -35591],
+    ['2025-01-09', 100000],
+    ['2025-01-07', -10000],
+    ['2025-01-07', 40000],
+    ['2025-01-04', -13483],
+    ['2025-01-04', -3099],
+    ['2025-01-02', -4104],
+];
+
+// The 7 data rows of tests/Fixtures/bnp-paribas-basic.xlsx read by hand from the sheet: the first two are card holds
+// with no booking date (FR-IMP-06), dates are Excel serials 45668 (2025-01-11), 45667 (01-10) and 45666 (01-09).
+const IMPORT_INTEGRITY_BNP_TUPLES = [
+    ['2025-01-11', -3739],
+    ['2025-01-11', -2999],
+    ['2025-01-10', -17650],
+    ['2025-01-10', -89335],
+    ['2025-01-09', -93900],
+    ['2025-01-09', 1000000],
+    ['2025-01-09', 500000],
+];
+
+it('keeps all 7 rows of the real mBank statement when the layout changes in a supported way', function (string $fixture): void {
+    $this->travelTo('2025-01-12 12:00:00');
+
+    $user = User::factory()->create();
+    $account = importIntegrityAccount($user, 'eKonto', 100000, '2025-01-01');
+
+    importIntegrityStatementPreview($user, $account, 'mbank', base_path('tests/Fixtures/'.$fixture), 'mbank.csv')
+        ->assertRedirect(route('operations.import.preview'));
+
+    expect(session(CsvImportSession::SESSION_KEY.'.rows'))->toHaveCount(7)
+        ->and(importIntegrityPreviewTuples())->toBe(IMPORT_INTEGRITY_MBANK_TUPLES);
+})->with([
+    'no preamble' => 'import/mbank-no-preamble.csv',
+    'longer preamble' => 'import/mbank-long-preamble.csv',
+    'reordered columns plus a balance column' => 'import/mbank-reordered-columns.csv',
+]);
+
+it('keeps all 7 rows of the real BNP statement, both holds without a booking date, after a supported change', function (string $variant): void {
+    $this->travelTo('2025-01-12 12:00:00');
+
+    $user = User::factory()->create();
+    $account = importIntegrityAccount($user, 'Konto Osobiste', 100000, '2025-01-01');
+    $path = importIntegrityBnpVariant($variant);
+
+    importIntegrityStatementPreview($user, $account, 'bnp_paribas', $path, 'bnp.xlsx')
+        ->assertRedirect(route('operations.import.preview'));
+
+    expect(session(CsvImportSession::SESSION_KEY.'.rows'))->toHaveCount(7)
+        ->and(importIntegrityPreviewTuples())->toBe(IMPORT_INTEGRITY_BNP_TUPLES);
+})->with([
+    'extra sheet after the data' => 'extra-sheet-after-data',
+    'extra leading column' => 'extra-leading-column',
+]);
+
+it('fails loudly instead of previewing a statement whose header no longer matches', function (string $format, string $variant): void {
+    $this->travelTo('2025-01-12 12:00:00');
+
+    $user = User::factory()->create();
+    $account = importIntegrityAccount($user, 'Checking', 100000, '2025-01-01');
+    $path = $format === 'mbank'
+        ? base_path('tests/Fixtures/import/mbank-renamed-amount.csv')
+        : importIntegrityBnpVariant($variant);
+    $before = importIntegritySnapshot();
+
+    $response = importIntegrityStatementPreview($user, $account, $format, $path, 'statement');
+
+    $response->assertSessionHasErrors('file');
+
+    expect($response->headers->get('Location'))->not->toBe(route('operations.import.preview'))
+        ->and(session()->has(CsvImportSession::SESSION_KEY))->toBeFalse()
+        ->and(importIntegritySnapshot())->toBe($before);
+})->with([
+    'mBank amount column renamed' => ['mbank', 'renamed-amount'],
+    'BNP title row above the header' => ['bnp_paribas', 'title-row-above-header'],
+    'BNP cover sheet first' => ['bnp_paribas', 'cover-sheet-first'],
+    'BNP amount header renamed' => ['bnp_paribas', 'renamed-amount-header'],
+]);
+
+it('imports a reordered real mBank statement end to end with the balance matching the derived balance', function (): void {
+    $this->travelTo('2025-01-12 12:00:00');
+
+    $user = User::factory()->create();
+    $account = importIntegrityAccount($user, 'eKonto', 100000, '2025-01-01');
+    $budget = importIntegrityExecutionBudget($user, 2025);
+    $incomeLine = BudgetLine::factory()->for($budget)->income()->create([
+        'planned_amount_minor_units' => 500000,
+        'execution_minor_units' => 0,
+    ]);
+    $expenseLine = BudgetLine::factory()->for($budget)->expense()->create([
+        'planned_amount_minor_units' => 500000,
+        'execution_minor_units' => 0,
+    ]);
+
+    importIntegrityStatementPreview($user, $account, 'mbank', base_path('tests/Fixtures/import/mbank-reordered-columns.csv'), 'mbank.csv')
+        ->assertRedirect(route('operations.import.preview'));
+
+    $rows = [];
+
+    foreach (['expense', 'income', 'expense', 'income', 'expense', 'expense', 'expense'] as $index => $type) {
+        $rows[] = importIntegrityRow($index, $type, [
+            'category_id' => $type === 'income' ? $incomeLine->category_id : $expenseLine->category_id,
+        ]);
+    }
+
+    $before = importIntegritySnapshot();
+
+    importIntegrityCommit($user, $rows)->assertRedirect(route('operations'));
+
+    // -355,91 + 1 000,00 - 100,00 + 400,00 - 134,83 - 30,99 - 41,04 = +737,23 summed by hand.
+    expect($before['financial_operations'])->toBe(0)
+        ->and(DB::table('financial_operations')->count())->toBe(7)
+        ->and($account->refresh()->current_balance_minor_units)->toBe(100000 + 73723)
+        ->and($account->current_balance_minor_units)->toBe(AccountBalanceOnDate::for($account, now()));
+});
+
+it('imports the real BNP statement end to end with the balance matching the derived balance', function (): void {
+    $this->travelTo('2025-01-12 12:00:00');
+
+    $user = User::factory()->create();
+    $account = importIntegrityAccount($user, 'Konto Osobiste', 100000, '2025-01-01');
+    $budget = importIntegrityExecutionBudget($user, 2025);
+    $incomeLine = BudgetLine::factory()->for($budget)->income()->create([
+        'planned_amount_minor_units' => 5000000,
+        'execution_minor_units' => 0,
+    ]);
+    $expenseLine = BudgetLine::factory()->for($budget)->expense()->create([
+        'planned_amount_minor_units' => 5000000,
+        'execution_minor_units' => 0,
+    ]);
+
+    importIntegrityStatementPreview($user, $account, 'bnp_paribas', base_path('tests/Fixtures/bnp-paribas-basic.xlsx'), 'bnp.xlsx')
+        ->assertRedirect(route('operations.import.preview'));
+
+    $rows = [];
+
+    foreach (['expense', 'expense', 'expense', 'expense', 'expense', 'income', 'income'] as $index => $type) {
+        $rows[] = importIntegrityRow($index, $type, [
+            'category_id' => $type === 'income' ? $incomeLine->category_id : $expenseLine->category_id,
+        ]);
+    }
+
+    importIntegrityCommit($user, $rows)->assertRedirect(route('operations'));
+
+    // -37,39 - 29,99 - 176,50 - 893,35 - 939,00 + 10 000,00 + 5 000,00 = +12 923,77 summed by hand.
+    expect(DB::table('financial_operations')->count())->toBe(7)
+        ->and($account->refresh()->current_balance_minor_units)->toBe(100000 + 1292377)
         ->and($account->current_balance_minor_units)->toBe(AccountBalanceOnDate::for($account, now()));
 });
