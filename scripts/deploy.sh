@@ -71,4 +71,4 @@ $COMPOSE exec -T app php artisan config:cache
 $COMPOSE exec -T app php artisan route:cache
 $COMPOSE exec -T app php artisan view:cache
 
-echo "==> Done. Check https://treasurer.kostecki.dev/up"
+echo "==> Done. Check https://budget.kostecki.dev/up"

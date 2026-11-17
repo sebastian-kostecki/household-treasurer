@@ -1,7 +1,10 @@
 version: 2
+# Every entry targets development: updates go through development -> main like other work
+# (Dependabot reads this file from main, so the change takes effect after a release).
 updates:
   - package-ecosystem: "github-actions"
     directory: "/"
+    target-branch: "development"
     schedule:
       interval: "weekly"
     cooldown:
@@ -12,13 +15,25 @@ updates:
           - "*"
   - package-ecosystem: "composer"
     directory: "/"
+    target-branch: "development"
     schedule:
       interval: "weekly"
     cooldown:
       default-days: 5
   - package-ecosystem: "npm"
     directory: "/"
+    target-branch: "development"
     schedule:
       interval: "weekly"
     cooldown:
       default-days: 5
+    # Packages that must move together get one PR: @unovis/vue pins @unovis/ts to its own
+    # version (a bump of one alone fails npm ci with ERESOLVE), and the platform builds of
+    # rollup should stay on the same version.
+    groups:
+      unovis:
+        patterns:
+          - "@unovis/*"
+      rollup-platform-builds:
+        patterns:
+          - "@rollup/rollup-*"
