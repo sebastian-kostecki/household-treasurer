@@ -614,7 +614,7 @@ Brak migracji. Jedyna zmiana zachowania: żądanie zatwierdzenia z powtórzonym 
 
 #### Manual
 
-- [ ] 3.4 Przegląd diffu czterech wariantów mBank: tylko zamierzone edycje
+- [x] 3.4 Przegląd diffu czterech wariantów mBank: tylko zamierzone edycje
 
 ### Phase 4: Benchmark trafności podpowiedzi
 
@@ -629,8 +629,8 @@ Brak migracji. Jedyna zmiana zachowania: żądanie zatwierdzenia z powtórzonym 
 
 #### Manual
 
-- [ ] 4.7 Przegląd próbki zestawu referencyjnego: brak tekstu z banku
-- [ ] 4.8 Liczby z pliku bazowego są w rzędzie wielkości odczytu S-23
+- [x] 4.7 Przegląd próbki zestawu referencyjnego: brak tekstu z banku
+- [x] 4.8 Liczby z pliku bazowego są w rzędzie wielkości odczytu S-23
 
 ### Phase 5: Twoje świeże eksporty
 
@@ -642,8 +642,8 @@ Brak migracji. Jedyna zmiana zachowania: żądanie zatwierdzenia z powtórzonym 
 #### Manual
 
 - [x] 5.3 Trzy eksporty dostarczone do `storage/app/private/statements/`
-- [ ] 5.4 Przegląd zanonimizowanych fixture: brak danych osobowych i numerów rachunków
-- [ ] 5.5 Potwierdzone ręczne liczby wierszy i wierszy wspólnych w nakładce
+- [x] 5.4 Przegląd zanonimizowanych fixture: brak danych osobowych i numerów rachunków
+- [x] 5.5 Potwierdzone ręczne liczby wierszy i wierszy wspólnych w nakładce
 
 ### Phase 6: Plan testów
 
@@ -655,4 +655,4 @@ Brak migracji. Jedyna zmiana zachowania: żądanie zatwierdzenia z powtórzonym 
 
 #### Manual
 
-- [ ] 6.4 Przeczytane §2, §3, §6 i §7 oddają decyzje z planowania
+- [x] 6.4 Przeczytane §2, §3, §6 i §7 oddają decyzje z planowania
