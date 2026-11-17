@@ -1,7 +1,7 @@
 ---
 change_id: testing-import-integrity
 title: Testy integralności Importu i benchmark trafności podpowiedzi kategorii
-status: implementing
+status: impl_reviewed
 created: 2026-11-17
 updated: 2026-11-17
 archived_at: null
