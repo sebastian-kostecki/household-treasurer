@@ -555,9 +555,9 @@ Brak migracji. Jedyna zmiana zachowania: żądanie zatwierdzenia z powtórzonym 
 
 #### Automated
 
-- [ ] 1.1 Testy fazy przechodzą na PostgreSQL: `PGTEST tests/Feature/ImportIntegrityTest.php`
-- [ ] 1.2 Celowe zepsucie transakcji czerwieni testy wycofania; po cofnięciu zielone
-- [ ] 1.3 `pint` na nowym pliku testów nie zgłasza zmian
+- [x] 1.1 Testy fazy przechodzą na PostgreSQL: `PGTEST tests/Feature/ImportIntegrityTest.php`
+- [x] 1.2 Celowe zepsucie transakcji czerwieni testy wycofania; po cofnięciu zielone
+- [x] 1.3 `pint` na nowym pliku testów nie zgłasza zmian
 
 ### Phase 2: Duplikaty
 
