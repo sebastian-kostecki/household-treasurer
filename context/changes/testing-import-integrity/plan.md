@@ -613,9 +613,9 @@ Brak migracji. Jedyna zmiana zachowania: żądanie zatwierdzenia z powtórzonym 
 
 #### Automated
 
-- [x] 6.1 Pełna bramka `composer ci:check` na PostgreSQL w kontenerze
-- [x] 6.2 `vendor/bin/sloppy ci` w obrazie `sail-8.5/app` jest zielone
-- [x] 6.3 `S-16` nie występuje w poprawionych wierszach i akapitach planu testów
+- [x] 6.1 Pełna bramka `composer ci:check` na PostgreSQL w kontenerze — d3f6d17
+- [x] 6.2 `vendor/bin/sloppy ci` w obrazie `sail-8.5/app` jest zielone — d3f6d17
+- [x] 6.3 `S-16` nie występuje w poprawionych wierszach i akapitach planu testów — d3f6d17
 
 #### Manual
 
