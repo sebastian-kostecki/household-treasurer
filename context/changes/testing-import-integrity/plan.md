@@ -555,18 +555,18 @@ Brak migracji. Jedyna zmiana zachowania: żądanie zatwierdzenia z powtórzonym 
 
 #### Automated
 
-- [x] 1.1 Testy fazy przechodzą na PostgreSQL: `PGTEST tests/Feature/ImportIntegrityTest.php`
-- [x] 1.2 Celowe zepsucie transakcji czerwieni testy wycofania; po cofnięciu zielone
-- [x] 1.3 `pint` na nowym pliku testów nie zgłasza zmian
+- [x] 1.1 Testy fazy przechodzą na PostgreSQL: `PGTEST tests/Feature/ImportIntegrityTest.php` — d9fa871
+- [x] 1.2 Celowe zepsucie transakcji czerwieni testy wycofania; po cofnięciu zielone — d9fa871
+- [x] 1.3 `pint` na nowym pliku testów nie zgłasza zmian — d9fa871
 
 ### Phase 2: Duplikaty
 
 #### Automated
 
-- [ ] 2.1 Test powtórzonego `index` jest czerwony przed dodaniem `distinct`
-- [ ] 2.2 Testy fazy przechodzą na PostgreSQL po zmianie: `PGTEST tests/Feature/ImportIntegrityTest.php`
-- [ ] 2.3 Istniejące testy Importu przechodzą: `PGTEST tests/Feature/CsvImportTest.php`
-- [ ] 2.4 `pint` i `vendor/bin/sloppy ci` są zielone dla zmienionych plików
+- [x] 2.1 Test powtórzonego `index` jest czerwony przed dodaniem `distinct`
+- [x] 2.2 Testy fazy przechodzą na PostgreSQL po zmianie: `PGTEST tests/Feature/ImportIntegrityTest.php`
+- [x] 2.3 Istniejące testy Importu przechodzą: `PGTEST tests/Feature/CsvImportTest.php`
+- [x] 2.4 `pint` i `vendor/bin/sloppy ci` są zielone dla zmienionych plików
 
 ### Phase 3: Formaty na istniejących fixture i issue B, C
 

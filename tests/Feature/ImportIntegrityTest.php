@@ -266,3 +266,201 @@ CSV);
         ->and($savings->current_balance_minor_units)->toBe(AccountBalanceOnDate::for($savings, now()))
         ->and($termDeposit->refresh()->current_balance_minor_units)->toBe(200000 - 12500);
 });
+
+it('does not write anything when the same commit request is resent after success', function (): void {
+    $user = User::factory()->create();
+    $account = importIntegrityAccount($user, 'Checking', 100000);
+    importIntegrityExecutionBudget($user, 2026);
+    $category = importIntegrityListCategory($user, CategoryType::Expense);
+    $rows = [importIntegrityRow(0, 'expense', ['category_id' => $category->id])];
+
+    importIntegrityPreview($user, $account, <<<'CSV'
+date,description,amount
+2026-03-15,Coffee,-12.00
+CSV);
+
+    importIntegrityCommit($user, $rows)->assertRedirect(route('operations'));
+
+    $afterFirst = importIntegritySnapshot();
+
+    expect($afterFirst['financial_operations'])->toBe(1)
+        ->and($account->refresh()->current_balance_minor_units)->toBe(100000 - 1200);
+
+    importIntegrityCommit($user, $rows)->assertRedirect(route('operations.import.create'));
+
+    expect(importIntegritySnapshot())->toBe($afterFirst)
+        ->and($account->refresh()->current_balance_minor_units)->toBe(100000 - 1200);
+});
+
+it('writes nothing when a reimported duplicate is committed without acknowledgement', function (): void {
+    $user = User::factory()->create();
+    $account = importIntegrityAccount($user, 'Checking', 100000);
+    importIntegrityExecutionBudget($user, 2026);
+    $category = importIntegrityListCategory($user, CategoryType::Expense);
+    $rows = [importIntegrityRow(0, 'expense', ['category_id' => $category->id])];
+    $csv = <<<'CSV'
+date,description,amount
+2026-03-15,Coffee,-12.00
+CSV;
+
+    importIntegrityPreview($user, $account, $csv);
+    importIntegrityCommit($user, $rows)->assertRedirect(route('operations'));
+
+    importIntegrityPreview($user, $account, $csv);
+
+    expect(session(CsvImportSession::SESSION_KEY.'.rows.0.import_duplicate'))->toBeTrue();
+
+    $before = importIntegritySnapshot();
+
+    importIntegrityCommit($user, $rows)->assertSessionHasErrors('duplicate_warning_acknowledged');
+
+    expect(importIntegritySnapshot())->toBe($before)
+        ->and($before['financial_operations'])->toBe(1)
+        ->and($account->refresh()->current_balance_minor_units)->toBe(100000 - 1200)
+        ->and(session()->has(CsvImportSession::SESSION_KEY))->toBeTrue();
+});
+
+it('imports two identical rows of one file and flags both as duplicates on the next Import', function (): void {
+    $user = User::factory()->create();
+    $account = importIntegrityAccount($user, 'Checking', 100000);
+    importIntegrityExecutionBudget($user, 2026);
+    $category = importIntegrityListCategory($user, CategoryType::Expense);
+    $rows = [
+        importIntegrityRow(0, 'expense', ['category_id' => $category->id]),
+        importIntegrityRow(1, 'expense', ['category_id' => $category->id]),
+    ];
+    $csv = <<<'CSV'
+date,description,amount
+2026-03-15,Coffee,-12.00
+2026-03-15,Coffee,-12.00
+CSV;
+
+    importIntegrityPreview($user, $account, $csv);
+    importIntegrityCommit($user, $rows)->assertRedirect(route('operations'));
+
+    $digests = FinancialOperation::query()->pluck('import_identity_digest');
+
+    expect($digests)->toHaveCount(2)
+        ->and($digests->unique())->toHaveCount(1)
+        ->and($digests->first())->not->toBeNull()
+        ->and($account->refresh()->current_balance_minor_units)->toBe(100000 - 2400);
+
+    importIntegrityPreview($user, $account, $csv);
+
+    expect(session(CsvImportSession::SESSION_KEY.'.rows.0.import_duplicate'))->toBeTrue()
+        ->and(session(CsvImportSession::SESSION_KEY.'.rows.1.import_duplicate'))->toBeTrue();
+
+    $before = importIntegritySnapshot();
+
+    importIntegrityCommit($user, $rows)->assertSessionHasErrors('duplicate_warning_acknowledged');
+
+    expect(importIntegritySnapshot())->toBe($before)
+        ->and($before['financial_operations'])->toBe(2)
+        ->and($account->refresh()->current_balance_minor_units)->toBe(100000 - 2400);
+});
+
+it('rejects a commit that repeats a preview row index', function (): void {
+    $user = User::factory()->create();
+    $account = importIntegrityAccount($user, 'Checking', 100000);
+    importIntegrityExecutionBudget($user, 2026);
+    $category = importIntegrityListCategory($user, CategoryType::Expense);
+
+    importIntegrityPreview($user, $account, <<<'CSV'
+date,description,amount
+2026-03-15,Coffee,-12.00
+CSV);
+
+    $before = importIntegritySnapshot();
+
+    importIntegrityCommit($user, [
+        importIntegrityRow(0, 'expense', ['category_id' => $category->id]),
+        importIntegrityRow(0, 'expense', ['category_id' => $category->id]),
+    ])->assertSessionHasErrors('rows.1.index');
+
+    expect(importIntegritySnapshot())->toBe($before)
+        ->and($before['financial_operations'])->toBe(0)
+        ->and($account->refresh()->current_balance_minor_units)->toBe(100000)
+        ->and(session()->has(CsvImportSession::SESSION_KEY))->toBeTrue();
+});
+
+it('flags exactly the overlapping rows of a later real mBank statement as duplicates', function (): void {
+    $this->travelTo('2025-01-10 12:00:00');
+
+    $user = User::factory()->create();
+    $account = importIntegrityAccount($user, 'eKonto', 100000, '2025-01-01');
+    $budget = importIntegrityExecutionBudget($user, 2025);
+    $incomeLine = BudgetLine::factory()->for($budget)->income()->create([
+        'planned_amount_minor_units' => 500000,
+        'execution_minor_units' => 0,
+    ]);
+    $expenseLine = BudgetLine::factory()->for($budget)->expense()->create([
+        'planned_amount_minor_units' => 500000,
+        'execution_minor_units' => 0,
+    ]);
+
+    $previewMbank = function (string $fixture) use ($user, $account): void {
+        $this->actingAs($user)
+            ->post(route('operations.import.preview.store'), [
+                'file' => UploadedFile::fake()->createWithContent('mbank.csv', file_get_contents(base_path($fixture))),
+                'account_id' => $account->id,
+                'import_format' => 'mbank',
+            ])
+            ->assertRedirect(route('operations.import.preview'));
+    };
+
+    // mbank-basic.csv rows in file order: -355,91, +1000,00, -100,00, +400,00, -134,83, -30,99, -41,04.
+    $basicTypes = ['expense', 'income', 'expense', 'income', 'expense', 'expense', 'expense'];
+    $basicRows = [];
+
+    foreach ($basicTypes as $index => $type) {
+        $basicRows[] = importIntegrityRow($index, $type, [
+            'category_id' => $type === 'income' ? $incomeLine->category_id : $expenseLine->category_id,
+        ]);
+    }
+
+    $previewMbank('tests/Fixtures/mbank-basic.csv');
+    importIntegrityCommit($user, $basicRows)->assertRedirect(route('operations'));
+
+    expect(DB::table('financial_operations')->count())->toBe(7)
+        ->and($account->refresh()->current_balance_minor_units)->toBe(100000 + 73723);
+
+    // mbank-overlap.csv: 2 new rows (-52,30, -18,75) followed by the last 3 rows of mbank-basic.csv.
+    $previewMbank('tests/Fixtures/import/mbank-overlap.csv');
+
+    $duplicateFlags = [];
+
+    foreach (range(0, 4) as $index) {
+        $duplicateFlags[] = session(CsvImportSession::SESSION_KEY.'.rows.'.$index.'.import_duplicate');
+    }
+
+    expect(session(CsvImportSession::SESSION_KEY.'.rows'))->toHaveCount(5)
+        ->and($duplicateFlags)->toBe([false, false, true, true, true]);
+
+    $overlapRow = fn (int $index, bool $selected): array => $selected
+        ? importIntegrityRow($index, 'expense', ['category_id' => $expenseLine->category_id])
+        : ['index' => $index, 'selected' => false];
+
+    $afterBasic = importIntegritySnapshot();
+
+    importIntegrityCommit($user, [
+        $overlapRow(0, true),
+        $overlapRow(1, true),
+        $overlapRow(2, true),
+        $overlapRow(3, false),
+        $overlapRow(4, false),
+    ])->assertSessionHasErrors('duplicate_warning_acknowledged');
+
+    expect(importIntegritySnapshot())->toBe($afterBasic);
+
+    importIntegrityCommit($user, [
+        $overlapRow(0, true),
+        $overlapRow(1, true),
+        $overlapRow(2, false),
+        $overlapRow(3, false),
+        $overlapRow(4, false),
+    ])->assertRedirect(route('operations'));
+
+    expect(DB::table('financial_operations')->count())->toBe(9)
+        ->and($account->refresh()->current_balance_minor_units)->toBe(100000 + 73723 - 5230 - 1875)
+        ->and($account->current_balance_minor_units)->toBe(AccountBalanceOnDate::for($account, now()));
+});
