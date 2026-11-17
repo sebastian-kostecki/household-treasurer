@@ -574,7 +574,7 @@ Brak migracji. Jedyna zmiana zachowania: żądanie zatwierdzenia z powtórzonym 
 
 - [x] 3.1 Testy formatów przechodzą na PostgreSQL: `PGTEST tests/Feature/ImportIntegrityTest.php` — d4c28ab
 - [x] 3.2 Celowe zepsucie mapowania mBank czerwieni test przestawionych kolumn; po cofnięciu zielony — d4c28ab
-- [x] 3.3 Issue B i C istnieją na GitHubie z etykietą `needs-triage` — d4c28ab
+- [x] 3.3 Issue B i C istnieją na GitHubie z etykietą `needs-triage` — d4c28ab — d4c28ab
 
 #### Manual
 
@@ -584,12 +584,12 @@ Brak migracji. Jedyna zmiana zachowania: żądanie zatwierdzenia z powtórzonym 
 
 #### Automated
 
-- [x] 4.1 Testy generatora przechodzą: `PGTEST tests/Feature/ImportSuggestionReferenceCommandTest.php`
-- [x] 4.2 Generator na snapshocie kończy się kodem 0 i zapisuje 1031 wierszy
-- [x] 4.3 Oryginalne tokeny ze snapshotu nie występują w zestawie referencyjnym
-- [x] 4.4 Test benchmarku przechodzi na PostgreSQL
-- [x] 4.5 Celowe zepsucie `NEIGHBOURS` czerwieni benchmark z listą wierszy; po cofnięciu zielony
-- [x] 4.6 `pint`, PHPStan i `vendor/bin/sloppy ci` są zielone dla nowych plików
+- [x] 4.1 Testy generatora przechodzą: `PGTEST tests/Feature/ImportSuggestionReferenceCommandTest.php` — a93cc49
+- [x] 4.2 Generator na snapshocie kończy się kodem 0 i zapisuje 1031 wierszy — a93cc49
+- [x] 4.3 Oryginalne tokeny ze snapshotu nie występują w zestawie referencyjnym — a93cc49
+- [x] 4.4 Test benchmarku przechodzi na PostgreSQL — a93cc49
+- [x] 4.5 Celowe zepsucie `NEIGHBOURS` czerwieni benchmark z listą wierszy; po cofnięciu zielony — a93cc49
+- [x] 4.6 `pint`, PHPStan i `vendor/bin/sloppy ci` są zielone dla nowych plików — a93cc49
 
 #### Manual
 
@@ -613,9 +613,9 @@ Brak migracji. Jedyna zmiana zachowania: żądanie zatwierdzenia z powtórzonym 
 
 #### Automated
 
-- [ ] 6.1 Pełna bramka `composer ci:check` na PostgreSQL w kontenerze
-- [ ] 6.2 `vendor/bin/sloppy ci` w obrazie `sail-8.5/app` jest zielone
-- [ ] 6.3 `S-16` nie występuje w poprawionych wierszach i akapitach planu testów
+- [x] 6.1 Pełna bramka `composer ci:check` na PostgreSQL w kontenerze
+- [x] 6.2 `vendor/bin/sloppy ci` w obrazie `sail-8.5/app` jest zielone
+- [x] 6.3 `S-16` nie występuje w poprawionych wierszach i akapitach planu testów
 
 #### Manual
 
