@@ -590,11 +590,11 @@ Brak migracji. Zmiana zachowania jest możliwa tylko w fazie 3, jeśli poprawka 
 
 #### Automated
 
-- [x] 4.1 Testy niezmiennika raportu przechodzą na PostgreSQL
-- [x] 4.2 Celowe zepsucie granicy w `MonthCategoryActuals` czerwieni raport marca; po cofnięciu zielony
-- [x] 4.3 Celowe zepsucie filtra Budżetu w `BudgetMonthResult` czerwieni Wynik miesiąca; po cofnięciu zielony
-- [x] 4.4 Istniejące testy raportu, Wyniku miesiąca i arkusza przechodzą
-- [x] 4.5 `pint` i `vendor/bin/sloppy ci` są zielone
+- [x] 4.1 Testy niezmiennika raportu przechodzą na PostgreSQL — 5288819
+- [x] 4.2 Celowe zepsucie granicy w `MonthCategoryActuals` czerwieni raport marca; po cofnięciu zielony — 5288819
+- [x] 4.3 Celowe zepsucie filtra Budżetu w `BudgetMonthResult` czerwieni Wynik miesiąca; po cofnięciu zielony — 5288819
+- [x] 4.4 Istniejące testy raportu, Wyniku miesiąca i arkusza przechodzą — 5288819
+- [x] 4.5 `pint` i `vendor/bin/sloppy ci` są zielone — 5288819
 
 #### Manual
 
@@ -604,10 +604,10 @@ Brak migracji. Zmiana zachowania jest możliwa tylko w fazie 3, jeśli poprawka 
 
 #### Automated
 
-- [ ] 5.1 Pełna bramka `composer ci:check` na PostgreSQL w kontenerze
-- [ ] 5.2 `vendor/bin/sloppy ci` w obrazie `sail-8.5/app` jest zielone
-- [ ] 5.3 `S-14` i `S-11` nie występują w poprawionych wierszach i akapitach planu testów
-- [ ] 5.4 Indeks reguł wymienia nowe ścieżki w wierszu `month-calculators.md`
+- [x] 5.1 Pełna bramka `composer ci:check` na PostgreSQL w kontenerze
+- [x] 5.2 `vendor/bin/sloppy ci` w obrazie `sail-8.5/app` jest zielone
+- [x] 5.3 `S-14` i `S-11` nie występują w poprawionych wierszach i akapitach planu testów
+- [x] 5.4 Indeks reguł wymienia nowe ścieżki w wierszu `month-calculators.md`
 
 #### Manual
 
