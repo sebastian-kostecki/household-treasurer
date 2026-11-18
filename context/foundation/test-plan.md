@@ -6,7 +6,7 @@
 >
 > Refresh: re-run `/10x-test-plan --refresh` when stale (see §8).
 >
-> Last updated: 2026-11-17
+> Last updated: 2026-11-18
 
 Plan jest po polsku jak pozostałe dokumenty w `context/foundation/`; wartości Status w §3 zostają po angielsku, bo czyta je orkiestrator. Terminy domenowe według `context/foundation/glossary.md`.
 
@@ -74,8 +74,8 @@ orchestrator updates Status as artifacts appear on disk.
 
 | # | Phase name | Goal (one line) | Risks covered | Test types | Status | Change folder |
 |---|---|---|---|---|---|---|
-| 1 | Integralność Importu | Dowieść, że Import nie dubluje, nie gubi i nie zostawia połowicznych zestawów, i zapisać poziom bazowy trafności podpowiedzi na stałym zestawie referencyjnym | #1, #4 | integracja + benchmark | change opened | `context/changes/testing-import-integrity/` |
-| 2 | Niezmienniki kwot | Dowieść zgodności „do wydania” PHP↔TS przed S-14 oraz zgodności raportu z wykonaniem i Wynikiem miesiąca po S-11 | #2, #3 | kontrakt/parzystość + integracja | not started | — |
+| 1 | Integralność Importu | Dowieść, że Import nie dubluje, nie gubi i nie zostawia połowicznych zestawów, i zapisać poziom bazowy trafności podpowiedzi na stałym zestawie referencyjnym | #1, #4 | integracja + benchmark | complete | `context/archive/2026-11-17-testing-import-integrity/` |
+| 2 | Niezmienniki kwot | Dowieść zgodności „do wydania” PHP↔TS przed S-14 oraz zgodności raportu z wykonaniem i Wynikiem miesiąca po S-11 | #2, #3 | kontrakt/parzystość + integracja | change opened | `context/changes/testing-amount-invariants/` |
 | 3 | Backup i restore | Dowieść, że backup jest kompletny i głośno pada, a restore v1–v5 jest bezstratny, zanim S-14/S-16 wprowadzą v6 | #5, #6 | integracja | not started | — |
 | 4 | Przepływy w przeglądarce | Dowieść, że krytyczne przepływy działają w prawdziwej przeglądarce bez błędów JS | #7 | e2e | not started | — |
 | 5 | Bramki jakości | Utrwalić poziom: przegląd tras pod izolację, testy `arch()` dla twardych zasad, testy pod PHPStan, e2e w CI | #8, przekrojowo | integracja + bramki | not started | — |
