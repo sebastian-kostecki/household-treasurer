@@ -481,8 +481,8 @@ Brak migracji. Snapshot produkcji trafia tylko do lokalnej bazy dev, na osobnego
 
 #### Automated
 
-- [ ] 4.1 Formatowanie i lint przechodzą
-- [ ] 4.2 Kotwica sekcji Przełom roku istnieje
+- [x] 4.1 Formatowanie i lint przechodzą — 4f85f50
+- [x] 4.2 Kotwica sekcji Przełom roku istnieje — 4f85f50
 
 #### Manual
 
