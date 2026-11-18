@@ -22,3 +22,10 @@ Worktree: .claude/worktrees/testing-amount-invariants (gałąź worktree-testing
 - **Kandydat 1** (opłata stała wpisana wstecz, `fixed-charge-backdated-proposal`): zielony po obu stronach. Serwer luty 4 850 → 4 820 i marzec 4 850 → 4 820, podgląd TS tylko luty 4 850 → 4 820. Zgodne z zakresem ostrzeżenia w glosariuszu (To Spend).
 - **Kandydat 2 przed jakąkolwiek zmianą kodu** (`january-joining-category`): Feature zielony (7 passed, serwer 5 000 → 4 600), Vitest czerwony (po: oczekiwane 460000, jest 490000, plan 0 dla kategorii dołączającej).
 - **Rozstrzygnięcie: issue #273** (`needs-triage`). Poprawka wymaga nowej metody w `MonthPlanProposal` (plan dla kategorii bez `BudgetLine`) i obsługi miesiąca zatwierdzonego, miesięcy po styczniu i opłaty stałej, więc nie mieści się w jednym miejscu. Wybór konserwatywny z polityki braku interakcji. Przypadek Vitest ma `it.skip` z numerem #273, Feature zostaje aktywny. Wiersz Manual 3.5 czeka na potwierdzenie człowieka.
+
+### Faza 4 — niezmiennik raportu (2026-11-18)
+
+- Zepsucie z planu `<` → `<=` w `MonthCategoryActuals::forMonths` (linia z `afterLastDay`) **nie czerwieni** testu: granicę i tak odcina `array_key_exists($month, $byMonth)` w pętli, więc zmiana jest równoważna. Dobrane zepsucie: `->subDay()->month` przy przypisaniu operacji do miesiąca (linia `$month = CarbonImmutable::parse(...)`). Czerwieni asercje marca raportu (15000 zamiast 135000). Po cofnięciu zielone.
+- Zepsucie `BudgetMonthResult` bez filtra `budget_id` czerwieni Wynik marca (204900 zamiast 105000, obca operacja 999 zł). Po cofnięciu zielone.
+- Test arkusza potrzebował więcej niż plan: ładowarka wymaga obu etykiet przychodu (`pozostałe`, `oszczędności`), więc luty ma przychód 579 012 groszy i asercje przychodów.
+- Sloppy: 3 findings medium w `app/Support/SheetLoad/SheetMappingCategoryCheck.php` (SL204), poza nowym plikiem, poziom high nie przekroczony.

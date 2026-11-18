@@ -577,10 +577,10 @@ Brak migracji. Zmiana zachowania jest możliwa tylko w fazie 3, jeśli poprawka 
 
 #### Automated
 
-- [x] 3.1 Vitest czerwony, a Feature zielony na `january-joining-category` przed zmianą kodu; wynik w `change.md`
-- [x] 3.2 Po rozstrzygnięciu oba testy ścieżki wejść zielone albo jeden przypadek pominięty z numerem issue
-- [x] 3.3 Wariant issue: zgłoszenie z etykietą `needs-triage` istnieje
-- [x] 3.4 Wariant poprawki: testy wejść i ostrzeżeń przechodzą, bramki statyczne zielone
+- [x] 3.1 Vitest czerwony, a Feature zielony na `january-joining-category` przed zmianą kodu; wynik w `change.md` — d9a2e5d
+- [x] 3.2 Po rozstrzygnięciu oba testy ścieżki wejść zielone albo jeden przypadek pominięty z numerem issue — d9a2e5d
+- [x] 3.3 Wariant issue: zgłoszenie z etykietą `needs-triage` istnieje — d9a2e5d
+- [x] 3.4 Wariant poprawki: testy wejść i ostrzeżeń przechodzą, bramki statyczne zielone — d9a2e5d
 
 #### Manual
 
@@ -590,11 +590,11 @@ Brak migracji. Zmiana zachowania jest możliwa tylko w fazie 3, jeśli poprawka 
 
 #### Automated
 
-- [ ] 4.1 Testy niezmiennika raportu przechodzą na PostgreSQL
-- [ ] 4.2 Celowe zepsucie granicy w `MonthCategoryActuals` czerwieni raport marca; po cofnięciu zielony
-- [ ] 4.3 Celowe zepsucie filtra Budżetu w `BudgetMonthResult` czerwieni Wynik miesiąca; po cofnięciu zielony
-- [ ] 4.4 Istniejące testy raportu, Wyniku miesiąca i arkusza przechodzą
-- [ ] 4.5 `pint` i `vendor/bin/sloppy ci` są zielone
+- [x] 4.1 Testy niezmiennika raportu przechodzą na PostgreSQL
+- [x] 4.2 Celowe zepsucie granicy w `MonthCategoryActuals` czerwieni raport marca; po cofnięciu zielony
+- [x] 4.3 Celowe zepsucie filtra Budżetu w `BudgetMonthResult` czerwieni Wynik miesiąca; po cofnięciu zielony
+- [x] 4.4 Istniejące testy raportu, Wyniku miesiąca i arkusza przechodzą
+- [x] 4.5 `pint` i `vendor/bin/sloppy ci` są zielone
 
 #### Manual
 
