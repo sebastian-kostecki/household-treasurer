@@ -1,6 +1,7 @@
 <?php
 
 use App\Actions\ManageFinancialOperation;
+use App\Enums\Rhythm;
 use App\Models\Account;
 use App\Models\Budget;
 use App\Models\BudgetLine;
@@ -165,6 +166,31 @@ function entryParitySeed(string $key, User $user, Account $account, Budget $budg
             entryParityBook($user, $account, $food, '2026-03-07', 90_000);
 
             return ['Pensja' => $salary, 'Jedzenie' => $food];
+
+        case 'fixed-charge-backdated-proposal':
+            $salary = entryParityLine($budget, 'Pensja', 'income', 6_000_000);
+            $power = entryParityLine($budget, 'Prąd', 'fixed', 180_000);
+            entryParityApprove($budget, 2, [
+                'Pensja' => ['line' => $salary, 'amount' => 500_000],
+                'Prąd' => ['line' => $power, 'amount' => 15_000],
+            ]);
+
+            return ['Pensja' => $salary, 'Prąd' => $power];
+
+        case 'january-joining-category':
+            $salary = entryParityLine($budget, 'Pensja', 'income', 6_000_000);
+            $hairdresser = entryParityLine($budget, 'Fryzjer', 'running', 480_000);
+            $hairdresser->category->rhythms()->delete();
+            $hairdresser->category->rhythms()->create(['start_year' => 2026, 'start_month' => 1, 'rhythm' => Rhythm::Running]);
+            entryParityApprove($budget, 12, [
+                'Pensja' => ['line' => $salary, 'amount' => 500_000],
+                'Fryzjer' => ['line' => $hairdresser, 'amount' => 40_000],
+            ]);
+
+            $next = Budget::factory()->for($user)->execution()->create(['year' => 2027]);
+            entryParityLine($next, 'Pensja', 'income', 6_000_000);
+
+            return ['Pensja' => $salary, 'Fryzjer' => $hairdresser];
     }
 
     throw new LogicException("No seeder for the scenario {$key}.");
@@ -213,7 +239,7 @@ function entryParityCanonical(array $payload, array $keyByCategoryId): array
 function entryParityServerReadings(Budget $budget, array $months, CarbonImmutable $today): array
 {
     return array_map(
-        fn (array $month): ?int => MonthToSpend::forMonth($budget->fresh(), $month['month'], $today)->toSpendMinorUnits(),
+        fn (array $month): ?int => MonthToSpend::forMonth(Budget::query()->where('user_id', $budget->user_id)->where('year', $month['year'])->sole(), $month['month'], $today)->toSpendMinorUnits(),
         $months,
     );
 }

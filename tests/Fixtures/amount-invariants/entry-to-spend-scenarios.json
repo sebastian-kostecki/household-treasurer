@@ -509,6 +509,258 @@
                 { "year": 2026, "month": 3, "before": 500000, "after": 480000 }
             ],
             "derivation": "To Spend (glossary): income without an inflow at plan 6000,00; Running counts the greater of plan and actual; Set-aside -500,00 is a Draw and raises To Spend (minus -500,00). Before: Jedzenie max(1500,00; 900,00) = 1500,00; 6000,00 - 1500,00 - (-500,00) = 5000,00 = 500000. Editing the 900,00 operation to 1700,00 (the old amount leaves, the new one enters) makes the actual 1700,00 above plan: 6000,00 - 1700,00 + 500,00 = 4800,00 = 480000."
+        },
+        {
+            "key": "fixed-charge-backdated-proposal",
+            "today": "2026-03-10",
+            "categories": {
+                "1": "Pensja",
+                "2": "Prąd"
+            },
+            "inputs": {
+                "budgets": [
+                    {
+                        "year": 2026,
+                        "categories": [
+                            {
+                                "id": 1,
+                                "type": "income",
+                                "rhythms": null
+                            },
+                            {
+                                "id": 2,
+                                "type": "expense",
+                                "rhythms": {
+                                    "1": "fixed_charge",
+                                    "2": "fixed_charge",
+                                    "3": "fixed_charge",
+                                    "4": "fixed_charge",
+                                    "5": "fixed_charge",
+                                    "6": "fixed_charge",
+                                    "7": "fixed_charge",
+                                    "8": "fixed_charge",
+                                    "9": "fixed_charge",
+                                    "10": "fixed_charge",
+                                    "11": "fixed_charge",
+                                    "12": "fixed_charge"
+                                }
+                            }
+                        ],
+                        "months": [
+                            {
+                                "month": 2,
+                                "set_aside_minor_units": 0,
+                                "items": [
+                                    {
+                                        "category_id": 1,
+                                        "plan_minor_units": 500000,
+                                        "actual_minor_units": 0,
+                                        "positive_amount_count": 0
+                                    },
+                                    {
+                                        "category_id": 2,
+                                        "plan_minor_units": 15000,
+                                        "actual_minor_units": 0,
+                                        "positive_amount_count": 0
+                                    }
+                                ]
+                            },
+                            {
+                                "month": 3,
+                                "set_aside_minor_units": 0,
+                                "items": [
+                                    {
+                                        "category_id": 1,
+                                        "plan_minor_units": 500000,
+                                        "actual_minor_units": 0,
+                                        "positive_amount_count": 0
+                                    },
+                                    {
+                                        "category_id": 2,
+                                        "plan_minor_units": 15000,
+                                        "actual_minor_units": 0,
+                                        "positive_amount_count": 0
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ],
+                "irregular_periods": []
+            },
+            "dialog": {
+                "kind": "expense",
+                "operationDate": "2026-02-10",
+                "categoryId": 2,
+                "amountMinorUnits": 18000,
+                "original": null
+            },
+            "changes": [
+                {
+                    "operationDate": "2026-02-10",
+                    "categoryId": 2,
+                    "amountMinorUnits": 18000,
+                    "direction": "add"
+                }
+            ],
+            "readings": [
+                {
+                    "year": 2026,
+                    "month": 2,
+                    "beforeMinorUnits": 485000,
+                    "afterMinorUnits": 482000
+                }
+            ],
+            "server_months": [
+                {
+                    "year": 2026,
+                    "month": 2,
+                    "before": 485000,
+                    "after": 482000
+                },
+                {
+                    "year": 2026,
+                    "month": 3,
+                    "before": 485000,
+                    "after": 482000
+                }
+            ],
+            "derivation": "To Spend (glossary): income without an inflow counts at plan 5000,00; Fixed Charge counts at plan until the first operation with a positive amount. Today is 10 March: February is approved (Pensja 5000,00, Prad 150,00, Set-aside 0), March is a Proposal that copies February (ADR-0066 Fixed Charge Proposal: the net actual of the previous month when it had a positive operation, otherwise the copied plan). February before: 5000,00 - 150,00 = 4850,00 = 485000. A payment of 180,00 dated 10 February is the first positive operation of February, so Prad counts at the actual amount: 5000,00 - 180,00 = 4820,00 = 482000. The Proposal of March now takes 180,00 from February instead of the copied 150,00: March before 485000, after 5000,00 - 180,00 = 4820,00 = 482000 (server_months). The preview reads only February (readings): the glossary limits the warning to the month of the operation and the later months with a plan on which the entry acts through Collected, and a Fixed Charge Proposal is not Collected, so the missing March reading is consistent with the rule (candidate 1). This is the only scenario whose server_months list a month that readings lack."
+        },
+        {
+            "key": "january-joining-category",
+            "today": "2027-01-12",
+            "categories": {
+                "1": "Pensja",
+                "2": "Fryzjer"
+            },
+            "inputs": {
+                "budgets": [
+                    {
+                        "year": 2026,
+                        "categories": [
+                            {
+                                "id": 1,
+                                "type": "income",
+                                "rhythms": null
+                            },
+                            {
+                                "id": 2,
+                                "type": "expense",
+                                "rhythms": {
+                                    "1": "running",
+                                    "2": "running",
+                                    "3": "running",
+                                    "4": "running",
+                                    "5": "running",
+                                    "6": "running",
+                                    "7": "running",
+                                    "8": "running",
+                                    "9": "running",
+                                    "10": "running",
+                                    "11": "running",
+                                    "12": "running"
+                                }
+                            }
+                        ],
+                        "months": [
+                            {
+                                "month": 12,
+                                "set_aside_minor_units": 0,
+                                "items": [
+                                    {
+                                        "category_id": 1,
+                                        "plan_minor_units": 500000,
+                                        "actual_minor_units": 0,
+                                        "positive_amount_count": 0
+                                    },
+                                    {
+                                        "category_id": 2,
+                                        "plan_minor_units": 40000,
+                                        "actual_minor_units": 0,
+                                        "positive_amount_count": 0
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "year": 2027,
+                        "categories": [
+                            {
+                                "id": 1,
+                                "type": "income",
+                                "rhythms": null
+                            },
+                            {
+                                "id": 2,
+                                "type": "expense",
+                                "rhythms": {
+                                    "1": "running",
+                                    "2": "running",
+                                    "3": "running",
+                                    "4": "running",
+                                    "5": "running",
+                                    "6": "running",
+                                    "7": "running",
+                                    "8": "running",
+                                    "9": "running",
+                                    "10": "running",
+                                    "11": "running",
+                                    "12": "running"
+                                }
+                            }
+                        ],
+                        "months": [
+                            {
+                                "month": 1,
+                                "set_aside_minor_units": 0,
+                                "items": [
+                                    {
+                                        "category_id": 1,
+                                        "plan_minor_units": 500000,
+                                        "actual_minor_units": 0,
+                                        "positive_amount_count": 0
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ],
+                "irregular_periods": []
+            },
+            "dialog": {
+                "kind": "expense",
+                "operationDate": "2027-01-10",
+                "categoryId": 2,
+                "amountMinorUnits": 10000,
+                "original": null
+            },
+            "changes": [
+                {
+                    "operationDate": "2027-01-10",
+                    "categoryId": 2,
+                    "amountMinorUnits": 10000,
+                    "direction": "add"
+                }
+            ],
+            "readings": [
+                {
+                    "year": 2027,
+                    "month": 1,
+                    "beforeMinorUnits": 500000,
+                    "afterMinorUnits": 460000
+                }
+            ],
+            "server_months": [
+                {
+                    "year": 2027,
+                    "month": 1,
+                    "before": 500000,
+                    "after": 460000
+                }
+            ],
+            "derivation": "To Spend (glossary): Running counts the greater of plan and actual. Budget 2026 has an approved December (Pensja 5000,00, Fryzjer 400,00, Set-aside 0). Budget 2027 is in execution with the Pensja line only (Fryzjer has no line yet and joins at its first use); January 2027 is a Proposal that copies December (ADR-0033, ADR-0063). Before: 5000,00 - 0 = 5000,00 = 500000. After a 100,00 haircut dated 10 January the server creates the Fryzjer line (JoinBudgetAtFirstUse) and the January Proposal gives it the 400,00 of December: 5000,00 - max(400,00; 100,00) = 4600,00 = 460000. The preview must agree. EXPECTED RED on the TS side until candidate 2 is resolved: EntryToSpendInputs lists the joining Category only in budgets[].categories and not in months[].items, so the preview counts it at plan 0: 5000,00 - max(0; 100,00) = 4900,00."
         }
     ]
 }

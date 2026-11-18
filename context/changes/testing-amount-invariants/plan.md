@@ -562,12 +562,12 @@ Brak migracji. Zmiana zachowania jest możliwa tylko w fazie 3, jeśli poprawka 
 
 #### Automated
 
-- [x] 2.1 Test Feature ścieżki wejść przechodzi na PostgreSQL
-- [x] 2.2 Test Vitest ścieżki wejść przechodzi
-- [x] 2.3 Celowe zepsucie wejść (bez zwrotów) czerwieni test Feature; po cofnięciu zielony
-- [x] 2.4 Celowe zepsucie `positiveCount` w TS czerwieni Vitest na `fixed-charge-refund-first`; po cofnięciu zielony
-- [x] 2.5 Istniejące testy ostrzeżeń TS przechodzą
-- [x] 2.6 `pint`, `npm run types:check` i `npm run check` są zielone
+- [x] 2.1 Test Feature ścieżki wejść przechodzi na PostgreSQL — aa300d4
+- [x] 2.2 Test Vitest ścieżki wejść przechodzi — aa300d4
+- [x] 2.3 Celowe zepsucie wejść (bez zwrotów) czerwieni test Feature; po cofnięciu zielony — aa300d4
+- [x] 2.4 Celowe zepsucie `positiveCount` w TS czerwieni Vitest na `fixed-charge-refund-first`; po cofnięciu zielony — aa300d4
+- [x] 2.5 Istniejące testy ostrzeżeń TS przechodzą — aa300d4
+- [x] 2.6 `pint`, `npm run types:check` i `npm run check` są zielone — aa300d4
 
 #### Manual
 
@@ -577,10 +577,10 @@ Brak migracji. Zmiana zachowania jest możliwa tylko w fazie 3, jeśli poprawka 
 
 #### Automated
 
-- [ ] 3.1 Vitest czerwony, a Feature zielony na `january-joining-category` przed zmianą kodu; wynik w `change.md`
-- [ ] 3.2 Po rozstrzygnięciu oba testy ścieżki wejść zielone albo jeden przypadek pominięty z numerem issue
-- [ ] 3.3 Wariant issue: zgłoszenie z etykietą `needs-triage` istnieje
-- [ ] 3.4 Wariant poprawki: testy wejść i ostrzeżeń przechodzą, bramki statyczne zielone
+- [x] 3.1 Vitest czerwony, a Feature zielony na `january-joining-category` przed zmianą kodu; wynik w `change.md`
+- [x] 3.2 Po rozstrzygnięciu oba testy ścieżki wejść zielone albo jeden przypadek pominięty z numerem issue
+- [x] 3.3 Wariant issue: zgłoszenie z etykietą `needs-triage` istnieje
+- [x] 3.4 Wariant poprawki: testy wejść i ostrzeżeń przechodzą, bramki statyczne zielone
 
 #### Manual
 

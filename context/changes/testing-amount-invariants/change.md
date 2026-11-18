@@ -16,3 +16,9 @@ Risk response intent:
 - #3: na zestawie operacji z ręcznie wyliczonym wynikiem (zwrot, transfer własny, ruch kapitału, zarchiwizowana kategoria, operacja na granicy miesiąca i roku) raport = wykonanie w budżecie rocznym = Wynik miesiąca; nie zakładać, że „obie liczby z tego samego odczytu się zgadzają”; uniknąć asercji raport == inny odczyt bez niezależnej wyroczni.
 Korekta do potwierdzenia w research: cel etapu w §3 mówi „przed S-14” i „po S-11”, a roadmap podaje, że M-2 (S-11…S-17) porzucono 2026-11-08 (PRD v3); raporty po grupach i zebrane dla wydatków nieregularnych są już na main z M-3. Research ma ustalić, co dziś zastąpiło S-11/S-14 jako punkt odniesienia, do backportu w §2/§3.
 Worktree: .claude/worktrees/testing-amount-invariants (gałąź worktree-testing-amount-invariants, z lokalnego development; zawiera już commit statusu §3).
+
+### Faza 3 — kandydaci 1 i 2 (2026-11-18)
+
+- **Kandydat 1** (opłata stała wpisana wstecz, `fixed-charge-backdated-proposal`): zielony po obu stronach. Serwer luty 4 850 → 4 820 i marzec 4 850 → 4 820, podgląd TS tylko luty 4 850 → 4 820. Zgodne z zakresem ostrzeżenia w glosariuszu (To Spend).
+- **Kandydat 2 przed jakąkolwiek zmianą kodu** (`january-joining-category`): Feature zielony (7 passed, serwer 5 000 → 4 600), Vitest czerwony (po: oczekiwane 460000, jest 490000, plan 0 dla kategorii dołączającej).
+- **Rozstrzygnięcie: issue #273** (`needs-triage`). Poprawka wymaga nowej metody w `MonthPlanProposal` (plan dla kategorii bez `BudgetLine`) i obsługi miesiąca zatwierdzonego, miesięcy po styczniu i opłaty stałej, więc nie mieści się w jednym miejscu. Wybór konserwatywny z polityki braku interakcji. Przypadek Vitest ma `it.skip` z numerem #273, Feature zostaje aktywny. Wiersz Manual 3.5 czeka na potwierdzenie człowieka.
