@@ -280,6 +280,36 @@ Każda migracja ma własną transakcję. Gdy asercja w `backfill_category_list` 
 
 Archiwa sprzed ADR-0064 zawierają `OWNER TO treasurer`: do wczytania lokalnie najpierw `CREATE ROLE treasurer;` w serwerze PostgreSQL.
 
+#### Przełom roku
+
+Procedura N→N+1 (np. 2026→2027). Serwer działa w UTC, więc rok zmienia się o 01:00 czasu warszawskiego (godziny UTC / PL niżej).
+
+**Kolejność:**
+
+1. Do 31 grudnia N: zatwierdź plan grudnia N. Twardy termin to 31.12 23:59:59 UTC, czyli 1.01 00:59:59 czasu warszawskiego. Po nim niezatwierdzony grudzień jest „miniony bez zatwierdzonego planu”: nie ma propozycji i nie da się go zatwierdzić.
+2. 30–31 grudnia, po kroku 1: uruchom wykonanie Budżetu N+1 („Rozpocznij realizację” na ekranie Budżet; operacji nie można cofnąć). Dashboard i Raporty „Lata” nadal czytają rok N do północy.
+3. Od 1 stycznia: zaimportuj grudzień do końca (i styczeń). Wpis ręczny i Import odrzucają operację z datą w roku N+1, dopóki jego Budżet nie jest w wykonaniu.
+4. Zatwierdź plan stycznia: Propozycja kopiuje z grudnia kwoty pozycji bez rytmu, bieżących i opłat stałych, a dla równomiernych rocznych i Nieregularnych bierze roczny udział planu N+1.
+
+**Ostrzeżenie:** po kroku 2 aplikacja pozwala zatwierdzić styczeń jeszcze w grudniu. Nie rób tego: opłaty stałe stycznia czytają faktyczne płatności grudnia, które jeszcze nie wpłynęły.
+
+**Drogi naprawy:**
+
+- zapomniany grudzień: stycznia nie da się już skopiować z grudnia, Propozycja bierze roczny udział planu, a kwoty poprawiasz ręcznie przed zatwierdzeniem;
+- zapomniany start: uruchom N+1 w dowolnej chwili. Dashboard do tego czasu pokazuje kartę „Budżet jest w szkicu”, a Import oznacza wiersze N+1 jako „Brak kategorii dla roku operacji” i blokuje „Zatwierdź import”. Po starcie Zebrane i Propozycje uzupełniają się same. Potem powtórz Import.
+
+**00:00–01:00 PL 1 stycznia:** menu roku i domyślne daty dialogów (czas przeglądarki) mówią już N+1, a serwer jeszcze N. W tej godzinie nie rób zatwierdzeń ani Importu, bo daty z dialogu mogą nie zgadzać się z serwerem. Rok wybrany w sesji (2026) zostaje po przełomie: przełącz go ręcznie w menu na N+1.
+
+**Co sprawdzić 1–2 stycznia:**
+
+- Dashboard pokazuje datę i „budżet N+1 w realizacji” z blokiem wykonania;
+- Budżet N+1: „zebrane startowe” bez „prognozy”;
+- Propozycja stycznia ma kwoty z grudnia dla opłat stałych i pozycji bez rytmu;
+- Raport „Lata”: każdy rok liczony „do 1.01”, więc 1 stycznia porównuje tylko jeden dzień poprzednich lat (to zwykły skutek, nie błąd danych);
+- Import grudnia: operacje zapisują się w pozycjach Budżetu N, a styczniowe w Budżecie N+1.
+
+**Próba przed przełomem:** `docker compose exec laravel.test php artisan app:rehearsal-clock "2026-12-30 10:00"` ustawia „dziś” aplikacji (tylko `APP_ENV=local`); `--off` wyłącza. Zegar przeglądarki ustaw osobno (`playwright-cli run-code "async page => await page.clock.setFixedTime(new Date('2026-12-30T10:00:00Z'))"`). Kopię danych weź jako snapshot użytkownika: `scripts/artisan.sh user:backup <id>` na VPS, odczyt przez `ssh … 'docker compose … exec -T app cat <plik>'`, potem `user:create`, `user:restore` i kroki jak w „Próba lokalna”. Każdy skok zegara o ponad 2 godziny do przodu wylogowuje, więc zaloguj się ponownie.
+
 #### Liczby kontrolne
 
 Komenda `app:control-numbers` zastępuje dawne ręczne zapytania SQL. Czyta bazę przez `DB::table()` (bez modeli), więc działa na starym schemacie (`categories` z kwotami budżetu) i na nowym (`budget_lines`) i pod tymi samymi kluczami raportuje pozycje budżetu (stare `categories` = nowe `budget_lines`, to samo id). Nowa lista kategorii użytkownika trafia do sekcji `meta` i jest pomijana w porównaniu: to jedyna różnica, jaką migracja może wprowadzić.
