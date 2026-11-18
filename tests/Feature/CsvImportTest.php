@@ -680,7 +680,7 @@ CSV;
     /**
      * Known gap, pinned as observed: the server accepts both preview rows and then refuses the
      * whole store, not just the January rows; the December rows are stored only without January.
-     * Candidate for a separate change: context/changes/year-turn-rehearsal/rehearsal.md ("Znaleziska", faza 1).
+     * Candidate for a separate change: context/archive/2026-11-18-year-turn-rehearsal/rehearsal.md ("Znaleziska", faza 1).
      */
     public function test_statement_across_the_year_turn_is_refused_as_a_whole_while_the_new_year_is_a_draft_known_gap(): void
     {

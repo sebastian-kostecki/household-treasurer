@@ -2,7 +2,7 @@
 project: 'Household Treasurer'
 status: draft
 created: 2026-11-17
-updated: 2026-11-17
+updated: 2026-11-18
 after_milestone: M-4
 after_version: 1.5.1
 ---
@@ -65,7 +65,7 @@ Kolejność to rekomendacja agenta. Wiersze 1–6 to terminy i zabezpieczenia; z
 
 | #   | Co                                               | Po co                                                                                      | Koszt            | Status  |
 | --- | ------------------------------------------------ | ------------------------------------------------------------------------------------------ | ---------------- | ------- |
-| 1   | Próba przełomu roku 2026→2027 na kopii produkcji | pierwszy przełom na prawdziwych danych: szkic 2027 w wykonanie, „zebrane” na nowy rok, plan stycznia z grudnia; termin 31 grudnia | mały             | próba zrobiona; procedura w README „Przełom roku”; status zmienia archiwizacja |
+| 1   | Próba przełomu roku 2026→2027 na kopii produkcji | pierwszy przełom na prawdziwych danych: szkic 2027 w wykonanie, „zebrane” na nowy rok, plan stycznia z grudnia; termin 31 grudnia | mały             | zrobione (year-turn-rehearsal); procedura w README „Przełom roku” |
 | 2   | Odświeżenie planu testów                         | plan z 6 listopada nie odpowiada stanowi repo                                              | mały             | otwarte |
 | 3   | E2E w CI                                         | testy istnieją, CI ich nie uruchamia                                                       | mały             | otwarte |
 | 4   | Śledzenie błędów na produkcji                    | dziś tylko log plikowy                                                                     | mały do średniego | otwarte |
@@ -81,7 +81,7 @@ Kolejność to rekomendacja agenta. Wiersze 1–6 to terminy i zabezpieczenia; z
 | 14  | Kreator końca miesiąca                           | uzgodnij salda → Import → podsumowanie → plan następnego; klocki istnieją, brakuje ścieżki  | mały             | otwarte |
 | 15  | Tygodniowy e-mail                                | „do wydania”, tempo, rachunki czekające                                                    | mały             | otwarte |
 
-Luki potwierdzone w próbie przełomu (kandydaci na osobne zmiany, szczegóły w `context/changes/year-turn-rehearsal/rehearsal.md`): menu roku i domyślne daty dialogów używają czasu przeglądarki (1 stycznia 00:00–01:00 PL), rok w sesji zostaje 2026 po przełomie, Raport „Lata” liczy 1 stycznia tylko jeden dzień poprzednich lat, Import przy szkicu roku nie mówi, że trzeba uruchomić jego Budżet.
+Luki potwierdzone w próbie przełomu (kandydaci na osobne zmiany, szczegóły w `context/archive/2026-11-18-year-turn-rehearsal/rehearsal.md`): menu roku i domyślne daty dialogów używają czasu przeglądarki (1 stycznia 00:00–01:00 PL), rok w sesji zostaje 2026 po przełomie, Raport „Lata” liczy 1 stycznia tylko jeden dzień poprzednich lat, Import przy szkicu roku nie mówi, że trzeba uruchomić jego Budżet.
 
 Komendy startowe: wiersz 1 `/10x-new-research year-turn-rehearsal`, wiersz 2 `/10x-test-plan --refresh`, wiersz 4 `/10x-observability-audit` (wybór dostawcy należy do `/10x-infra-research`).
 
