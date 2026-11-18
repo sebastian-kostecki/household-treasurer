@@ -266,7 +266,7 @@
             "server_months": [
                 { "year": 2026, "month": 1, "before": 500000, "after": 488000 }
             ],
-            "derivation": "January is a Proposal (today is 15 January, no plan saved, no Budget 2025). Irregular Rate / Proposal: income plan 60000,00 a year, floor(60000,00 / 12) = 5000,00 = 500000; Internet is a Fixed Charge with annual plan 0, so its proposal is 0 (no previous month to copy). Before: 5000,00 - 0 = 5000,00 = 500000. The first positive operation of 120,00 makes Fixed Charge count at the actual amount even though the plan is 0: 5000,00 - 120,00 = 4880,00 = 488000."
+            "derivation": "January is a Proposal (today is 15 January, no plan saved, no Budget 2025). Month Plan Proposal (ADR-0033, no source month, so the annual average): income plan 60000,00 a year, floor(60000,00 / 12) = 5000,00 = 500000; Internet is a Fixed Charge with annual plan 0, so its proposal is 0 (no previous month to copy). Before: 5000,00 - 0 = 5000,00 = 500000. The first positive operation of 120,00 makes Fixed Charge count at the actual amount even though the plan is 0: 5000,00 - 120,00 = 4880,00 = 488000."
         },
         {
             "key": "irregular-later-month",

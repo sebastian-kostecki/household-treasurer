@@ -290,13 +290,18 @@ test('server inputs and To Spend match the hand-computed scenario before and aft
         }
 
         if (isset($removed[$change['categoryId']])) {
-            app(ManageFinancialOperation::class)->updateExpense($removed[$change['categoryId']], [
+            $payload = [
                 'operation_date' => $change['operationDate'],
                 'amount_minor_units' => $change['amountMinorUnits'],
                 'description' => 'Parity',
                 'account_id' => $account->id,
                 'category_id' => $line->category_id,
-            ]);
+            ];
+            $action = app(ManageFinancialOperation::class);
+
+            $line->category->type->value === 'income'
+                ? $action->updateIncome($removed[$change['categoryId']], $payload)
+                : $action->updateExpense($removed[$change['categoryId']], $payload);
 
             continue;
         }

@@ -234,6 +234,8 @@ Implementujący sprawdza każdą liczbę ręcznie z glosariusza przed pierwszym 
 ```
 `readings` to oczekiwane wyjście TS. `server_months` to miesiące, w których test PHP sprawdza `MonthToSpend` przed i po. W fazie 2 obejmują te same miesiące co `readings`. `inputs` to pełne wyjście `forUser` na dzień `today`, spisane ręcznie.
 
+Addendum (przegląd implementacji, F4): każdy scenariusz ma też pole `dialog` (stan dialogu wpisu, `HandEntryToSpendState`). Vitest sprawdza dla każdego scenariusza, że `handEntryToSpendChanges(dialog)` daje `changes`, a nie tylko dla edycji. Po F1 Vitest sprawdza też, że każdy wpis `readings` ma w `server_months` ten sam miesiąc z tymi samymi kwotami.
+
 #### 2. Test Feature
 
 **File**: `tests/Feature/EntryToSpendParityTest.php` (nowy, `php artisan make:test --pest EntryToSpendParityTest --no-interaction`)

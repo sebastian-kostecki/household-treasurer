@@ -11,7 +11,7 @@ use App\Support\ToSpendCalculator;
  *
  * @return array<string, mixed>
  */
-function parityCalculatorCases(): array
+function toSpendParityCases(): array
 {
     /** @var array<string, mixed> */
     return json_decode(
@@ -25,7 +25,7 @@ function parityCalculatorCases(): array
  * @param  array<string, mixed>  $item
  * @return array{type: CategoryType, rhythm: ?Rhythm, plan: int, actual: int, has_positive_amount: bool, collected_at_start: int}
  */
-function parityToSpendItem(array $item): array
+function toSpendParityItem(array $item): array
 {
     return [
         'type' => CategoryType::from($item['type']),
@@ -40,27 +40,32 @@ function parityToSpendItem(array $item): array
 /**
  * @return array<string, array{array<string, mixed>}>
  */
-function parityDataset(string $section): array
+function toSpendParityDataset(string $section): array
 {
     $rows = [];
 
-    foreach (parityCalculatorCases()[$section] as $case) {
+    foreach (toSpendParityCases()[$section] as $case) {
         $rows[$case['name']] = [$case];
     }
 
     return $rows;
 }
 
-dataset('parity item cases', fn () => parityDataset('items'));
-dataset('parity breakdown cases', fn () => parityDataset('breakdowns'));
-dataset('parity chain cases', fn () => parityDataset('chains'));
+dataset('parity item cases', fn () => toSpendParityDataset('items'));
+dataset('parity breakdown cases', fn () => toSpendParityDataset('breakdowns'));
+dataset('parity chain cases', fn () => toSpendParityDataset('chains'));
 
-test('the parity fixture is in format 1', function () {
-    expect(parityCalculatorCases()['format'])->toBe(1);
+test('the parity fixture is in format 1 with cases in every section', function () {
+    $cases = toSpendParityCases();
+
+    expect($cases['format'])->toBe(1)
+        ->and($cases['items'])->not->toBeEmpty()
+        ->and($cases['breakdowns'])->not->toBeEmpty()
+        ->and($cases['chains'])->not->toBeEmpty();
 });
 
 test('item amount matches the hand-computed table', function (array $case) {
-    $item = parityToSpendItem($case);
+    $item = toSpendParityItem($case);
 
     expect(ToSpendCalculator::itemMinorUnits(
         $item['type'],
@@ -73,7 +78,7 @@ test('item amount matches the hand-computed table', function (array $case) {
 })->with('parity item cases');
 
 test('breakdown matches the hand-computed table', function (array $case) {
-    $items = array_map(parityToSpendItem(...), $case['items']);
+    $items = array_map(toSpendParityItem(...), $case['items']);
 
     expect(ToSpendCalculator::breakdown($items, $case['set_aside']))->toBe([
         'income_minor_units' => $case['expected']['income'],

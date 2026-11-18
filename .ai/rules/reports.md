@@ -13,6 +13,7 @@ paths:
     - 'resources/js/lib/report-window*.ts'
     - 'resources/js/lib/reports-fixtures.ts'
     - 'tests/Unit/ReportsHardcodedUiTest.php'
+    - 'tests/Feature/ReportAmountInvariantTest.php'
 ---
 
 # Reports and charts

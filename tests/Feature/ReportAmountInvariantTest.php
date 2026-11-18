@@ -79,20 +79,22 @@ function reportInvariantExpectMonth(Budget $budget, int $month, array $expected)
 }
 
 /**
- * @return array{income: int, expense: int}
+ * @return array{income: int, expense: int, result: int}
  */
 function reportInvariantYearOfMonthResults(Budget $budget): array
 {
     $income = 0;
     $expense = 0;
+    $monthResult = 0;
 
     foreach (range(1, 12) as $month) {
         $result = BudgetMonthResult::forViewedMonth($budget, $month);
         $income += $result['income_execution_minor_units'];
         $expense += $result['expense_execution_minor_units'];
+        $monthResult += $result['month_result_minor_units'];
     }
 
-    return ['income' => $income, 'expense' => $expense];
+    return ['income' => $income, 'expense' => $expense, 'result' => $monthResult];
 }
 
 test('every reading of the same operations gives the hand-counted figure, boundaries included', function () {
@@ -215,8 +217,9 @@ test('every reading of the same operations gives the hand-counted figure, bounda
         reportInvariantExpectMonth($budget2026, $month, $expected);
     }
 
-    // The twelve Month Results add up to the year: expenses 1 350 + 150 + 1 050 + 700 = 3 250 zł, income 16 000 zł.
-    expect(reportInvariantYearOfMonthResults($budget2026))->toBe(['income' => 1_600_000, 'expense' => 325_000]);
+    // The twelve Month Results add up to the year: expenses 1 350 + 150 + 1 050 + 700 = 3 250 zł, income 16 000 zł,
+    // result -1 350 - 150 + 6 950 + 7 300 = 12 750 zł.
+    expect(reportInvariantYearOfMonthResults($budget2026))->toBe(['income' => 1_600_000, 'expense' => 325_000, 'result' => 1_275_000]);
 
     // Budget 2025: Jedzenie 1 000 zł on 31.12, so the year and December 2025 are 1 000 zł. January 2026 stays at its own
     // 1 200 zł of 01.01 plus Siłownia 150 zł = 1 350 zł, without that operation.
@@ -267,7 +270,8 @@ test('a year loaded from the sheet keeps the hand-counted amounts in every readi
     expect($exit)->toBe(0, Artisan::output());
 
     $budget = Budget::query()->where('user_id', $user->id)->where('year', 2025)->firstOrFail();
-    // Category 8 is "Codzienne wydatki" and 6 the income of the tax refund (database/sheet-load/mapping.php).
+    // The sheet label "codzienne wydatki" maps to Category 8 ("Artykuły spożywcze") and 6 is the income of the tax refund
+    // (database/sheet-load/mapping.php).
     $line = BudgetLine::query()->where('budget_id', $budget->id)->where('category_id', 8)->firstOrFail();
 
     // 11 x 1 000 + 1 200 = 12 200 zł.
@@ -281,7 +285,8 @@ test('a year loaded from the sheet keeps the hand-counted amounts in every readi
         ->and($year['expense_minor_units'])->toBe(1_220_000)
         ->and($year['income_minor_units'])->toBe(579_012)
         ->and($year['result_minor_units'])->toBe(-640_988)
-        ->and(reportInvariantYearOfMonthResults($budget))->toBe(['income' => 579_012, 'expense' => 1_220_000]);
+        // Result of the twelve Month Results: 5 790,12 - 12 200 = -6 409,88 zł.
+        ->and(reportInvariantYearOfMonthResults($budget))->toBe(['income' => 579_012, 'expense' => 1_220_000, 'result' => -640_988]);
 
     // February: income 5 790,12 zł, expense 1 000 zł, result 4 790,12 zł.
     // December is the 1 200 zł operation dated 31.12; January 2026 (an empty Budget in execution) has none of it.

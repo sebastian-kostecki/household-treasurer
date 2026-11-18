@@ -58,8 +58,11 @@ function toItem(item: CaseItem): ToSpendItem {
 }
 
 describe('To Spend calculator parity table', () => {
-    it('reads a fixture in format 1', () => {
+    it('reads a fixture in format 1 with cases in every section', () => {
         expect(cases.format).toBe(1);
+        expect(cases.items.length).toBeGreaterThan(0);
+        expect(cases.breakdowns.length).toBeGreaterThan(0);
+        expect(cases.chains.length).toBeGreaterThan(0);
     });
 
     describe('items', () => {

@@ -21,7 +21,15 @@ type Scenario = {
     dialog: HandEntryToSpendState;
     changes: ToSpendEntryChange[];
     readings: ToSpendReading[];
+    server_months: ServerMonth[];
     derivation: string;
+};
+
+type ServerMonth = {
+    year: number;
+    month: number;
+    before: number;
+    after: number;
 };
 
 type Scenarios = {
@@ -55,6 +63,33 @@ describe('entry To Spend parity scenarios', () => {
     it('reads format 1 with scenarios', () => {
         expect(file.format).toBe(1);
         expect(file.scenarios.length).toBeGreaterThan(0);
+    });
+
+    // The PHP test checks server_months and this file checks readings: two hand-written copies of the same numbers.
+    // Every reading must appear in server_months with the same amounts, or the two sides drift apart unnoticed.
+    it('lists every preview reading among the server months with the same amounts', () => {
+        for (const scenario of file.scenarios) {
+            expect(
+                scenario.readings,
+                `${scenario.key}: readings and server_months disagree`,
+            ).toEqual(
+                scenario.readings.map(
+                    (reading) =>
+                        scenario.server_months
+                            .filter(
+                                (month) =>
+                                    month.year === reading.year &&
+                                    month.month === reading.month,
+                            )
+                            .map((month) => ({
+                                year: month.year,
+                                month: month.month,
+                                beforeMinorUnits: month.before,
+                                afterMinorUnits: month.after,
+                            }))[0],
+                ),
+            );
+        }
     });
 
     for (const scenario of file.scenarios) {

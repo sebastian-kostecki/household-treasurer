@@ -153,7 +153,7 @@
             "has_positive_amount": true,
             "collected_at_start": 0,
             "expected": 25000,
-            "derivation": "An expense item with no Rhythm takes the Running branch: max(200,00; 250,00) = 25000."
+            "derivation": "Rhythm (glossary): a new expense Category is Running, so an expense item with no Rhythm entry counts as Running. To Spend: Running counts the greater of plan and actual: max(200,00; 250,00) = 250,00 = 25000."
         },
         {
             "name": "irregular covered by the collected has no surplus",
