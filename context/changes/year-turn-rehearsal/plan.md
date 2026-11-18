@@ -455,9 +455,9 @@ Brak migracji. Snapshot produkcji trafia tylko do lokalnej bazy dev, na osobnego
 
 #### Automated
 
-- [ ] 2.1 Testy zegara przechodzą
-- [ ] 2.2 Pint bez zmian po uruchomieniu
-- [ ] 2.3 Bramka przechodzi: composer ci:check i sloppy ci
+- [x] 2.1 Testy zegara przechodzą — b750442
+- [x] 2.2 Pint bez zmian po uruchomieniu — b750442
+- [x] 2.3 Bramka przechodzi: composer ci:check i sloppy ci — b750442
 
 #### Manual
 
