@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Actions\StartBudgetExecution;
 use App\Enums\Bank;
 use App\Enums\CapitalMovementDirection;
 use App\Enums\FinancialOperationType;
@@ -674,6 +675,71 @@ CSV;
             ->assertSessionHasErrors('rows');
 
         $this->assertDatabaseCount('financial_operations', 0);
+    }
+
+    public function test_statement_across_the_year_turn_is_refused_as_a_whole_while_the_new_year_is_a_draft(): void
+    {
+        $this->travelTo('2027-01-02 09:00');
+
+        [$user, $account, , $expenseCategory] = $this->createImportFixture();
+        Budget::factory()->for($user)->create(['year' => 2027]);
+        $this->previewCsv($user, $account, "date,description,amount\n2026-12-29,Zakupy grudzień,45.50\n2027-01-02,Zakupy styczeń,30.00");
+
+        $this->actingAs($user)
+            ->get(route('operations.import.preview'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('rows.0.valid', true)
+                ->where('rows.1.valid', true),
+            );
+
+        $this->actingAs($user)
+            ->from(route('operations.import.preview'))
+            ->post(route('operations.import.store'), [
+                'duplicate_warning_acknowledged' => true,
+                'rows' => $this->turnStatementRows($expenseCategory->category_id, [0, 1]),
+            ])
+            ->assertSessionHasErrors([
+                'rows' => __('Expenses can only be recorded for a budget in execution. Create or start a budget for this year.'),
+            ]);
+
+        $this->assertDatabaseCount('financial_operations', 0);
+
+        $this->actingAs($user)
+            ->post(route('operations.import.store'), [
+                'duplicate_warning_acknowledged' => true,
+                'rows' => $this->turnStatementRows($expenseCategory->category_id, [0]),
+            ])
+            ->assertSessionHasNoErrors();
+
+        $this->assertDatabaseCount('financial_operations', 1);
+        $this->assertDatabaseHas('financial_operations', ['operation_date' => '2026-12-29', 'amount_minor_units' => 4550]);
+    }
+
+    public function test_statement_across_the_year_turn_is_imported_into_the_lines_of_both_years_once_the_new_year_is_started(): void
+    {
+        $this->travelTo('2027-01-02 09:00');
+
+        [$user, $account, , $expenseCategory] = $this->createImportFixture();
+        $budget2027 = Budget::factory()->for($user)->create(['year' => 2027]);
+        $line2027 = BudgetLine::factory()->for($budget2027)->expense()->create([
+            'category_id' => $expenseCategory->category_id,
+            'planned_amount_minor_units' => 500000,
+        ]);
+        app(StartBudgetExecution::class)->handle($budget2027);
+        $this->previewCsv($user, $account, "date,description,amount\n2026-12-29,Zakupy grudzień,45.50\n2027-01-02,Zakupy styczeń,30.00");
+
+        $this->actingAs($user)
+            ->post(route('operations.import.store'), [
+                'duplicate_warning_acknowledged' => true,
+                'rows' => $this->turnStatementRows($expenseCategory->category_id, [0, 1]),
+            ])
+            ->assertSessionHasNoErrors();
+
+        $this->assertDatabaseCount('financial_operations', 2);
+        $this->assertSame(4550, $expenseCategory->refresh()->execution_minor_units);
+        $this->assertSame(3000, $line2027->refresh()->execution_minor_units);
+        $this->assertDatabaseHas('financial_operations', ['operation_date' => '2027-01-02', 'budget_line_id' => $line2027->id]);
     }
 
     public function test_import_rejects_csv_with_more_than_five_thousand_rows(): void
@@ -4187,6 +4253,20 @@ CSV);
         ]);
 
         return [$user, $account, $incomeCategory, $expenseCategory];
+    }
+
+    /**
+     * @param  list<int>  $indexes
+     * @return list<array{index: int, selected: bool, type: string, category_id: int}>
+     */
+    private function turnStatementRows(int $categoryId, array $indexes): array
+    {
+        return array_map(fn (int $index): array => [
+            'index' => $index,
+            'selected' => true,
+            'type' => 'expense',
+            'category_id' => $categoryId,
+        ], $indexes);
     }
 
     private function previewCsv(User $user, Account $account, string $csv): void
