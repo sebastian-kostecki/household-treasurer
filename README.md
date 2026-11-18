@@ -128,6 +128,7 @@ CI uruchamia dodatkowo [Sloppy](https://github.com/heyosseus/sloppy) (`vendor/bi
 | `demo:seed-previous-year {user}`    | Mock roku poprzedniego z bieżącego (tylko lokalnie; `--remove` usuwa)                                                           |
 | `backup:restore {path}`             | Restore backupu całej instancji (Spatie), nie `user:restore`; zob. [Wdrożenie i przywracanie](#wdrożenie-i-przywracanie)        |
 | `app:control-numbers`               | Liczby kontrolne (zapis `--output`, porównanie `--compare`); zob. [Liczby kontrolne](#liczby-kontrolne)                         |
+| `app:rehearsal-clock {moment?}`     | Zegar próby (tylko lokalnie): ustawia „dziś” aplikacji; `--off` wyłącza; zob. [Przełom roku](#przełom-roku)                     |
 | `budget:load-sheet {user} {path}`   | Wczytanie roku ze starego arkusza (`--dry-run` tylko podgląd); zob. [Wczytanie arkusza](#wczytanie-arkusza-lata-20192025)       |
 | `budget:unload-sheet {user} {year}` | Wycofanie wczytanego roku; zob. [Wczytanie arkusza](#wczytanie-arkusza-lata-20192025)                                           |
 | `import:suggestion-accuracy {user}` | Trafność podpowiedzi Importu (tylko odczyt); zob. [Pomiar trafności podpowiedzi Importu](#pomiar-trafności-podpowiedzi-importu) |

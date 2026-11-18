@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Support\CsvImport\DefaultPaymentInstrumentNumberOmitter;
 use App\Support\CsvImport\PaymentInstrumentNumberOmitter;
+use App\Support\RehearsalClock;
 use App\Support\SheetLoad\SheetMapping;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
@@ -41,6 +42,7 @@ class AppServiceProvider extends ServiceProvider
     protected function configureDefaults(): void
     {
         Date::use(CarbonImmutable::class);
+        RehearsalClock::apply();
 
         DB::prohibitDestructiveCommands(
             app()->isProduction(),
