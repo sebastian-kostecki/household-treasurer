@@ -549,10 +549,10 @@ Brak migracji. Zmiana zachowania jest możliwa tylko w fazie 3, jeśli poprawka 
 
 #### Automated
 
-- [x] 1.1 Test Pest tabeli parzystości przechodzi
-- [x] 1.2 Test Vitest tabeli parzystości przechodzi
-- [x] 1.3 Celowe zepsucie gałęzi opłaty stałej czerwieni zepsutą stronę; po cofnięciu zielone
-- [x] 1.4 `npm run types:check`, `npm run check` i `pint` są zielone
+- [x] 1.1 Test Pest tabeli parzystości przechodzi — 03b9827
+- [x] 1.2 Test Vitest tabeli parzystości przechodzi — 03b9827
+- [x] 1.3 Celowe zepsucie gałęzi opłaty stałej czerwieni zepsutą stronę; po cofnięciu zielone — 03b9827
+- [x] 1.4 `npm run types:check`, `npm run check` i `pint` są zielone — 03b9827
 
 #### Manual
 
@@ -562,12 +562,12 @@ Brak migracji. Zmiana zachowania jest możliwa tylko w fazie 3, jeśli poprawka 
 
 #### Automated
 
-- [ ] 2.1 Test Feature ścieżki wejść przechodzi na PostgreSQL
-- [ ] 2.2 Test Vitest ścieżki wejść przechodzi
-- [ ] 2.3 Celowe zepsucie wejść (bez zwrotów) czerwieni test Feature; po cofnięciu zielony
-- [ ] 2.4 Celowe zepsucie `positiveCount` w TS czerwieni Vitest na `fixed-charge-refund-first`; po cofnięciu zielony
-- [ ] 2.5 Istniejące testy ostrzeżeń TS przechodzą
-- [ ] 2.6 `pint`, `npm run types:check` i `npm run check` są zielone
+- [x] 2.1 Test Feature ścieżki wejść przechodzi na PostgreSQL
+- [x] 2.2 Test Vitest ścieżki wejść przechodzi
+- [x] 2.3 Celowe zepsucie wejść (bez zwrotów) czerwieni test Feature; po cofnięciu zielony
+- [x] 2.4 Celowe zepsucie `positiveCount` w TS czerwieni Vitest na `fixed-charge-refund-first`; po cofnięciu zielony
+- [x] 2.5 Istniejące testy ostrzeżeń TS przechodzą
+- [x] 2.6 `pint`, `npm run types:check` i `npm run check` są zielone
 
 #### Manual
 

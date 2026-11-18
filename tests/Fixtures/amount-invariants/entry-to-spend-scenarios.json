@@ -1,0 +1,514 @@
+{
+    "format": 1,
+    "scenarios": [
+        {
+            "key": "fixed-charge-refund-netted",
+            "today": "2026-03-20",
+            "categories": { "1": "Pensja", "2": "Prąd", "3": "Jedzenie" },
+            "inputs": {
+                "budgets": [
+                    {
+                        "year": 2026,
+                        "categories": [
+                            { "id": 1, "type": "income", "rhythms": null },
+                            {
+                                "id": 2,
+                                "type": "expense",
+                                "rhythms": {
+                                    "1": "fixed_charge",
+                                    "2": "fixed_charge",
+                                    "3": "fixed_charge",
+                                    "4": "fixed_charge",
+                                    "5": "fixed_charge",
+                                    "6": "fixed_charge",
+                                    "7": "fixed_charge",
+                                    "8": "fixed_charge",
+                                    "9": "fixed_charge",
+                                    "10": "fixed_charge",
+                                    "11": "fixed_charge",
+                                    "12": "fixed_charge"
+                                }
+                            },
+                            {
+                                "id": 3,
+                                "type": "expense",
+                                "rhythms": {
+                                    "1": "running",
+                                    "2": "running",
+                                    "3": "running",
+                                    "4": "running",
+                                    "5": "running",
+                                    "6": "running",
+                                    "7": "running",
+                                    "8": "running",
+                                    "9": "running",
+                                    "10": "running",
+                                    "11": "running",
+                                    "12": "running"
+                                }
+                            }
+                        ],
+                        "months": [
+                            {
+                                "month": 3,
+                                "set_aside_minor_units": 100000,
+                                "items": [
+                                    {
+                                        "category_id": 1,
+                                        "plan_minor_units": 800000,
+                                        "actual_minor_units": 800000,
+                                        "positive_amount_count": 1
+                                    },
+                                    {
+                                        "category_id": 2,
+                                        "plan_minor_units": 15000,
+                                        "actual_minor_units": -2000,
+                                        "positive_amount_count": 1
+                                    },
+                                    {
+                                        "category_id": 3,
+                                        "plan_minor_units": 150000,
+                                        "actual_minor_units": 90000,
+                                        "positive_amount_count": 1
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ],
+                "irregular_periods": []
+            },
+            "dialog": {
+                "kind": "expense",
+                "operationDate": "2026-03-18",
+                "categoryId": 3,
+                "amountMinorUnits": 70000,
+                "original": null
+            },
+            "changes": [
+                {
+                    "operationDate": "2026-03-18",
+                    "categoryId": 3,
+                    "amountMinorUnits": 70000,
+                    "direction": "add"
+                }
+            ],
+            "readings": [
+                {
+                    "year": 2026,
+                    "month": 3,
+                    "beforeMinorUnits": 552000,
+                    "afterMinorUnits": 542000
+                }
+            ],
+            "server_months": [
+                { "year": 2026, "month": 3, "before": 552000, "after": 542000 }
+            ],
+            "derivation": "To Spend (glossary): income after the first inflow counts at the actual 8000,00; Fixed Charge counts at the actual amount after the first positive operation, refunds netted: Prad 180,00 - 200,00 = -20,00 (negative stays); Running counts the greater of plan and actual: Jedzenie max(1500,00; 900,00) = 1500,00; minus Set-aside 1000,00. Before: 8000,00 - (-20,00 + 1500,00) - 1000,00 = 5520,00 = 552000. Change +700,00 on Jedzenie: actual 1600,00 is above plan, so max = 1600,00. After: 8000,00 - (-20,00 + 1600,00) - 1000,00 = 5420,00 = 542000."
+        },
+        {
+            "key": "fixed-charge-refund-first",
+            "today": "2026-03-20",
+            "categories": { "1": "Pensja", "2": "Prąd" },
+            "inputs": {
+                "budgets": [
+                    {
+                        "year": 2026,
+                        "categories": [
+                            { "id": 1, "type": "income", "rhythms": null },
+                            {
+                                "id": 2,
+                                "type": "expense",
+                                "rhythms": {
+                                    "1": "fixed_charge",
+                                    "2": "fixed_charge",
+                                    "3": "fixed_charge",
+                                    "4": "fixed_charge",
+                                    "5": "fixed_charge",
+                                    "6": "fixed_charge",
+                                    "7": "fixed_charge",
+                                    "8": "fixed_charge",
+                                    "9": "fixed_charge",
+                                    "10": "fixed_charge",
+                                    "11": "fixed_charge",
+                                    "12": "fixed_charge"
+                                }
+                            }
+                        ],
+                        "months": [
+                            {
+                                "month": 3,
+                                "set_aside_minor_units": 0,
+                                "items": [
+                                    {
+                                        "category_id": 1,
+                                        "plan_minor_units": 600000,
+                                        "actual_minor_units": 0,
+                                        "positive_amount_count": 0
+                                    },
+                                    {
+                                        "category_id": 2,
+                                        "plan_minor_units": 15000,
+                                        "actual_minor_units": 0,
+                                        "positive_amount_count": 0
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ],
+                "irregular_periods": []
+            },
+            "dialog": {
+                "kind": "refund",
+                "operationDate": "2026-03-18",
+                "categoryId": 2,
+                "amountMinorUnits": 5000,
+                "original": null
+            },
+            "changes": [
+                {
+                    "operationDate": "2026-03-18",
+                    "categoryId": 2,
+                    "amountMinorUnits": -5000,
+                    "direction": "add"
+                }
+            ],
+            "readings": [
+                {
+                    "year": 2026,
+                    "month": 3,
+                    "beforeMinorUnits": 585000,
+                    "afterMinorUnits": 585000
+                }
+            ],
+            "server_months": [
+                { "year": 2026, "month": 3, "before": 585000, "after": 585000 }
+            ],
+            "derivation": "To Spend (glossary): income without an inflow counts at plan 6000,00; Fixed Charge counts at plan until the first operation with a positive amount. Before: 6000,00 - 150,00 = 5850,00 = 585000. A refund of -50,00 is not a positive amount, so Prad still counts at plan 150,00 (not at the actual -50,00). After: 6000,00 - 150,00 = 5850,00 = 585000; the month is touched directly, so it has a reading although nothing changed."
+        },
+        {
+            "key": "fixed-charge-plan-zero-proposal",
+            "today": "2026-01-15",
+            "categories": { "1": "Pensja", "2": "Internet" },
+            "inputs": {
+                "budgets": [
+                    {
+                        "year": 2026,
+                        "categories": [
+                            { "id": 1, "type": "income", "rhythms": null },
+                            {
+                                "id": 2,
+                                "type": "expense",
+                                "rhythms": {
+                                    "1": "fixed_charge",
+                                    "2": "fixed_charge",
+                                    "3": "fixed_charge",
+                                    "4": "fixed_charge",
+                                    "5": "fixed_charge",
+                                    "6": "fixed_charge",
+                                    "7": "fixed_charge",
+                                    "8": "fixed_charge",
+                                    "9": "fixed_charge",
+                                    "10": "fixed_charge",
+                                    "11": "fixed_charge",
+                                    "12": "fixed_charge"
+                                }
+                            }
+                        ],
+                        "months": [
+                            {
+                                "month": 1,
+                                "set_aside_minor_units": 0,
+                                "items": [
+                                    {
+                                        "category_id": 1,
+                                        "plan_minor_units": 500000,
+                                        "actual_minor_units": 0,
+                                        "positive_amount_count": 0
+                                    },
+                                    {
+                                        "category_id": 2,
+                                        "plan_minor_units": 0,
+                                        "actual_minor_units": 0,
+                                        "positive_amount_count": 0
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ],
+                "irregular_periods": []
+            },
+            "dialog": {
+                "kind": "expense",
+                "operationDate": "2026-01-10",
+                "categoryId": 2,
+                "amountMinorUnits": 12000,
+                "original": null
+            },
+            "changes": [
+                {
+                    "operationDate": "2026-01-10",
+                    "categoryId": 2,
+                    "amountMinorUnits": 12000,
+                    "direction": "add"
+                }
+            ],
+            "readings": [
+                {
+                    "year": 2026,
+                    "month": 1,
+                    "beforeMinorUnits": 500000,
+                    "afterMinorUnits": 488000
+                }
+            ],
+            "server_months": [
+                { "year": 2026, "month": 1, "before": 500000, "after": 488000 }
+            ],
+            "derivation": "January is a Proposal (today is 15 January, no plan saved, no Budget 2025). Irregular Rate / Proposal: income plan 60000,00 a year, floor(60000,00 / 12) = 5000,00 = 500000; Internet is a Fixed Charge with annual plan 0, so its proposal is 0 (no previous month to copy). Before: 5000,00 - 0 = 5000,00 = 500000. The first positive operation of 120,00 makes Fixed Charge count at the actual amount even though the plan is 0: 5000,00 - 120,00 = 4880,00 = 488000."
+        },
+        {
+            "key": "irregular-later-month",
+            "today": "2026-11-20",
+            "categories": { "1": "Pensja", "2": "Ubezpieczenie" },
+            "inputs": {
+                "budgets": [
+                    {
+                        "year": 2026,
+                        "categories": [
+                            { "id": 1, "type": "income", "rhythms": null },
+                            {
+                                "id": 2,
+                                "type": "expense",
+                                "rhythms": {
+                                    "1": "irregular",
+                                    "2": "irregular",
+                                    "3": "irregular",
+                                    "4": "irregular",
+                                    "5": "irregular",
+                                    "6": "irregular",
+                                    "7": "irregular",
+                                    "8": "irregular",
+                                    "9": "irregular",
+                                    "10": "irregular",
+                                    "11": "irregular",
+                                    "12": "irregular"
+                                }
+                            }
+                        ],
+                        "months": [
+                            {
+                                "month": 9,
+                                "set_aside_minor_units": 0,
+                                "items": [
+                                    {
+                                        "category_id": 1,
+                                        "plan_minor_units": 500000,
+                                        "actual_minor_units": 0,
+                                        "positive_amount_count": 0
+                                    },
+                                    {
+                                        "category_id": 2,
+                                        "plan_minor_units": 10000,
+                                        "actual_minor_units": 0,
+                                        "positive_amount_count": 0
+                                    }
+                                ]
+                            },
+                            {
+                                "month": 10,
+                                "set_aside_minor_units": 0,
+                                "items": [
+                                    {
+                                        "category_id": 1,
+                                        "plan_minor_units": 500000,
+                                        "actual_minor_units": 0,
+                                        "positive_amount_count": 0
+                                    },
+                                    {
+                                        "category_id": 2,
+                                        "plan_minor_units": 10000,
+                                        "actual_minor_units": 0,
+                                        "positive_amount_count": 0
+                                    }
+                                ]
+                            },
+                            {
+                                "month": 11,
+                                "set_aside_minor_units": 0,
+                                "items": [
+                                    {
+                                        "category_id": 1,
+                                        "plan_minor_units": 500000,
+                                        "actual_minor_units": 0,
+                                        "positive_amount_count": 0
+                                    },
+                                    {
+                                        "category_id": 2,
+                                        "plan_minor_units": 10000,
+                                        "actual_minor_units": 90000,
+                                        "positive_amount_count": 1
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ],
+                "irregular_periods": [
+                    {
+                        "category_id": 2,
+                        "start_year": 2026,
+                        "start_month": 9,
+                        "opening_minor_units": 60000,
+                        "months": [
+                            {
+                                "year": 2026,
+                                "month": 9,
+                                "rate_minor_units": 10000,
+                                "actual_minor_units": 0
+                            },
+                            {
+                                "year": 2026,
+                                "month": 10,
+                                "rate_minor_units": 10000,
+                                "actual_minor_units": 0
+                            },
+                            {
+                                "year": 2026,
+                                "month": 11,
+                                "rate_minor_units": 10000,
+                                "actual_minor_units": 90000
+                            }
+                        ]
+                    }
+                ]
+            },
+            "dialog": {
+                "kind": "expense",
+                "operationDate": "2026-09-10",
+                "categoryId": 2,
+                "amountMinorUnits": 30000,
+                "original": null
+            },
+            "changes": [
+                {
+                    "operationDate": "2026-09-10",
+                    "categoryId": 2,
+                    "amountMinorUnits": 30000,
+                    "direction": "add"
+                }
+            ],
+            "readings": [
+                {
+                    "year": 2026,
+                    "month": 9,
+                    "beforeMinorUnits": 490000,
+                    "afterMinorUnits": 490000
+                },
+                {
+                    "year": 2026,
+                    "month": 11,
+                    "beforeMinorUnits": 490000,
+                    "afterMinorUnits": 460000
+                }
+            ],
+            "server_months": [
+                { "year": 2026, "month": 9, "before": 490000, "after": 490000 },
+                { "year": 2026, "month": 11, "before": 490000, "after": 460000 }
+            ],
+            "derivation": "Collected (glossary): end of month = max(0, start + rate - actual); surplus = max(0, actual - (start + rate)); an Irregular item counts rate + surplus. Opening 600,00 on 1 September, rate 100,00, bill 900,00 in November. Before: end of Sep 600 + 100 - 0 = 700, end of Oct 800; November start 800, surplus 900 - (800 + 100) = 0. To Spend in each month 5000,00 - 100,00 = 4900,00 = 490000. A bill of 300,00 dated 10 September: end of Sep max(0, 600 + 100 - 300) = 400, end of Oct 500; November start 500, surplus 900 - (500 + 100) = 300. After: September surplus max(0, 300 - (600 + 100)) = 0, so 4900,00 = 490000 -> 490000; October 5000 - 100 = 4900 unchanged (no reading); November 5000,00 - (100,00 + 300,00) = 4600,00 = 460000."
+        },
+        {
+            "key": "running-edit-with-draw",
+            "today": "2026-03-20",
+            "categories": { "1": "Pensja", "2": "Jedzenie" },
+            "inputs": {
+                "budgets": [
+                    {
+                        "year": 2026,
+                        "categories": [
+                            { "id": 1, "type": "income", "rhythms": null },
+                            {
+                                "id": 2,
+                                "type": "expense",
+                                "rhythms": {
+                                    "1": "running",
+                                    "2": "running",
+                                    "3": "running",
+                                    "4": "running",
+                                    "5": "running",
+                                    "6": "running",
+                                    "7": "running",
+                                    "8": "running",
+                                    "9": "running",
+                                    "10": "running",
+                                    "11": "running",
+                                    "12": "running"
+                                }
+                            }
+                        ],
+                        "months": [
+                            {
+                                "month": 3,
+                                "set_aside_minor_units": -50000,
+                                "items": [
+                                    {
+                                        "category_id": 1,
+                                        "plan_minor_units": 600000,
+                                        "actual_minor_units": 0,
+                                        "positive_amount_count": 0
+                                    },
+                                    {
+                                        "category_id": 2,
+                                        "plan_minor_units": 150000,
+                                        "actual_minor_units": 90000,
+                                        "positive_amount_count": 1
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ],
+                "irregular_periods": []
+            },
+            "dialog": {
+                "kind": "expense",
+                "operationDate": "2026-03-07",
+                "categoryId": 2,
+                "amountMinorUnits": 170000,
+                "original": {
+                    "operationDate": "2026-03-07",
+                    "categoryId": 2,
+                    "amountMinorUnits": 90000
+                }
+            },
+            "changes": [
+                {
+                    "operationDate": "2026-03-07",
+                    "categoryId": 2,
+                    "amountMinorUnits": 90000,
+                    "direction": "remove"
+                },
+                {
+                    "operationDate": "2026-03-07",
+                    "categoryId": 2,
+                    "amountMinorUnits": 170000,
+                    "direction": "add"
+                }
+            ],
+            "readings": [
+                {
+                    "year": 2026,
+                    "month": 3,
+                    "beforeMinorUnits": 500000,
+                    "afterMinorUnits": 480000
+                }
+            ],
+            "server_months": [
+                { "year": 2026, "month": 3, "before": 500000, "after": 480000 }
+            ],
+            "derivation": "To Spend (glossary): income without an inflow at plan 6000,00; Running counts the greater of plan and actual; Set-aside -500,00 is a Draw and raises To Spend (minus -500,00). Before: Jedzenie max(1500,00; 900,00) = 1500,00; 6000,00 - 1500,00 - (-500,00) = 5000,00 = 500000. Editing the 900,00 operation to 1700,00 (the old amount leaves, the new one enters) makes the actual 1700,00 above plan: 6000,00 - 1700,00 + 500,00 = 4800,00 = 480000."
+        }
+    ]
+}
