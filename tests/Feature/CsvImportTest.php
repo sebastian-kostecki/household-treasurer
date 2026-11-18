@@ -677,7 +677,12 @@ CSV;
         $this->assertDatabaseCount('financial_operations', 0);
     }
 
-    public function test_statement_across_the_year_turn_is_refused_as_a_whole_while_the_new_year_is_a_draft(): void
+    /**
+     * Known gap, pinned as observed: the server accepts both preview rows and then refuses the
+     * whole store, not just the January rows; the December rows are stored only without January.
+     * Candidate for a separate change: context/changes/year-turn-rehearsal/rehearsal.md ("Znaleziska", faza 1).
+     */
+    public function test_statement_across_the_year_turn_is_refused_as_a_whole_while_the_new_year_is_a_draft_known_gap(): void
     {
         $this->travelTo('2027-01-02 09:00');
 
@@ -713,7 +718,9 @@ CSV;
             ->assertSessionHasNoErrors();
 
         $this->assertDatabaseCount('financial_operations', 1);
-        $this->assertDatabaseHas('financial_operations', ['operation_date' => '2026-12-29', 'amount_minor_units' => 4550]);
+        $operation = FinancialOperation::query()->sole();
+        $this->assertSame('2026-12-29', $operation->operation_date->toDateString());
+        $this->assertSame(4550, $operation->amount_minor_units);
     }
 
     public function test_statement_across_the_year_turn_is_imported_into_the_lines_of_both_years_once_the_new_year_is_started(): void
@@ -739,7 +746,7 @@ CSV;
         $this->assertDatabaseCount('financial_operations', 2);
         $this->assertSame(4550, $expenseCategory->refresh()->execution_minor_units);
         $this->assertSame(3000, $line2027->refresh()->execution_minor_units);
-        $this->assertDatabaseHas('financial_operations', ['operation_date' => '2027-01-02', 'budget_line_id' => $line2027->id]);
+        $this->assertSame('2027-01-02', FinancialOperation::query()->where('budget_line_id', $line2027->id)->sole()->operation_date->toDateString());
     }
 
     public function test_import_rejects_csv_with_more_than_five_thousand_rows(): void

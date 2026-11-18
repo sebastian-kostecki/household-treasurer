@@ -10,9 +10,11 @@ use App\Enums\FinancialOperationType;
 use App\Models\Account;
 use App\Models\Budget;
 use App\Models\BudgetLine;
+use App\Models\CapitalMovement;
 use App\Models\CategoryRhythm;
 use App\Models\FinancialOperation;
 use App\Models\MonthPlan;
+use App\Models\OwnTransfer;
 use App\Models\TermDeposit;
 use App\Models\User;
 use App\Support\CategoryRhythms;
@@ -59,6 +61,7 @@ class YearTurnTest extends TestCase
     {
         parent::setUp();
 
+        $this->travelTo('2026-12-30 10:00:00');
         $this->user = User::factory()->create();
         $this->account = Account::factory()->for($this->user)->create([
             'opening_date' => '2026-01-01',
@@ -113,11 +116,11 @@ class YearTurnTest extends TestCase
 
         $this->postExpense('2027-01-01', $this->groceries2027)->assertSessionHasNoErrors();
 
-        $this->assertDatabaseHas('financial_operations', [
-            'user_id' => $this->user->id,
-            'budget_line_id' => $this->groceries2027->id,
-            'operation_date' => '2027-01-01',
-        ]);
+        $operation = FinancialOperation::query()
+            ->where('user_id', $this->user->id)
+            ->where('budget_line_id', $this->groceries2027->id)
+            ->sole();
+        $this->assertSame('2027-01-01', $operation->operation_date->toDateString());
     }
 
     public function test_december_can_be_approved_up_to_the_last_second_of_utc(): void
@@ -263,8 +266,8 @@ class YearTurnTest extends TestCase
             ->assertSessionHasNoErrors();
 
         $this->assertSame(BudgetPhase::Draft, $this->budget2027->refresh()->phase);
-        $this->assertDatabaseHas('own_transfers', ['user_id' => $this->user->id, 'transfer_date' => '2027-01-02']);
-        $this->assertDatabaseHas('capital_movements', ['user_id' => $this->user->id, 'movement_date' => '2027-01-02']);
+        $this->assertSame('2027-01-02', OwnTransfer::query()->where('user_id', $this->user->id)->sole()->transfer_date->toDateString());
+        $this->assertSame('2027-01-02', CapitalMovement::query()->where('user_id', $this->user->id)->sole()->movement_date->toDateString());
     }
 
     private function givenTwoBudgets(bool $withDecemberPayment = true): void

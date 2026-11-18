@@ -13,11 +13,11 @@ Bez danych osobowych, nazw kontrahentów i kwot pojedynczych operacji. Dopuszcza
 
 ## Przygotowanie
 
-1. Na VPS: `scripts/artisan.sh user:backup 1` (jeden użytkownik w instancji).
+1. Na VPS: `scripts/artisan.sh user:backup <id>` (jeden użytkownik w instancji).
 2. Kopia przez `docker compose exec -T app cat <plik>` po `ssh`, do `storage/app/restore-trial/prod-user.json`; porównanie SHA-256.
 3. Lokalnie `docker compose up -d`, `migrate --force` (baza dev miała jedną zaległą migrację `balance_reconciliations`, której wymaga snapshot v13).
 4. `user:create "Próba" proba@example.test --password=…` i `user:restore … --force`.
-5. Plik CSV do T4 i T5: kopia świeżego eksportu mBank (6 wierszy) z datami przesuniętymi na 29.12.2026–02.01.2027, rachunek „eKonto”.
+5. Plik CSV do T4 i T5: kopia świeżego eksportu mBank (6 wierszy) z datami przesuniętymi na 29.12.2026–02.01.2027, z rachunku, który ma odpowiednik w przywróconych danych.
 
 ## Tabela kroków
 
@@ -36,7 +36,7 @@ Faza 1 (testy Feature na PostgreSQL, `YearTurnTest`, dwa przypadki w `CsvImportT
 
 - Pierwsze uruchomienie: 4 testy `YearTurnTest` nie przeszły z `ValidationException` „Pozycje planu miesiąca są nieprawidłowe”. Przyczyna leżała w pomocniku testu (operator `...` przenumerowuje klucze całkowite, więc identyfikatory kategorii zgubiły się w tablicy kwot), a nie w produkcie. Decyzja: poprawiony pomocnik (`array_replace`), brak znaleziska produktu.
 - Po poprawce wszystkie przypadki przechodzą. Przelew własny i ruch kapitału w roku-szkicu są przyjmowane.
-- Obserwacja nieblokująca (kandydat, bez poprawki): Import wyciągu 29.12–02.01 przy szkicu 2027 odrzuca cały zapis (jedna transakcja), a nie tylko wiersze ze stycznia; wiersze grudnia zapisują się dopiero po odznaczeniu wierszy stycznia albo po starcie 2027. Pinuje to `CsvImportTest::test_statement_across_the_year_turn_is_refused_as_a_whole_while_the_new_year_is_a_draft`.
+- Obserwacja nieblokująca (kandydat, bez poprawki): Import wyciągu 29.12–02.01 przy szkicu 2027 odrzuca cały zapis (jedna transakcja), a nie tylko wiersze ze stycznia; wiersze grudnia zapisują się dopiero po odznaczeniu wierszy stycznia albo po starcie 2027. Pinuje to `CsvImportTest::test_statement_across_the_year_turn_is_refused_as_a_whole_while_the_new_year_is_a_draft_known_gap`.
 - Obserwacja nieblokująca (luka 3): sesja z rokiem 2026 zostaje na 2026 w styczniu, mimo że istnieje 2027. Pinuje to `SelectedBudgetYearTest::test_session_year_of_the_old_year_stays_selected_in_january_known_gap`.
 
 Faza 3 (próba na kopii danych):
@@ -44,8 +44,9 @@ Faza 3 (próba na kopii danych):
 - Znaleziska blokujące przełom: brak. Kolejność (B) przeszła bez poprawek produktu.
 - Kandydat: w interfejsie Import odmawia już w podglądzie (wiersze roku-szkicu bez kategorii, wyłączony „Zatwierdź import”), a nie dopiero przy zapisie. Komunikat „Brak kategorii dla roku operacji” nie mówi, że trzeba rozpocząć realizację Budżetu tego roku.
 - Kandydat: po T1 aż do przełomu menu roku i Dashboard nie mówią, że Budżet następnego roku został już uruchomiony i czeka na rok kalendarzowy. Po przełomie menu pokazuje „bieżący” przed serwerem (luka 4).
-- Kandydat: Propozycja stycznia różni się od grudnia dla `even_annual` i `irregular` (bierze roczny udział planu 2027). Nie sprawdzano tego z ADR rytmu; README opisuje „kopiuje grudzień” tylko dla pozycji bez rytmu, bieżących i opłat stałych.
-- Nie sprawdzono w T5, jaka jest stawka Zebranego za styczeń przed startem 2027: plan miesiąca 2027 w szkicu jest niedostępny. Zachowanie przypina `IrregularCollectedTest`.
+- Zgodne z regułą rytmu, nie kandydat: Propozycja stycznia różni się od grudnia dla `even_annual` i `irregular`, bo te rytmy w każdym miesiącu biorą roczny udział planu (`MonthPlanProposal.php:232`, ADR-0066, ADR-0072). Sformułowanie planu i researchu „kopiuje grudzień po `category_id`” było za szerokie; README opisuje „kopiuje grudzień” tylko dla pozycji bez rytmu, bieżących i opłat stałych. (Przegląd implementacji, F6.)
+- Pominięte w T5: stawka Zebranego za styczeń (przed i po starcie 2027) nie była oglądana w przeglądarce; plan miesiąca 2027 w szkicu jest niedostępny. Zachowanie przypinają `IrregularCollectedTest::…:136` i `YearTurnTest` (zapomniany start: Zebrane na początek lutego rośnie o stawkę stycznia po starcie).
+- Pominięte w T3: raport rok do roku (1 stycznia 2027 wobec 1 stycznia 2026) nie ma osobnego wyniku; sprawdzony był tylko widok „Lata” w trybie „do dnia” (luka 5).
 - Liczby kontrolne obejmują całą instancję lokalną. W próbie były tylko dane konta „Próba” i dane dev, a różnice dotyczyły wyłącznie pozycji 2027.
 
 ## Luki 1–5
@@ -67,4 +68,4 @@ Wykonane po T5:
 - `storage/app/restore-trial/` pusty, plik `rehearsal-clock` usunięty;
 - przeglądarka zamknięta (`page.clock` wraca do realnego czasu), katalog `.playwright-cli` usunięty.
 
-Konto „Próba” zostaje puste (nie ma `user:delete`). Na VPS został plik snapshotu `storage/app/private/user-snapshots/1-20261118110805.json` (zrobiony przez `user:backup`).
+Konto „Próba” zostaje puste (nie ma `user:delete`). Na VPS został plik snapshotu w `storage/app/private/user-snapshots/` (zrobiony przez `user:backup`, pełne dane użytkownika): do usunięcia ręcznie albo do świadomego zostawienia.

@@ -15,12 +15,15 @@ class RehearsalClock
 {
     public const FILE = 'rehearsal-clock';
 
+    public const COMMAND = 'app:rehearsal-clock';
+
     /**
      * Fix "now" to the stored moment, only in the local environment and only when the file exists.
+     * The clock command itself runs on the real clock, so it can always repair or remove the file.
      */
     public static function apply(): void
     {
-        if (! app()->isLocal()) {
+        if (! app()->isLocal() || app()->runningConsoleCommand(self::COMMAND)) {
             return;
         }
 
@@ -48,7 +51,8 @@ class RehearsalClock
             return CarbonImmutable::parse($content, 'UTC')->utc();
         } catch (Throwable $exception) {
             throw new RuntimeException(
-                'Unreadable rehearsal clock file "'.self::FILE.'", content: "'.$content.'".',
+                'Unreadable rehearsal clock file "'.$disk->path(self::FILE).'", content: "'.$content.'". '
+                .'Delete the file or run `php artisan '.self::COMMAND.' --off`.',
                 previous: $exception,
             );
         }
@@ -56,11 +60,19 @@ class RehearsalClock
 
     public static function set(CarbonImmutable $moment): void
     {
-        Storage::disk('local')->put(self::FILE, $moment->utc()->toIso8601String());
+        $disk = Storage::disk('local');
+
+        if (! $disk->put(self::FILE, $moment->utc()->toIso8601String())) {
+            throw new RuntimeException('Could not write the rehearsal clock file "'.$disk->path(self::FILE).'".');
+        }
     }
 
     public static function clear(): void
     {
-        Storage::disk('local')->delete(self::FILE);
+        $disk = Storage::disk('local');
+
+        if ($disk->exists(self::FILE) && ! $disk->delete(self::FILE)) {
+            throw new RuntimeException('Could not delete the rehearsal clock file "'.$disk->path(self::FILE).'".');
+        }
     }
 }

@@ -4,15 +4,21 @@ namespace App\Console\Commands;
 
 use App\Support\RehearsalClock;
 use Carbon\CarbonImmutable;
+use DateTimeImmutable;
+use DateTimeZone;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
-use Throwable;
 
 #[Signature('app:rehearsal-clock {moment? : Data i godzina w UTC, np. "2027-01-01 00:30"} {--off : Wyłącz zegar próby}')]
-#[Description('Set, show or switch off the local rehearsal clock (local environment only)')]
+#[Description('Ustawia, pokazuje albo wyłącza lokalny zegar próby (tylko środowisko local)')]
 class RehearsalClockCommand extends Command
 {
+    /**
+     * Accepted moment formats, read in UTC.
+     */
+    private const FORMATS = ['Y-m-d H:i', 'Y-m-d H:i:s'];
+
     public function handle(): int
     {
         if (! app()->isLocal()) {
@@ -36,18 +42,44 @@ class RehearsalClockCommand extends Command
             return self::SUCCESS;
         }
 
-        try {
-            $moment = CarbonImmutable::parse($input, 'UTC')->utc();
-        } catch (Throwable) {
-            $this->components->error("Nieczytelny moment: {$input}");
+        $moment = $this->parseMoment($input);
+
+        if ($moment === null) {
+            $this->components->error("Nieczytelny moment: „{$input}”. Podaj datę i godzinę w UTC, np. „2027-01-01 00:30”.");
+
+            return self::FAILURE;
+        }
+
+        $lifetimeMinutes = (int) config('session.lifetime');
+
+        if ($moment->lessThan(CarbonImmutable::now()->subMinutes($lifetimeMinutes))) {
+            $this->components->error(
+                "Moment {$input} UTC leży ponad {$lifetimeMinutes} min w przeszłości: przeglądarka odrzuci ciasteczka sesji jako wygasłe i logowanie nie przejdzie.",
+            );
 
             return self::FAILURE;
         }
 
         RehearsalClock::set($moment);
-        $this->components->info($this->describe($moment));
+        $this->components->info($this->describe(RehearsalClock::current() ?? $moment));
 
         return self::SUCCESS;
+    }
+
+    /**
+     * The moment in one of the exact formats, or null; a date past the end of the month is rejected.
+     */
+    private function parseMoment(string $input): ?CarbonImmutable
+    {
+        foreach (self::FORMATS as $format) {
+            $moment = DateTimeImmutable::createFromFormat('!'.$format, $input, new DateTimeZone('UTC'));
+
+            if ($moment !== false && $moment->format($format) === $input) {
+                return CarbonImmutable::instance($moment);
+            }
+        }
+
+        return null;
     }
 
     private function showCurrent(): void
