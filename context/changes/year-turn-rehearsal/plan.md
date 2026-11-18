@@ -443,9 +443,9 @@ Brak migracji. Snapshot produkcji trafia tylko do lokalnej bazy dev, na osobnego
 
 #### Automated
 
-- [ ] 1.1 Nowe i zmienione testy przechodzą na PostgreSQL
-- [ ] 1.2 Pint bez zmian po uruchomieniu
-- [ ] 1.3 Bramka przechodzi: composer ci:check i sloppy ci
+- [x] 1.1 Nowe i zmienione testy przechodzą na PostgreSQL — a62afab
+- [x] 1.2 Pint bez zmian po uruchomieniu — a62afab
+- [x] 1.3 Bramka przechodzi: composer ci:check i sloppy ci — a62afab
 
 #### Manual
 
