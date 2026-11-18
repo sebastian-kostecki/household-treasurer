@@ -604,10 +604,10 @@ Brak migracji. Zmiana zachowania jest możliwa tylko w fazie 3, jeśli poprawka 
 
 #### Automated
 
-- [x] 5.1 Pełna bramka `composer ci:check` na PostgreSQL w kontenerze
-- [x] 5.2 `vendor/bin/sloppy ci` w obrazie `sail-8.5/app` jest zielone
-- [x] 5.3 `S-14` i `S-11` nie występują w poprawionych wierszach i akapitach planu testów
-- [x] 5.4 Indeks reguł wymienia nowe ścieżki w wierszu `month-calculators.md`
+- [x] 5.1 Pełna bramka `composer ci:check` na PostgreSQL w kontenerze — df1f6f3
+- [x] 5.2 `vendor/bin/sloppy ci` w obrazie `sail-8.5/app` jest zielone — df1f6f3
+- [x] 5.3 `S-14` i `S-11` nie występują w poprawionych wierszach i akapitach planu testów — df1f6f3
+- [x] 5.4 Indeks reguł wymienia nowe ścieżki w wierszu `month-calculators.md` — df1f6f3
 
 #### Manual
 
