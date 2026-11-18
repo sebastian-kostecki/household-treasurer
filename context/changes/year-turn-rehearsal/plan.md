@@ -467,8 +467,8 @@ Brak migracji. Snapshot produkcji trafia tylko do lokalnej bazy dev, na osobnego
 
 #### Automated
 
-- [ ] 3.1 Liczby kontrolne po T1 różnią się tylko w pozycjach 2027
-- [ ] 3.2 Testy poprawek (jeśli są) przechodzą na PostgreSQL
+- [x] 3.1 Liczby kontrolne po T1 różnią się tylko w pozycjach 2027 — 2b25633
+- [x] 3.2 Testy poprawek (jeśli są) przechodzą na PostgreSQL — 2b25633
 
 #### Manual
 
