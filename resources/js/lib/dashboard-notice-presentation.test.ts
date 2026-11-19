@@ -99,18 +99,45 @@ describe('noticePresentation', () => {
         });
     });
 
-    it('presents an unapproved month plan without a value', () => {
+    it('presents an unapproved month plan with its deadline', () => {
         const notice: DashboardNotice = {
             severity: 'warning',
             kind: 'month_plan_not_approved',
             month: 3,
+            approve_by: '2026-03-31',
         };
 
         expect(noticePresentation(notice)).toEqual({
             labelKey: 'plan_not_approved',
             identity: { type: 'month', month: 3 },
-            value: null,
+            value: { type: 'approve_by', date: '2026-03-31' },
         });
+    });
+
+    it('presents a draft Budget year by its year and the refused Import', () => {
+        const notice: DashboardNotice = {
+            severity: 'warning',
+            kind: 'budget_not_in_execution',
+            year: 2027,
+            state: 'draft',
+        };
+
+        expect(noticePresentation(notice)).toEqual({
+            labelKey: 'budget_draft',
+            identity: { type: 'year', year: 2027 },
+            value: { type: 'import_refused', year: 2027 },
+        });
+    });
+
+    it('presents a missing Budget year with its own label', () => {
+        const notice: DashboardNotice = {
+            severity: 'warning',
+            kind: 'budget_not_in_execution',
+            year: 2027,
+            state: 'missing',
+        };
+
+        expect(noticePresentation(notice).labelKey).toBe('budget_missing');
     });
 
     it('presents pace ahead with the payload percent and the days percent', () => {

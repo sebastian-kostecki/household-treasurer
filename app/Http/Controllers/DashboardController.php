@@ -35,6 +35,7 @@ class DashboardController extends Controller
         $today = AppDay::today();
         $currentYear = $today->year;
         $budget = $this->findBudgetForYear($user, $currentYear);
+        $nextYearBudget = $this->findBudgetForYear($user, $currentYear + 1);
 
         $allAccounts = $user->accounts()
             ->withoutSheetAccounts()
@@ -126,6 +127,7 @@ class DashboardController extends Controller
 
         $dashboardNotices = DashboardNotices::forDashboard(
             $budget,
+            $nextYearBudget,
             $allAccounts,
             $allTermDeposits,
             $monthToSpendReading,
@@ -155,6 +157,7 @@ class DashboardController extends Controller
             'expenseTotals' => $expenseTotals,
             'year_elapsed_as_of' => $yearElapsedAsOf,
             'year_elapsed_percent' => $yearElapsedPercent,
+            'waiting_budget_year' => $nextYearBudget?->isExecution() === true ? $nextYearBudget->year : null,
         ]);
     }
 
