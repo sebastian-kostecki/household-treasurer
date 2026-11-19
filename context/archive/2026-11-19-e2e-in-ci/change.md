@@ -1,10 +1,10 @@
 ---
 change_id: e2e-in-ci
 title: E2E w CI — bramka ze stabilnych speców Playwright na pushu i PR
-status: impl_reviewed
+status: archived
 created: 2026-11-19
 updated: 2026-11-19
-archived_at: null
+archived_at: 2026-11-19T12:35:20Z
 ---
 
 ## Notes
