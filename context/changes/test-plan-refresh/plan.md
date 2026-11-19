@@ -377,11 +377,11 @@ Brak. Orkiestrator `/10x-test-plan` czyta §3 tymi samymi literałami statusów.
 
 #### Automated
 
-- [ ] 1.1 Warunki wstępne spełnione (development i roadmapa M-5 zmergowane)
-- [ ] 1.2 §2 ma 9 wierszy ryzyk i 9 wierszy guidance
-- [ ] 1.3 §1–§2 bez slice'ów M-2
-- [ ] 1.4 Tabela ryzyk §2 bez kotwic kodu
-- [ ] 1.5 §7 bez zmian
+- [x] 1.1 Warunki wstępne spełnione (development i roadmapa M-5 zmergowane)
+- [x] 1.2 §2 ma 9 wierszy ryzyk i 9 wierszy guidance
+- [x] 1.3 §1–§2 bez slice'ów M-2
+- [x] 1.4 Tabela ryzyk §2 bez kotwic kodu
+- [x] 1.5 §7 bez zmian
 
 #### Manual
 
