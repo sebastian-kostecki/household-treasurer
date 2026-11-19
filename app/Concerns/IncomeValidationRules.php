@@ -4,6 +4,7 @@ namespace App\Concerns;
 
 use App\Enums\CategoryType;
 use App\Support\AppDay;
+use App\Support\IncomeEntryRules;
 use App\Support\OperationEntryValidation;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Validation\Rule;
@@ -16,35 +17,7 @@ trait IncomeValidationRules
      */
     protected function storeIncomeRules(): array
     {
-        $userId = $this->user()?->id;
-
-        return [
-            'operation_date' => ['required', 'date', 'before_or_equal:'.AppDay::today()->toDateString()],
-            'amount_minor_units' => ['required', 'integer', 'min:1'],
-            'description' => ['required', 'string', 'max:255'],
-            'counterparty' => ['nullable', 'string', 'max:255'],
-            'raw_statement_description' => ['prohibited'],
-            'import_identity_account_id' => ['prohibited'],
-            'import_identity_date' => ['prohibited'],
-            'import_identity_amount_minor_units' => ['prohibited'],
-            'import_identity_digest' => ['prohibited'],
-            'convert_to_expense_refund' => ['prohibited'],
-            'convert_to_capital_movement' => ['prohibited'],
-            'account_id' => [
-                'required',
-                'integer',
-                Rule::exists('accounts', 'id')
-                    ->where('user_id', $userId)
-                    ->whereNull('archived_at'),
-            ],
-            'category_id' => [
-                'required',
-                'integer',
-                Rule::exists('categories', 'id')
-                    ->where('user_id', $userId)
-                    ->where('type', CategoryType::Income->value),
-            ],
-        ];
+        return IncomeEntryRules::storeRulesFor($this->user()?->id);
     }
 
     /**
@@ -100,7 +73,7 @@ trait IncomeValidationRules
      */
     public function payload(): array
     {
-        $validated = $this->safe()->only([
+        return IncomeEntryRules::payloadFrom($this->safe()->only([
             'operation_date',
             'amount_minor_units',
             'description',
@@ -108,23 +81,6 @@ trait IncomeValidationRules
             'account_id',
             'category_id',
             'convert_to_expense_refund',
-        ]);
-
-        $payload = [
-            'operation_date' => (string) $validated['operation_date'],
-            'amount_minor_units' => (int) $validated['amount_minor_units'],
-            'description' => (string) $validated['description'],
-            'counterparty' => is_string($validated['counterparty'] ?? null)
-                ? $validated['counterparty']
-                : null,
-            'account_id' => (int) $validated['account_id'],
-            'category_id' => (int) $validated['category_id'],
-        ];
-
-        if (($validated['convert_to_expense_refund'] ?? false) === true) {
-            $payload['convert_to_expense_refund'] = true;
-        }
-
-        return $payload;
+        ]));
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Dev;
 
 use App\Http\Controllers\Controller;
+use App\Support\UiTranslations;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rules\Password;
 use Inertia\Inertia;
@@ -23,6 +24,7 @@ class AuthKitchenSinkController extends Controller
         'verify-email' => ['page' => 'auth/VerifyEmail', 'label' => 'Weryfikacja adresu e-mail', 'states' => ['default', 'status']],
         'confirm-password' => ['page' => 'auth/ConfirmPassword', 'label' => 'Potwierdzenie hasła', 'states' => ['default']],
         'two-factor-challenge' => ['page' => 'auth/TwoFactorChallenge', 'label' => 'Kod uwierzytelniania', 'states' => ['default']],
+        'oauth-authorize' => ['page' => 'auth/OAuthAuthorize', 'label' => 'Zgoda na dostęp aplikacji (OAuth)', 'states' => ['default', 'write-enabled', 'long-client-name']],
     ];
 
     public function show(Request $request): Response
@@ -76,7 +78,34 @@ class AuthKitchenSinkController extends Controller
                 'passwordRules' => $passwordRules,
             ],
             'verify-email' => $state === 'status' ? ['status' => 'verification-link-sent'] : [],
+            'oauth-authorize' => $this->oauthAuthorizeProps($state),
             default => [],
         };
+    }
+
+    /**
+     * Fixture props of the consent page; the narrow screen is the browser at phone width, not a state.
+     *
+     * @return array<string, mixed>
+     */
+    private function oauthAuthorizeProps(string $state): array
+    {
+        $texts = UiTranslations::all()['auth']['oauth_authorize'];
+        $scopes = [$texts['scope_read']];
+
+        if ($state === 'write-enabled') {
+            $scopes[] = $texts['scope_write'];
+        }
+
+        return [
+            'client_name' => $state === 'long-client-name'
+                ? 'Claude connector with an exceptionally long registered client name that has to wrap inside the card'
+                : 'Claude',
+            'scopes' => $scopes,
+            'auth_token' => 'kitchen-sink-auth-token',
+            'client_id' => '00000000-0000-0000-0000-000000000000',
+            'state' => 'kitchen-sink-state',
+            'csrf_token' => 'kitchen-sink-csrf-token',
+        ];
     }
 }

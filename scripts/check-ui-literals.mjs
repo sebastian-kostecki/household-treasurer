@@ -34,6 +34,7 @@ const FILES = [
     'resources/js/pages/auth/ConfirmPassword.vue',
     'resources/js/pages/auth/ForgotPassword.vue',
     'resources/js/pages/auth/Login.vue',
+    'resources/js/pages/auth/OAuthAuthorize.vue',
     'resources/js/pages/auth/Register.vue',
     'resources/js/pages/auth/ResetPassword.vue',
     'resources/js/pages/auth/TwoFactorChallenge.vue',

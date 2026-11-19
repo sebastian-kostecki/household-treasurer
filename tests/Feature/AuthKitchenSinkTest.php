@@ -35,7 +35,7 @@ class AuthKitchenSinkTest extends TestCase
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->component('dev/AuthKitchenSink')
-                ->has('screens', 7)
+                ->has('screens', 8)
                 ->where('screens.0.key', 'login')
                 ->where('screens.0.states', ['default', 'status']));
     }
@@ -62,6 +62,27 @@ class AuthKitchenSinkTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page
                 ->component('auth/ResetPassword')
                 ->where('email', null));
+    }
+
+    public function test_it_renders_the_oauth_consent_page_in_its_states(): void
+    {
+        $this->app['env'] = 'local';
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->get(route('dev.ui.auth', ['screen' => 'oauth-authorize', 'state' => 'write-enabled']))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('auth/OAuthAuthorize')
+                ->has('scopes', 2));
+
+        $this->actingAs($user)
+            ->get(route('dev.ui.auth', ['screen' => 'oauth-authorize', 'state' => 'long-client-name']))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('auth/OAuthAuthorize')
+                ->has('scopes', 1)
+                ->where('client_name', fn (string $name) => strlen($name) > 80));
     }
 
     public function test_it_is_not_found_for_an_unknown_screen_or_a_state_the_screen_lacks(): void

@@ -33,13 +33,19 @@ return [
     | users are actually retrieved out of your database or other storage
     | system used by the application. Typically, Eloquent is utilized.
     |
-    | Supported: "session"
+    | Supported: "session", "passport"
     |
     */
 
     'guards' => [
         'web' => [
             'driver' => 'session',
+            'provider' => 'users',
+        ],
+
+        // Passport access tokens for the MCP endpoint (ADR-0110).
+        'api' => [
+            'driver' => 'passport',
             'provider' => 'users',
         ],
     ],
