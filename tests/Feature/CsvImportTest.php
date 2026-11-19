@@ -681,11 +681,11 @@ CSV;
     }
 
     /**
-     * Known gap, pinned as observed: the server accepts both preview rows and then refuses the
-     * whole store, not just the January rows; the December rows are stored only without January.
-     * Candidate for a separate change: context/archive/2026-11-18-year-turn-rehearsal/rehearsal.md ("Znaleziska", faza 1).
+     * The set stays atomic (FR-IMP-20): the preview reports the state of each year, a store that
+     * includes a row from a draft year is refused as a whole with the row date and year, and the
+     * December rows are stored once January is left out (ADR-0103).
      */
-    public function test_statement_across_the_year_turn_is_refused_as_a_whole_while_the_new_year_is_a_draft_known_gap(): void
+    public function test_statement_across_the_year_turn_saves_december_and_names_the_draft_year_for_january(): void
     {
         $this->travelTo('2027-01-02 09:00');
 
@@ -697,6 +697,8 @@ CSV;
             ->get(route('operations.import.preview'))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
+                ->where('budgetYearStates.2026', 'execution')
+                ->where('budgetYearStates.2027', 'draft')
                 ->where('rows.0.valid', true)
                 ->where('rows.1.valid', true),
             );
@@ -708,7 +710,7 @@ CSV;
                 'rows' => $this->turnStatementRows($expenseCategory->category_id, [0, 1]),
             ])
             ->assertSessionHasErrors([
-                'rows' => __('Expenses can only be recorded for a budget in execution. Create or start a budget for this year.'),
+                'rows' => __('Row :date: the :year budget is a draft. Start its execution to import income, expenses and refunds from :year.', ['date' => '02.01.2027', 'year' => 2027]),
             ]);
 
         $this->assertDatabaseCount('financial_operations', 0);
@@ -724,6 +726,93 @@ CSV;
         $operation = FinancialOperation::query()->sole();
         $this->assertSame('2026-12-29', $operation->operation_date->toDateString());
         $this->assertSame(4550, $operation->amount_minor_units);
+    }
+
+    public function test_import_preview_marks_a_year_without_a_budget_as_missing_and_store_names_it(): void
+    {
+        $this->travelTo('2026-06-01');
+
+        [$user, $account, , $expenseCategory] = $this->createImportFixture(['opening_date' => '2025-01-01']);
+        $this->previewCsv($user, $account, "date,description,amount\n2025-12-30,Zakupy,45.50");
+
+        $this->actingAs($user)
+            ->get(route('operations.import.preview'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page->where('budgetYearStates.2025', 'missing'));
+
+        $this->actingAs($user)
+            ->from(route('operations.import.preview'))
+            ->post(route('operations.import.store'), [
+                'duplicate_warning_acknowledged' => true,
+                'rows' => $this->turnStatementRows($expenseCategory->category_id, [0]),
+            ])
+            ->assertSessionHasErrors([
+                'rows' => __('Row :date: there is no :year budget. Create it and start its execution to import income, expenses and refunds from :year.', ['date' => '30.12.2025', 'year' => 2025]),
+            ]);
+
+        $this->assertDatabaseCount('financial_operations', 0);
+    }
+
+    public function test_own_transfer_row_in_a_draft_year_is_imported(): void
+    {
+        $this->travelTo('2027-01-02 09:00');
+
+        [$user, $account] = $this->createImportFixture();
+        Budget::factory()->for($user)->create(['year' => 2027]);
+        $otherAccount = Account::factory()->for($user)->create([
+            'opening_date' => '2026-01-01',
+            'opening_balance_minor_units' => 0,
+            'current_balance_minor_units' => 0,
+        ]);
+        $this->previewCsv($user, $account, "date,description,amount\n2027-01-02,To savings,-100.00");
+
+        $this->actingAs($user)
+            ->post(route('operations.import.store'), [
+                'duplicate_warning_acknowledged' => true,
+                'rows' => [[
+                    'index' => 0,
+                    'selected' => true,
+                    'type' => 'own_transfer',
+                    'other_account_id' => $otherAccount->id,
+                ]],
+            ])
+            ->assertSessionHasNoErrors();
+
+        $this->assertDatabaseCount('own_transfers', 1);
+    }
+
+    public function test_capital_movement_with_interest_in_a_draft_year_is_refused_as_a_whole(): void
+    {
+        $this->travelTo('2027-01-02 09:00');
+
+        [$user, $account, $incomeCategory] = $this->createImportFixture();
+        Budget::factory()->for($user)->create(['year' => 2027]);
+        $termDeposit = TermDeposit::factory()->for($user)->create([
+            'opening_date' => '2026-01-01',
+            'opening_balance_minor_units' => 200000,
+            'current_balance_minor_units' => 200000,
+        ]);
+        $this->previewCsv($user, $account, "date,description,amount\n2027-01-02,Maturity return,150.00");
+
+        $this->actingAs($user)
+            ->from(route('operations.import.preview'))
+            ->post(route('operations.import.store'), [
+                'duplicate_warning_acknowledged' => true,
+                'rows' => [[
+                    'index' => 0,
+                    'selected' => true,
+                    'type' => 'capital_movement',
+                    'term_deposit_id' => $termDeposit->id,
+                    'interest_amount_minor_units' => 2500,
+                    'interest_category_id' => $incomeCategory->category_id,
+                ]],
+            ])
+            ->assertSessionHasErrors([
+                'rows' => __('Row :date: the :year budget is a draft. Start its execution to import income, expenses and refunds from :year.', ['date' => '02.01.2027', 'year' => 2027]),
+            ]);
+
+        $this->assertDatabaseCount('financial_operations', 0);
+        $this->assertDatabaseCount('capital_movements', 0);
     }
 
     public function test_statement_across_the_year_turn_is_imported_into_the_lines_of_both_years_once_the_new_year_is_started(): void

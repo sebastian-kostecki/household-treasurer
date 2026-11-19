@@ -1,9 +1,9 @@
 ---
 change_id: import-across-draft-year
 title: Import across a draft year
-status: planned
+status: implementing
 created: 2026-11-18
-updated: 2026-11-18
+updated: 2026-11-19
 ---
 
 ## Notes

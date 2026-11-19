@@ -13,6 +13,7 @@ import { firstRowsError } from '@/lib/import-preview-errors';
 import {
     expenseCategories,
     importAccount,
+    importPreviewBudgetYearStates,
     importPreviewEntryToSpend,
     importPreviewMonthRemainingContext,
     importPreviewRows,
@@ -39,6 +40,7 @@ const pageProps = {
     expenseCategories,
     otherAccounts,
     termDeposits,
+    budgetYearStates: importPreviewBudgetYearStates,
     monthRemainingContext: importPreviewMonthRemainingContext,
     entryToSpend: importPreviewEntryToSpend,
 };

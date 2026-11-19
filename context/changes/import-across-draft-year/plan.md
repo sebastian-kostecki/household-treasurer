@@ -2,7 +2,7 @@
 
 ## Overview
 
-Wyciąg 29.12.2026–02.01.2027, gdy Budżet 2027 jest szkicem, ma dać się zapisać dla wierszy grudnia. Przy wierszach stycznia użytkownik ma już w podglądzie widzieć, że dochód, wydatek i zwrot z 2027 zaimportuje dopiero po rozpoczęciu realizacji Budżetu 2027, i mieć odnośnik do tego Budżetu. To samo dotyczy roku, który nie ma Budżetu wcale (np. 30.12.2025 albo styczeń 2028).
+Wyciąg 29.12.2026–02.01.2027, gdy Budżet 2027 jest szkicem, ma dać się zapisać dla wierszy grudnia. Przy wierszach stycznia użytkownik ma już w podglądzie widzieć, że dochód, wydatek i zwrot z 2027 zaimportuje dopiero po rozpoczęciu realizacji Budżetu 2027, i mieć odnośnik do tego Budżetu. To samo dotyczy roku, który nie ma Budżetu wcale (np. 30.12.2025 przed pierwszym Budżetem). Rok bez Budżetu jest zawsze bieżący albo przeszły: datę po dziś podgląd odrzuca jako `FutureDate` (`CsvImportPreviewValidator.php:27`), a zapis regułą `before_or_equal:today`.
 
 Zapis zostaje atomowy (FR-IMP-20): zaznaczony wiersz, którego nie da się zapisać, blokuje „Zatwierdź import” z własnym powodem, a serwer przy obejściu klienta dalej wycofuje cały zestaw, tylko z komunikatem, który wskazuje datę wiersza i rok. Przelew własny i ruch kapitału w roku-szkicu przechodzą jak dziś.
 
@@ -23,7 +23,7 @@ Na wyciągu 29.12–02.01 przy szkicu 2027 (4 wiersze grudnia, 2 stycznia):
 - wiersze stycznia pokazują notatkę „Budżet 2027 jest szkicem. Dochód, wydatek i zwrot z 2027 zaimportujesz po rozpoczęciu jego realizacji.” z odnośnikiem „Przejdź do Budżetu 2027”, który ustawia rok 2027 i otwiera stronę Budżetu;
 - zaznaczony wydatek, dochód albo zwrot ze stycznia (także ruch kapitału z wydzielonymi odsetkami) blokuje „Zatwierdź import” powodem, który podaje liczbę takich wierszy i rok; zaznaczony przelew własny ze stycznia go nie blokuje;
 - po odznaczeniu wierszy stycznia zapisują się 4 operacje grudnia;
-- wiersz z roku bez Budżetu pokazuje wariant „Nie ma Budżetu 2028 …” z odnośnikiem na stronę Budżetu;
+- wiersz z roku bez Budżetu (np. 30.12.2025) pokazuje wariant „Nie ma Budżetu 2025 …” z przyciskiem „Utwórz Budżet 2025”, który otwiera dialog tworzenia Budżetu ustawiony na ten rok i nie wysyła Importu;
 - żądanie z pominięciem klienta (zapis obu wierszy) jest odrzucone w całości, z błędem `rows`, który podaje datę wiersza i rok, a stan bazy się nie zmienia.
 
 Sprawdzenie: testy Feature na PostgreSQL, Vitest dla logiki blokady, scenariusze w `/dev/import-preview`, `npm run check:ui`, ręczny przebieg na podglądzie worktree.
@@ -31,7 +31,11 @@ Sprawdzenie: testy Feature na PostgreSQL, Vitest dla logiki blokady, scenariusze
 ### Key Discoveries:
 
 - Wiersze stoją wewnątrz `Form` zapisu Importu (`resources/js/pages/OperationsImportPreview.vue:313`), więc odnośnik w notatce nie może być zagnieżdżonym `<form>` (jak `DashboardBudgetBlock.vue:80-88`); wzorzec `Link method="post"` jest w `resources/js/components/ReportYearsTable.vue:161`.
-- `budget.select-year` przyjmuje tylko rok z istniejącym Budżetem (`app/Http/Requests/SelectBudgetYearRequest.php:22-25`), więc dla braku Budżetu odnośnik prowadzi zwykłym GET na `budget`.
+- Link Inertii z metodą inną niż GET renderuje `<button type="button">` z `preventDefault` (`@inertiajs/vue3` `dist/index.js:1826-1853`, `:1910-1913`), więc nie wyśle formularza Importu; `as="button"` jest zbędne.
+- `resources/js/ui-contract.test.ts:589-615`: każdy `.vue` z `<Link` i `BudgetController.selectYear()` musi mieć `@error=` i `listenForBudgetYearSelectionFailure` (wzorzec `ReportYearsTable.vue:70-84`), inaczej `npm run test` pada, a nieudany wybór roku przechodzi po cichu.
+- `budget.select-year` przyjmuje tylko rok z istniejącym Budżetem (`app/Http/Requests/SelectBudgetYearRequest.php:22-25`), a GET `budget` pokazuje rok z `SelectedBudgetYear::resolve`, nigdy rok bez Budżetu. Dla braku Budżetu akcją jest więc dialog tworzenia: `useCreateBudgetDialog().openForYear(year)` (`resources/js/composables/useCreateBudgetDialog.ts:13`, dialog zamontowany w `AppSidebarLayout.vue`, użycie w `BudgetYearSwitcher.vue:137`); `budget.store` przekierowuje na `budget` (`BudgetController.php:128`).
+- Rok wczytany z arkusza zawsze ma Budżet w realizacji (`LoadBudgetSheet.php:58-61`), więc kontrola „szkic albo brak Budżetu” go nie przechwyci, a komunikat arkusza zostaje (`SheetAccountTest.php:182-196`).
+- Shell już wysyła `budgetYears: {year, phase}[]` (`ShellState.php:42`), ale kitchen sink renderuje prawdziwy `OperationsImportPreview` z propsami z fixtures (`ImportPreviewSink.vue:250`), a shell pochodzi z sesji dev. Dlatego stan roku idzie osobnym propem strony, który sink może ustawić.
 - Po udanym zapisie podgląd znika z sesji (`CsvImportController.php:346`), a po nieudanym zostaje (`CsvImportSession`), więc styczeń importuje się ponownym wgraniem pliku; grudzień wraca wtedy jako duplikaty, niezaznaczone (ADR-0011).
 - Nowa notatka wiersza wymaga nowego `ImportRowNoteKind`, inaczej blok notatek jej nie wyrenderuje (`.ai/rules/js-import.md`, `import-preview-rows.ts:321-337`).
 - Klucze `no_*_category_for_year` są wspólne z `ExpenseFormDialog.vue:605-608` i `IncomeFormDialog.vue:495-498`; zmiana ich treści zmieniłaby dialogi.
@@ -55,7 +59,7 @@ Serwer liczy stan roku dla każdego roku obecnego w wierszach podglądu (realiza
 
 ## Critical Implementation Details
 
-- **Odnośnik w notatce nie jest formularzem.** Notatka renderuje się wewnątrz `Form` zapisu, więc „Przejdź do Budżetu 2027” to `Link` z `method="post"` i `data: { year }` na `BudgetController.selectYear` (wzorzec `ReportYearsTable.vue:161`), a wariant bez Budżetu to `Link` GET na trasę `budget`. Przycisk w `<form>` z `type="submit"` wysłałby Import.
+- **Odnośnik w notatce nie jest formularzem.** Notatka renderuje się wewnątrz `Form` zapisu, więc „Przejdź do Budżetu 2027” to `Link` z `method="post"` i `data: { year }` na `BudgetController.selectYear` (wzorzec `ReportYearsTable.vue:70-84`, `:161`), z `ref` `pending` (wyłącza odnośnik w locie), `@error` → `notifyBudgetYearSelectionFailed(t.shell.select_year_failed)` i `onUnmounted(listenForBudgetYearSelectionFailure(() => pending.value, t.shell.select_year_failed))` (strażnik `ui-contract.test.ts:589-615`; toast pokaże tylko wiersz z `pending`). Wariant bez Budżetu to `<Button type="button">` „Utwórz Budżet :year”, który woła `useCreateBudgetDialog().openForYear(year)`. Przycisk w `<form>` bez `type="button"` wysłałby Import.
 - **Kolejność powodów blokady.** Wiersz roku bez realizacji jest jednocześnie „niekompletny” (pusta kategoria), więc nowy powód musi stać przed `import_block_incomplete_rows`, inaczej użytkownik zobaczy stary ogólny tekst.
 - **Pusta mapa w JSON.** PHP `[]` koduje się jako `[]`, a mapa z kluczami-latami jako obiekt; typ i odczyt po stronie klienta muszą przyjąć oba (brak klucza = brak notatki).
 
@@ -93,7 +97,9 @@ Podgląd dostaje prop `budgetYearStates`, a zapis dochodu, wydatku, zwrotu albo 
 - `Row :date: the :year budget is a draft. Start its execution to import income, expenses and refunds from :year.` → „Wiersz z :date: Budżet :year jest szkicem. Rozpocznij jego realizację, żeby zaimportować dochód, wydatek albo zwrot z :year.”
 - `Row :date: there is no :year budget. Create it and start its execution to import income, expenses and refunds from :year.` → „Wiersz z :date: nie ma Budżetu :year. Utwórz go i rozpocznij realizację, żeby zaimportować dochód, wydatek albo zwrot z :year.”
 
-Rok wczytany z arkusza i reszta kontroli kategorii zostają przy `OperationCategoryChoice` bez zmian. Ręczny wpis (`OperationCategoryChoice::phaseMessage`) nie zmienia się.
+Kolejność w `after()`: kontrola fazy stoi po sprawdzeniu daty otwarcia konta (`:40-47`), odpala się tylko dla `Draft` i `Missing`, a po dodaniu błędu kończy się `return`, bez wołania `OperationCategoryChoice::check`. Błąd dodany w `after()` nie jest objęty wczesnym returnem (`:36`), a do `rows` trafia `$errors[0]` (`ImportFinancialOperations.php:151-275`), więc bez `return` doszedłby drugi błąd `category_id`. Stan roku walidator czyta przez `ImportBudgetYearStates::forYear` z pamięcią per rok na instancji (jedna instancja na żądanie, wstrzykiwana w `ImportFinancialOperations.php:25`).
+
+Rok wczytany z arkusza (zawsze Budżet w realizacji, `LoadBudgetSheet.php:58-61`) i reszta kontroli kategorii zostają przy `OperationCategoryChoice` bez zmian. Ręczny wpis (`OperationCategoryChoice::phaseMessage`) nie zmienia się.
 
 #### 4. Testy Feature (PostgreSQL)
 
@@ -103,7 +109,7 @@ Rok wczytany z arkusza i reszta kontroli kategorii zostają przy `OperationCateg
 
 **Contract**:
 - `test_statement_across_the_year_turn_saves_december_and_names_the_draft_year_for_january` (zastępuje `_known_gap`): `assertInertia` na `budgetYearStates` (`2026` → `execution`, `2027` → `draft`) i `rows.*.valid === true`; zapis [0,1] → błąd `rows` z komunikatem szkicu dla `02.01.2027` i 2027, 0 operacji; zapis [0] → 1 operacja z 2026-12-29.
-- `test_import_preview_marks_a_year_without_a_budget_as_missing_and_store_names_it`: wiersz z roku bez Budżetu → `missing` w propie i komunikat „nie ma Budżetu” przy zapisie, 0 operacji.
+- `test_import_preview_marks_a_year_without_a_budget_as_missing_and_store_names_it`: wiersz z przeszłego roku bez Budżetu (np. 2025-12-30 przy Budżecie 2026) → `missing` w propie i komunikat „nie ma Budżetu” przy zapisie, 0 operacji.
 - `test_own_transfer_row_in_a_draft_year_is_imported`: przelew własny z datą 2027 przy szkicu 2027 zapisuje się (dziś sprawdzone tylko przez ręczne trasy, `YearTurnTest.php:232`).
 - `test_capital_movement_with_interest_in_a_draft_year_is_refused_as_a_whole`: ruch kapitału z wydzielonymi odsetkami w 2027 → komunikat szkicu, 0 operacji i 0 ruchów kapitału.
 
@@ -119,7 +125,7 @@ Rok wczytany z arkusza i reszta kontroli kategorii zostają przy `OperationCateg
 
 #### Automated Verification:
 
-- Testy Importu przechodzą na PostgreSQL (polecenie worktree z AGENTS.md, baza `testing_import_across_draft_year`): `tests/Feature/CsvImportTest.php`, `tests/Feature/ImportIntegrityTest.php`, `tests/Feature/YearTurnTest.php`
+- Testy Importu przechodzą na PostgreSQL (polecenie worktree z AGENTS.md, baza `testing_import_across_draft_year`): `tests/Feature/CsvImportTest.php`, `tests/Feature/ImportIntegrityTest.php`, `tests/Feature/YearTurnTest.php`, `tests/Feature/SheetAccountTest.php`
 - W `tests/` nie ma już nazwy `test_statement_across_the_year_turn_is_refused_as_a_whole_while_the_new_year_is_a_draft_known_gap`
 - `vendor/bin/pint --dirty --format agent` bez zmian po formatowaniu
 - `npm run build` i `npm run types:check` przechodzą
@@ -149,9 +155,9 @@ Czyste funkcje w `lib/import-*` mówią, czy wiersz pokazuje notatkę roku i czy
 
 #### 2. Nowy powód blokady
 
-**File**: `resources/js/lib/import-submit-block.ts`, `resources/js/lib/import-submit-block.test.ts`
+**File**: `resources/js/lib/import-submit-block.ts`, `resources/js/lib/import-submit-block.test.ts`, `resources/js/pages/OperationsImportPreview.vue` (wywołanie w `blockReason`, `:124-129`)
 
-**Intent**: Zaznaczone wiersze z roku bez realizacji blokują zapis własnym powodem, sprawdzanym po „nic nie zaznaczono”, a przed „niekompletnymi” i duplikatami.
+**Intent**: Zaznaczone wiersze z roku bez realizacji blokują zapis własnym powodem, sprawdzanym po „nic nie zaznaczono”, a przed „niekompletnymi” i duplikatami. Nowy parametr jest wymagany, więc w tej samej fazie strona przekazuje `props.budgetYearStates` (prop istnieje od fazy 1), a istniejące wywołania w `import-submit-block.test.ts` (`:38`, `:51`, `:67`, `:83`, `:86`, `:93`) dostają mapę; inaczej `types:check` (tsconfig obejmuje testy) pada do fazy 3.
 
 **Contract**: `importSubmitBlockReason(rows, selections, termDeposits, duplicateAcknowledged, budgetYearStates)`; nowy wariant unii `{ key: 'import_block_budget_year_not_in_execution'; count: number; years: number[] }` (lata rosnąco, bez powtórzeń).
 
@@ -177,11 +183,11 @@ Wiersz pokazuje notatkę z odnośnikiem, pasek zapisu pokazuje nowy powód, a `/
 
 #### 1. Notatka w wierszu
 
-**File**: `resources/js/components/ImportPreviewRow.vue`, `resources/js/lib/import-preview-rows.ts` (`ImportRowNoteKind`), `resources/js/pages/OperationsImportPreview.vue`
+**File**: `resources/js/components/ImportPreviewRow.vue`, `resources/js/lib/import-preview-rows.ts` (`ImportRowNoteKind`), `resources/js/lib/import-preview-rows.test.ts` (lista `kinds`, `:12-19`), `resources/js/pages/OperationsImportPreview.vue`, `resources/js/pages/dev/ImportPreviewSink.vue` (jawne props `ImportPreviewRow`, `:331`)
 
-**Intent**: Strona podaje `budgetYearStates` do wiersza, wiersz pokazuje `rowBudgetYearNotice` jako `<Alert variant="note">` w bloku notatek, z odnośnikiem: szkic → `Link` POST na `BudgetController.selectYear` z `year`; brak Budżetu → `Link` GET na `budget`. Placeholder wyboru kategorii zostaje jak dziś.
+**Intent**: Strona podaje `budgetYearStates` do wiersza, wiersz pokazuje `rowBudgetYearNotice` jako `<Alert variant="note">` w bloku notatek, z akcją: szkic → `Link` POST na `BudgetController.selectYear` z `year`, z `pending`, `@error` i `listenForBudgetYearSelectionFailure`; brak Budżetu → `<Button type="button">`, który woła `useCreateBudgetDialog().openForYear(year)`. Placeholder wyboru kategorii zostaje jak dziś.
 
-**Contract**: nowy `ImportRowNoteKind` `'budgetYear'` i flaga w `importRowHasNotes`; nowy prop wiersza `budgetYearStates`. Odnośnik jest `Link`, nie `<form>` (patrz Critical Implementation Details).
+**Contract**: nowy `ImportRowNoteKind` `'budgetYear'` i flaga w `importRowHasNotes` (oraz w liście `kinds` testu); nowy prop wiersza `budgetYearStates`, przekazany też w `ImportPreviewSink.vue:331`. Odnośnik jest `Link`, nie `<form>`, a plik spełnia strażnika `ui-contract.test.ts:589-615` (patrz Critical Implementation Details).
 
 #### 2. Teksty
 
@@ -193,18 +199,18 @@ Wiersz pokazuje notatkę z odnośnikiem, pasek zapisu pokazuje nowy powód, a `/
 - `import_budget_year_draft_note` => 'Budżet :year jest szkicem. Dochód, wydatek i zwrot z :year zaimportujesz po rozpoczęciu jego realizacji.'
 - `import_budget_year_missing_note` => 'Nie ma Budżetu :year. Dochód, wydatek i zwrot z :year zaimportujesz po utworzeniu Budżetu i rozpoczęciu jego realizacji.'
 - `import_budget_year_draft_link` => 'Przejdź do Budżetu :year'
-- `import_budget_year_missing_link` => 'Przejdź do Budżetu'
+- `import_budget_year_missing_action` => 'Utwórz Budżet :year'
 - `import_block_budget_year_not_in_execution` => 'Zaznaczone wiersze z :years wymagają Budżetu w realizacji (:count). Odznacz je albo rozpocznij realizację Budżetu.'
 
-Lata w `:years` łączone przecinkiem (`2025, 2027`).
+Lata w `:years` łączone przecinkiem (`2025, 2027`). `UiTranslationKeysTest` widzi tylko literalne `t.group.key`, a nie `t.operations[reason.key]`, więc `tests/Unit/ImportPreviewHardcodedUiTest.php` dostaje przypadek: każdy `key: 'import_block_…'` z `resources/js/lib/import-submit-block.ts` istnieje w `lang/pl/ui.php` → `operations`.
 
 #### 3. Kitchen sink i fixtures
 
 **File**: `resources/js/lib/import-preview-fixtures.ts`, `resources/js/pages/dev/ImportPreviewSink.vue`
 
-**Intent**: Nowe stany widać w kitchen sinku (`.ai/rules/js-import.md`): wiersze 2026-12-29 (realizacja), 2027-01-02 jako wydatek i jako przelew własny (szkic), 2028-01-03 (brak Budżetu), scenariusz paska zapisu zablokowanego nowym powodem; wpis w `stateMatrix`, gdzie te stany są widoczne.
+**Intent**: Nowe stany widać w kitchen sinku (`.ai/rules/js-import.md`): wiersze 2025-12-30 (brak Budżetu), 2026-12-29 (realizacja), 2027-01-02 jako wydatek i jako przelew własny (szkic), scenariusz paska zapisu zablokowanego nowym powodem; wpis w `stateMatrix`, gdzie te stany są widoczne. Sink dostaje stan roku przez prop strony, nie przez shell (Key Discoveries).
 
-**Contract**: fixture `importPreviewBudgetYearStates` (`2026` execution, `2027` draft, `2028` missing) i scenariusz `year-turn-draft` obok istniejących (`ImportPreviewSink.vue:248-294`).
+**Contract**: fixture `importPreviewBudgetYearStates` (`2025` missing, `2026` execution, `2027` draft) i scenariusz `year-turn-draft` obok istniejących (`ImportPreviewSink.vue:248-294`).
 
 ### Success Criteria:
 
@@ -220,6 +226,7 @@ Lata w `:years` łączone przecinkiem (`2025, 2027`).
 - `/dev/import-preview`: notatka szkicu i braku Budżetu oraz nowy powód blokady wyglądają zgodnie z Atramentem w jasnym i ciemnym motywie, na szerokości telefonu i od `xl`
 - Podgląd worktree (`context/foundation/agents/worktree-preview.md`), konto z 2026 w realizacji i 2027 w szkicu, plik 29.12–02.01: wiersze stycznia mają notatkę; zaznaczony wydatek ze stycznia blokuje przycisk nowym powodem; zaznaczony przelew własny ze stycznia nie blokuje
 - „Przejdź do Budżetu 2027” otwiera stronę Budżetu z rokiem 2027 i nie wysyła Importu
+- Wiersz z 2025 bez Budżetu: „Utwórz Budżet 2025” otwiera dialog tworzenia z rokiem 2025 i nie wysyła Importu
 - Po odznaczeniu stycznia zapisują się operacje grudnia; po starcie 2027 ponowne wgranie pliku pokazuje grudzień jako duplikaty, a styczeń z kategoriami i zapisuje się
 
 ---
@@ -269,11 +276,11 @@ Brak migracji i zmian danych. Podgląd zapisany w sesji przed wdrożeniem dalej 
 
 #### Automated
 
-- [ ] 1.1 Testy Importu przechodzą na PostgreSQL (CsvImportTest, ImportIntegrityTest, YearTurnTest)
-- [ ] 1.2 W tests/ nie ma już nazwy testu _known_gap Importu
-- [ ] 1.3 Pint bez zmian po formatowaniu
-- [ ] 1.4 npm run build i npm run types:check przechodzą
-- [ ] 1.5 vendor/bin/sloppy ci bez nowych znalezisk
+- [x] 1.1 Testy Importu przechodzą na PostgreSQL (CsvImportTest, ImportIntegrityTest, YearTurnTest, SheetAccountTest)
+- [x] 1.2 W tests/ nie ma już nazwy testu _known_gap Importu
+- [x] 1.3 Pint bez zmian po formatowaniu
+- [x] 1.4 npm run build i npm run types:check przechodzą
+- [x] 1.5 vendor/bin/sloppy ci bez nowych znalezisk
 
 ### Phase 2: Klient — logika blokady zależna od typu
 
@@ -297,4 +304,5 @@ Brak migracji i zmian danych. Podgląd zapisany w sesji przed wdrożeniem dalej 
 - [ ] 3.5 Kitchen sink: notatki i powód blokady zgodne z Atramentem w obu motywach i szerokościach
 - [ ] 3.6 Podgląd worktree: notatki stycznia, blokada wydatku, przelew własny nie blokuje
 - [ ] 3.7 Odnośnik do Budżetu 2027 otwiera Budżet i nie wysyła Importu
-- [ ] 3.8 Grudzień zapisuje się po odznaczeniu stycznia; po starcie 2027 styczeń importuje się ponownym wgraniem
+- [ ] 3.8 Przycisk „Utwórz Budżet 2025” otwiera dialog z rokiem 2025 i nie wysyła Importu
+- [ ] 3.9 Grudzień zapisuje się po odznaczeniu stycznia; po starcie 2027 styczeń importuje się ponownym wgraniem

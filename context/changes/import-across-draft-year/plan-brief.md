@@ -12,7 +12,7 @@ Serwer nie sprawdza fazy roku w podglądzie, więc oba wiersze są „poprawne�
 
 ## Desired End State
 
-Wiersz stycznia pokazuje notatkę „Budżet 2027 jest szkicem. Dochód, wydatek i zwrot z 2027 zaimportujesz po rozpoczęciu jego realizacji.” z odnośnikiem „Przejdź do Budżetu 2027”. Zaznaczony wydatek, dochód, zwrot albo ruch kapitału z odsetkami ze stycznia blokuje „Zatwierdź import” powodem z liczbą wierszy i rokiem; zaznaczony przelew własny nie blokuje. Po odznaczeniu stycznia zapisuje się grudzień, a po starcie 2027 styczeń wchodzi ponownym wgraniem pliku. Rok bez Budżetu ma wariant „Nie ma Budżetu 2028 …”. Serwer przy obejściu klienta dalej wycofuje całość, ale komunikat podaje datę wiersza i rok.
+Wiersz stycznia pokazuje notatkę „Budżet 2027 jest szkicem. Dochód, wydatek i zwrot z 2027 zaimportujesz po rozpoczęciu jego realizacji.” z odnośnikiem „Przejdź do Budżetu 2027”. Zaznaczony wydatek, dochód, zwrot albo ruch kapitału z odsetkami ze stycznia blokuje „Zatwierdź import” powodem z liczbą wierszy i rokiem; zaznaczony przelew własny nie blokuje. Po odznaczeniu stycznia zapisuje się grudzień, a po starcie 2027 styczeń wchodzi ponownym wgraniem pliku. Rok bez Budżetu (zawsze bieżący albo przeszły, np. 2025) ma wariant „Nie ma Budżetu 2025 …” z przyciskiem „Utwórz Budżet 2025”, który otwiera dialog tworzenia Budżetu. Serwer przy obejściu klienta dalej wycofuje całość, ale komunikat podaje datę wiersza i rok.
 
 ## Key Decisions Made
 
@@ -22,7 +22,7 @@ Wiersz stycznia pokazuje notatkę „Budżet 2027 jest szkicem. Dochód, wydatek
 | Co blokuje | Tylko dochód, wydatek, zwrot i odsetki z ruchu kapitału | Przelew własny i ruch kapitału są w roku-szkicu przyjmowane, a typ wybiera użytkownik w podglądzie | Plan (badanie kodu) |
 | Wiersz roku bez realizacji | Notatka i powód blokady, nie nowy `ImportRowInvalidReason` | Wiersz niepoprawny zablokowałby też przelew własny | Plan |
 | Zakres | Szkic i rok bez Budżetu | Ten sam mechanizm i prop obejmują oba przypadki z testów (`CsvImportTest`, `ImportIntegrityTest`) | Plan (pytanie 2) |
-| Akcja w notatce | Odnośnik do Budżetu roku, start realizacji zostaje na stronie Budżetu | Nieodwracalny start przy widoku planu i listy kontrolnej, nie z ekranu Importu | Plan (pytanie 3) |
+| Akcja w notatce | Szkic: odnośnik do Budżetu roku; brak Budżetu: dialog tworzenia z tym rokiem; start realizacji zostaje na stronie Budżetu | Nieodwracalny start przy widoku planu i listy kontrolnej, nie z ekranu Importu | Plan (pytanie 3) |
 | Komunikat serwera | Import-specyficzny, z datą wiersza i rokiem; ręczny wpis bez zmian | Fallback przy obejściu klienta mówi, który wiersz i co zrobić | Plan |
 | Testy | Feature na PostgreSQL, Vitest test-first, bez E2E | E2E w CI to dopiero S-44 | Plan |
 
@@ -58,7 +58,8 @@ Wiersz stycznia pokazuje notatkę „Budżet 2027 jest szkicem. Dochód, wydatek
 
 ## Open Risks & Assumptions
 
-- Zakładam, że rok wczytany z arkusza ma Budżet w realizacji i dalej odmawia przez `OperationCategoryChoice`; plan go nie dotyka.
+- Potwierdzone w przeglądzie planu: rok wczytany z arkusza zawsze ma Budżet w realizacji (`LoadBudgetSheet.php:58-61`) i dalej odmawia przez `OperationCategoryChoice`; pilnuje tego `SheetAccountTest`.
+- Odnośnik „Przejdź do Budżetu :year” musi spełnić strażnika `ui-contract.test.ts` (`@error` i `listenForBudgetYearSelectionFailure`).
 - Po zapisie grudnia styczeń wymaga ponownego wgrania pliku (podgląd znika z sesji po sukcesie). To świadomy koszt odnośnika zamiast startu w podglądzie.
 - Roadmapa M-5 jest tylko w niezacommitowanym `roadmap.md` głównego checkoutu; status S-42 aktualizuje się tam, nie w tej gałęzi.
 

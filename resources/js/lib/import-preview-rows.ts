@@ -9,6 +9,13 @@ import {
     type PairRowSelection,
 } from './import-pair-selection';
 
+export type ImportBudgetYearState = 'execution' | 'draft' | 'missing';
+
+/** Keyed by year; PHP encodes an empty map as `[]`, so a missing key means no note. */
+export type ImportBudgetYearStates = Partial<
+    Record<string, ImportBudgetYearState>
+>;
+
 export type ImportRow = {
     index: number;
     operation_date: string | null;

@@ -37,6 +37,7 @@ import {
     emptySelection,
     initialSelection,
     type CategoryRow,
+    type ImportBudgetYearStates,
     type ImportRow,
     type RowSelection,
     type TermDepositRow,
@@ -54,6 +55,7 @@ const {
     expenseCategories,
     otherAccounts,
     termDeposits,
+    budgetYearStates,
     monthRemainingContext,
     entryToSpend,
 } = defineProps<{
@@ -63,6 +65,7 @@ const {
     expenseCategories: CategoryRow[];
     otherAccounts: OtherAccountRow[];
     termDeposits: TermDepositRow[];
+    budgetYearStates: ImportBudgetYearStates;
     monthRemainingContext: MonthRemainingContext;
     entryToSpend: EntryToSpendInputs;
 }>();

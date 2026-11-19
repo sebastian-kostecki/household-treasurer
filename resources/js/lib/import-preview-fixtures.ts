@@ -13,6 +13,7 @@ import type { Rhythm } from '../types/rhythm';
 import {
     emptySelection,
     type CategoryRow,
+    type ImportBudgetYearStates,
     type ImportRow,
     type RowSelection,
     type TermDepositRow,
@@ -167,6 +168,8 @@ export const importPreviewRows: ImportRow[] = [
     ownTransferPairNoLogoRow,
     refundRow,
 ];
+
+export const importPreviewBudgetYearStates: ImportBudgetYearStates = {};
 
 export const importPreviewMonthRemainingContext: MonthRemainingContext = {
     today: '2026-10-20',
