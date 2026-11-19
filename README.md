@@ -139,6 +139,13 @@ CI uruchamia dodatkowo [Sloppy](https://github.com/heyosseus/sloppy) (`vendor/bi
 
 Własny Docker Compose na VPS (aplikacja + PostgreSQL + Traefik jako reverse proxy + worker kolejki). Backupy instancji: Spatie Laravel Backup. Nie używaj obrazu Sail na produkcji. Zobacz [`context/foundation/tech-stack.md`](context/foundation/tech-stack.md).
 
+### Sygnały kopii i `/up`
+
+- Co poniedziałek po 04:00 na `BACKUP_NOTIFICATION_MAIL` przychodzi mail „healthy backup”. **Brak tego maila to alarm**: harmonogram stoi, poczta nie działa albo kopie nie powstają. Błąd kopii, czyszczenia lub monitora przychodzi jak dotąd od razu, a dodatkowo mail z wyjściem komendy przy niezerowym kodzie wyjścia.
+- Kopie, czyszczenie i monitor biegną także w trybie serwisowym (nieudane wdrożenie zostaje w nim celowo). Wyjście ostatniego uruchomienia leży w `storage/logs/schedule-backup-{run,clean,monitor}.log`.
+- `/up` sprawdza bazę (`select 1`) i zwraca 500 w trybie serwisowym. Po wdrożeniu „up” znaczy więc, że aplikacja wyszła z trybu serwisowego i widzi bazę.
+- `user:backup` kończy się błędem, gdy pliku snapshotu nie da się zapisać, zamiast podawać ścieżkę pliku, którego nie ma.
+
 ### Wdrożenie i przywracanie
 
 Decyzja: [ADR-0064](context/foundation/adr/0064-instance-backup-before-every-production-migration.md) (uzupełnia ADR-0013).

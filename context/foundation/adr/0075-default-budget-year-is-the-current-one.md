@@ -2,6 +2,8 @@
 
 When the session holds no Budget year, the app opened the oldest Budget. With one year that was harmless; with two (S-29 puts a second year on the dev database) it opens the past while the User lives in the present. This ADR fixes which year opens without a choice, for Budget, Month Plan, Reports, the shell and the command palette, all of which read `SelectedBudgetYear`.
 
+Superseded in part by ADR-0103: „today” is the App Day (the date in Europe/Warsaw), not the date in UTC („„Today” is in UTC, like `ReportController`”); the rest stands.
+
 Order. The year in the session, if the User has a Budget for it (unchanged). Otherwise the current calendar year, if it has a Budget. Otherwise the newest year not later than the current one. Otherwise the oldest year. „Today” is in UTC, like `ReportController` (`CarbonImmutable::today('UTC')`).
 
 Examples. `[2025, 2026]` in 2026 opens 2026. `[2026, 2027 in preparation]` in December 2026 opens 2026. `[2025, 2026]` in January 2027 opens 2026. `[2027, 2028]` in 2026 opens 2027.
