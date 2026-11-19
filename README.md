@@ -289,11 +289,11 @@ Archiwa sprzed ADR-0064 zawierają `OWNER TO treasurer`: do wczytania lokalnie n
 
 #### Przełom roku
 
-Procedura N→N+1 (np. 2026→2027). Serwer działa w UTC, więc rok zmienia się o 01:00 czasu warszawskiego (godziny UTC / PL niżej).
+Procedura N→N+1 (np. 2026→2027). Rok zmienia się o 00:00 czasu polskiego (ADR-0103); znaczniki czasu w bazie zostają w UTC.
 
 **Kolejność:**
 
-1. Do 31 grudnia N: zatwierdź plan grudnia N. Twardy termin to 31.12 23:59:59 UTC, czyli 1.01 00:59:59 czasu warszawskiego. Po nim niezatwierdzony grudzień jest „miniony bez zatwierdzonego planu”: nie ma propozycji i nie da się go zatwierdzić.
+1. Do 31 grudnia N: zatwierdź plan grudnia N. Twardy termin to 31.12 23:59:59 czasu polskiego. Po nim niezatwierdzony grudzień jest „miniony bez zatwierdzonego planu”: nie ma propozycji i nie da się go zatwierdzić.
 2. 30–31 grudnia, po kroku 1: uruchom wykonanie Budżetu N+1 („Rozpocznij realizację” na ekranie Budżet; operacji nie można cofnąć). Dashboard i Raporty „Lata” nadal czytają rok N do północy.
 3. Od 1 stycznia: zaimportuj grudzień do końca (i styczeń). Wpis ręczny i Import odrzucają dochód, wydatek i zwrot z datą w roku N+1, dopóki jego Budżet nie jest w wykonaniu; przelew własny i ruch kapitału bez odsetek przechodzą.
 4. Zatwierdź plan stycznia: Propozycja kopiuje z grudnia kwoty pozycji bez rytmu, bieżących i opłat stałych, a dla równomiernych rocznych i Nieregularnych bierze roczny udział planu N+1.
@@ -305,7 +305,7 @@ Procedura N→N+1 (np. 2026→2027). Serwer działa w UTC, więc rok zmienia si�
 - zapomniany grudzień: stycznia nie da się już skopiować z grudnia, Propozycja bierze roczny udział planu, a kwoty poprawiasz ręcznie przed zatwierdzeniem;
 - zapomniany start: uruchom N+1 w dowolnej chwili. Dashboard do tego czasu pokazuje kartę „Budżet jest w szkicu”, a podgląd Importu pokazuje przy wierszach N+1 notatkę „Budżet N+1 jest szkicem” z odnośnikiem do Budżetu, a zaznaczony dochód, wydatek albo zwrot z N+1 blokuje „Zatwierdź import” osobnym powodem. Odznacz te wiersze, żeby zapisać grudzień (ADR-0106). Po starcie Zebrane i Propozycje uzupełniają się same. Potem wgraj plik ponownie: grudzień wróci jako duplikaty (niezaznaczone), a styczeń dostanie kategorie.
 
-**00:00–01:00 PL 1 stycznia:** menu roku i domyślne daty dialogów (czas przeglądarki) mówią już N+1, a serwer jeszcze N. W tej godzinie nie rób zatwierdzeń ani Importu, bo daty z dialogu mogą nie zgadzać się z serwerem. Rok wybrany w sesji (2026) zostaje po przełomie: przełącz go ręcznie w menu na N+1.
+Rok wybrany w sesji (2026) zostaje po przełomie: przełącz go ręcznie w menu na N+1.
 
 **Co sprawdzić 1–2 stycznia:**
 
@@ -315,7 +315,7 @@ Procedura N→N+1 (np. 2026→2027). Serwer działa w UTC, więc rok zmienia si�
 - Raport „Lata”: każdy rok liczony „do 1.01”, więc 1 stycznia porównuje tylko jeden dzień poprzednich lat (to zwykły skutek, nie błąd danych);
 - Import grudnia: operacje zapisują się w pozycjach Budżetu N, a styczniowe w Budżecie N+1.
 
-**Próba przed przełomem:** `docker compose exec -u sail laravel.test php artisan app:rehearsal-clock "2026-12-30 10:00"` ustawia „dziś” aplikacji (tylko `APP_ENV=local`, format `RRRR-MM-DD GG:MM` w UTC); `--off` wyłącza. Komenda odmawia momentu starszego niż czas sesji (120 min), bo przeglądarka odrzuciłaby ciasteczka jako wygasłe. Póki zegar stoi, nieudane logowania się nie przedawniają (limit 5 na minutę). Zegar przeglądarki ustaw osobno (`playwright-cli run-code "async page => await page.clock.setFixedTime(new Date('2026-12-30T10:00:00Z'))"`). Kopię danych weź jako snapshot użytkownika: `scripts/artisan.sh user:backup <id>` na VPS, odczyt przez `ssh … 'docker compose … exec -T app cat <plik>'`, potem `user:create`, `user:restore` i kroki jak w „Próba lokalna”. Każdy skok zegara o ponad 2 godziny do przodu wylogowuje, więc zaloguj się ponownie.
+**Próba przed przełomem:** `docker compose exec -u sail laravel.test php artisan app:rehearsal-clock "2026-12-30 10:00"` ustawia „dziś” aplikacji (tylko `APP_ENV=local`, format `RRRR-MM-DD GG:MM` w UTC; dzień aplikacji wynika z tej chwili w czasie polskim); `--off` wyłącza. Komenda odmawia momentu starszego niż czas sesji (120 min), bo przeglądarka odrzuciłaby ciasteczka jako wygasłe. Póki zegar stoi, nieudane logowania się nie przedawniają (limit 5 na minutę). Przeglądarka bierze dzień z `shell.today`, więc osobnego zegara nie ustawiasz. Kopię danych weź jako snapshot użytkownika: `scripts/artisan.sh user:backup <id>` na VPS, odczyt przez `ssh … 'docker compose … exec -T app cat <plik>'`, potem `user:create`, `user:restore` i kroki jak w „Próba lokalna”. Każdy skok zegara o ponad 2 godziny do przodu wylogowuje, więc zaloguj się ponownie.
 
 #### Liczby kontrolne
 

@@ -455,12 +455,12 @@ Bez migracji. Istniejące `archived_at` Kategorii z pierwszej godziny po półno
 
 #### Automated
 
-- [ ] 3.1 AppShellTest przechodzi na PostgreSQL
-- [ ] 3.2 Vitest przechodzi
-- [ ] 3.3 Strażnik JS przechodzi, a celowe zepsucie go czerwieni
-- [ ] 3.4 Brak `new Date()` i `Date.now()` w `resources/js` poza testami
-- [ ] 3.5 build, types:check i check:ui przechodzą
-- [ ] 3.6 Pełny gate przechodzi (ci:check, Sloppy, Pint)
+- [x] 3.1 AppShellTest przechodzi na PostgreSQL — fbefca2
+- [x] 3.2 Vitest przechodzi — fbefca2
+- [x] 3.3 Strażnik JS przechodzi, a celowe zepsucie go czerwieni — fbefca2
+- [x] 3.4 Brak `new Date()` i `Date.now()` w `resources/js` poza testami — fbefca2
+- [x] 3.5 build, types:check i check:ui przechodzą — fbefca2
+- [x] 3.6 Pełny gate przechodzi (ci:check, Sloppy, Pint) — fbefca2
 
 #### Manual
 
