@@ -538,8 +538,8 @@ MCP requests share the four FPM workers with the web UI. Tools return bounded re
 
 #### Automated
 
-- [x] 6.1 MCP and RecordCashOperation tests pass on SQLite and PostgreSQL
-- [x] 6.2 Full gate on PostgreSQL and sloppy ci pass
+- [x] 6.1 MCP and RecordCashOperation tests pass on SQLite and PostgreSQL — a0a44200
+- [x] 6.2 Full gate on PostgreSQL and sloppy ci pass — a0a44200
 
 #### Manual
 
