@@ -28,6 +28,11 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'mcp' => [
+        // E-mail or id of the user the local stdio MCP server acts for (local environment only).
+        'local_user' => env('MCP_LOCAL_USER'),
+    ],
+
     'slack' => [
         'notifications' => [
             'bot_user_oauth_token' => env('SLACK_BOT_USER_OAUTH_TOKEN'),
