@@ -85,6 +85,59 @@ class ProductionImagesScriptTest extends TestCase
         $this->assertSame([], $removed);
     }
 
+    public function test_a_migration_only_in_the_database_is_unknown_and_not_pending(): void
+    {
+        $database = ['2026_01_01_000000_a', '2026_02_01_000000_b'];
+        $image = ['2026_01_01_000000_a.php'];
+
+        $this->assertSame(['2026_02_01_000000_b'], $this->migrationDiff('production_unknown_migrations', $database, $image));
+        $this->assertSame([], $this->migrationDiff('production_pending_migrations', $database, $image));
+    }
+
+    public function test_a_migration_only_in_the_image_is_pending_and_not_unknown(): void
+    {
+        $database = ['2026_01_01_000000_a'];
+        $image = ['2026_01_01_000000_a.php', '2026_02_01_000000_b.php'];
+
+        $this->assertSame([], $this->migrationDiff('production_unknown_migrations', $database, $image));
+        $this->assertSame(['2026_02_01_000000_b'], $this->migrationDiff('production_pending_migrations', $database, $image));
+    }
+
+    public function test_equal_migration_lists_with_php_suffixes_on_the_image_side_differ_in_nothing(): void
+    {
+        $database = ['2026_01_01_000000_a', '2026_02_01_000000_b'];
+        $image = ['2026_02_01_000000_b.php', '', '2026_01_01_000000_a.php'];
+
+        $this->assertSame([], $this->migrationDiff('production_unknown_migrations', $database, $image));
+        $this->assertSame([], $this->migrationDiff('production_pending_migrations', $database, $image));
+    }
+
+    /**
+     * @param  list<string>  $database
+     * @param  list<string>  $image
+     * @return list<string>
+     */
+    private function migrationDiff(string $function, array $database, array $image): array
+    {
+        $databaseFile = tempnam(sys_get_temp_dir(), 'migrations-db-');
+        $imageFile = tempnam(sys_get_temp_dir(), 'migrations-image-');
+        file_put_contents($databaseFile, implode("\n", $database)."\n");
+        file_put_contents($imageFile, implode("\n", $image)."\n");
+
+        try {
+            $result = Process::path(base_path())->run([
+                'bash', '-c', 'source scripts/lib/production-images.sh; '.$function.' "$1" "$2"', 'bash', $databaseFile, $imageFile,
+            ]);
+        } finally {
+            unlink($databaseFile);
+            unlink($imageFile);
+        }
+
+        $this->assertTrue($result->successful(), $result->errorOutput());
+
+        return array_values(array_filter(explode("\n", $result->output()), fn (string $line): bool => $line !== ''));
+    }
+
     /**
      * @param  list<string>  $protectedIds
      * @param  list<array{string, string, string}>  $rows

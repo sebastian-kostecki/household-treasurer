@@ -99,3 +99,43 @@ production_remove_old_image_tags() {
 
     docker image prune -f --filter label=maintainer=household-treasurer
 }
+
+# Pure. Usage: production_unknown_migrations <db-list-file> <image-list-file>
+# Migration names present in the database list but absent from the image list, sorted,
+# one per line. Image list lines may carry a `.php` suffix; empty lines are skipped.
+production_unknown_migrations() {
+    local db_list="$1" image_list="$2"
+
+    LC_ALL=C comm -23 \
+        <(sed '/^[[:space:]]*$/d' "${db_list}" | LC_ALL=C sort -u) \
+        <(sed -e '/^[[:space:]]*$/d' -e 's/\.php$//' "${image_list}" | LC_ALL=C sort -u)
+}
+
+# Pure. Usage: production_pending_migrations <db-list-file> <image-list-file>
+# The reverse: migrations of the image (without `.php`) that the database has not run.
+production_pending_migrations() {
+    local db_list="$1" image_list="$2"
+
+    LC_ALL=C comm -13 \
+        <(sed '/^[[:space:]]*$/d' "${db_list}" | LC_ALL=C sort -u) \
+        <(sed -e '/^[[:space:]]*$/d' -e 's/\.php$//' "${image_list}" | LC_ALL=C sort -u)
+}
+
+# Names of the migrations the database has run, one per line. Empty when there is no
+# `migrations` table yet. A psql error fails the call (`sh -e`, ON_ERROR_STOP), so it
+# never reads as "no migrations". Runs `docker compose` through $COMPOSE.
+production_database_migrations() {
+    ${COMPOSE:?} exec -T pgsql sh -ec '
+        migrations_table="$(psql -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB" -At -c "SELECT to_regclass('"'"'public.migrations'"'"')")"
+        if [ -n "$migrations_table" ]; then
+            psql -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB" -At -c "SELECT migration FROM migrations ORDER BY migration"
+        fi
+    '
+}
+
+# File names of the migrations baked into the image <tag> (with the `.php` suffix).
+production_image_migrations() {
+    local tag="$1"
+
+    docker run --rm --entrypoint ls "${PRODUCTION_IMAGE_REPOSITORY}:${tag}" /var/www/html/database/migrations
+}

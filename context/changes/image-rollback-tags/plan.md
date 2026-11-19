@@ -278,10 +278,10 @@ Brak migracji bazy. Pierwsze wdrożenie po zmianie wymaga `git pull --ff-only or
 
 #### Automated
 
-- [x] 1.1 Testy funkcji przechodzą: `php artisan test --compact tests/Unit/ProductionImagesScriptTest.php`
-- [x] 1.2 Składnia skryptów poprawna: `bash -n scripts/deploy.sh scripts/lib/production-images.sh`
-- [x] 1.3 Istniejący test plików wdrożenia przechodzi: `php artisan test --compact tests/Unit/ProductionPostgresClientVersionTest.php`
-- [x] 1.4 Pint bez uwag: `vendor/bin/pint --dirty --format agent`
+- [x] 1.1 Testy funkcji przechodzą: `php artisan test --compact tests/Unit/ProductionImagesScriptTest.php` — 1c0d49c
+- [x] 1.2 Składnia skryptów poprawna: `bash -n scripts/deploy.sh scripts/lib/production-images.sh` — 1c0d49c
+- [x] 1.3 Istniejący test plików wdrożenia przechodzi: `php artisan test --compact tests/Unit/ProductionPostgresClientVersionTest.php` — 1c0d49c
+- [x] 1.4 Pint bez uwag: `vendor/bin/pint --dirty --format agent` — 1c0d49c
 
 #### Manual
 
@@ -291,9 +291,9 @@ Brak migracji bazy. Pierwsze wdrożenie po zmianie wymaga `git pull --ff-only or
 
 #### Automated
 
-- [ ] 2.1 Testy funkcji przechodzą (z przypadkami diffu migracji): `php artisan test --compact tests/Unit/ProductionImagesScriptTest.php`
-- [ ] 2.2 Składnia poprawna: `bash -n scripts/rollback.sh scripts/lib/production-images.sh`
-- [ ] 2.3 Skrypt ma bit wykonywalny w gicie: `git ls-files -s scripts/rollback.sh` pokazuje `100755`
+- [x] 2.1 Testy funkcji przechodzą (z przypadkami diffu migracji): `php artisan test --compact tests/Unit/ProductionImagesScriptTest.php`
+- [x] 2.2 Składnia poprawna: `bash -n scripts/rollback.sh scripts/lib/production-images.sh`
+- [x] 2.3 Skrypt ma bit wykonywalny w gicie: `git ls-files -s scripts/rollback.sh` pokazuje `100755`
 
 #### Manual
 
