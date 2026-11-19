@@ -201,11 +201,11 @@ Zmiana nie ma kodu, więc nie ma testów. Kontrole faz to `grep` na plikach doku
 
 #### Automated
 
-- [x] 1.1 Jest dokładnie jeden ADR 0103
-- [x] 1.2 Słownik ma wpis App Day
-- [x] 1.3 Słownik nie mówi już „(UTC)”
-- [x] 1.4 ADR-0103 nazywa każdy zastępowany ADR
-- [x] 1.5 Zmiana dotyka tylko dokumentów
+- [x] 1.1 Jest dokładnie jeden ADR 0103 — 64ea4cc
+- [x] 1.2 Słownik ma wpis App Day — 64ea4cc
+- [x] 1.3 Słownik nie mówi już „(UTC)” — 64ea4cc
+- [x] 1.4 ADR-0103 nazywa każdy zastępowany ADR — 64ea4cc
+- [x] 1.5 Zmiana dotyka tylko dokumentów — 64ea4cc
 
 #### Manual
 
@@ -215,10 +215,10 @@ Zmiana nie ma kodu, więc nie ma testów. Kontrole faz to `grep` na plikach doku
 
 #### Automated
 
-- [ ] 2.1 Dokładnie siedem ADR wskazuje na 0103
-- [ ] 2.2 Spis serwera aktualny
-- [ ] 2.3 Spis przeglądarki aktualny
-- [ ] 2.4 Zmiana dotyka tylko dokumentów
+- [x] 2.1 Dokładnie siedem ADR wskazuje na 0103
+- [x] 2.2 Spis serwera aktualny
+- [x] 2.3 Spis przeglądarki aktualny
+- [x] 2.4 Zmiana dotyka tylko dokumentów
 
 #### Manual
 
