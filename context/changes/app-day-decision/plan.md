@@ -215,10 +215,10 @@ Zmiana nie ma kodu, więc nie ma testów. Kontrole faz to `grep` na plikach doku
 
 #### Automated
 
-- [x] 2.1 Dokładnie siedem ADR wskazuje na 0103
-- [x] 2.2 Spis serwera aktualny
-- [x] 2.3 Spis przeglądarki aktualny
-- [x] 2.4 Zmiana dotyka tylko dokumentów
+- [x] 2.1 Dokładnie siedem ADR wskazuje na 0103 — 9b5c354
+- [x] 2.2 Spis serwera aktualny — 9b5c354
+- [x] 2.3 Spis przeglądarki aktualny — 9b5c354
+- [x] 2.4 Zmiana dotyka tylko dokumentów — 9b5c354
 
 #### Manual
 
