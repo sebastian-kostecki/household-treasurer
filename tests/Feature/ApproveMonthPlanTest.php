@@ -7,15 +7,19 @@ use App\Models\Budget;
 use App\Models\BudgetLine;
 use App\Models\Category;
 use App\Models\MonthPlan;
+use App\Models\MonthPlanItem;
 use App\Models\User;
 use App\Support\CategoryRhythms;
 use App\Support\IrregularCollected;
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Exceptions;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
+use RuntimeException;
 use Tests\TestCase;
 
 class ApproveMonthPlanTest extends TestCase
@@ -255,6 +259,24 @@ class ApproveMonthPlanTest extends TestCase
             45_000,
             IrregularCollected::forUser($user, $rhythms)->collectedAtStartOfMonth($service->category_id, 2026, 12),
         );
+    }
+
+    public function test_a_unique_violation_other_than_a_parallel_approval_is_reported_and_refused(): void
+    {
+        Exceptions::fake();
+        $budget = Budget::factory()->for(User::factory())->execution()->create(['year' => 2026]);
+        $food = BudgetLine::factory()->for($budget)->expense()->create(['planned_amount_minor_units' => 100_001]);
+        MonthPlanItem::creating(fn () => throw new UniqueConstraintViolationException(
+            'testing',
+            'insert into month_plan_items',
+            [],
+            new RuntimeException('duplicate key value violates unique constraint'),
+        ));
+
+        $this->assertItemsError(fn () => $this->approve($budget, 11, [$food->category_id => 9_000]));
+
+        Exceptions::assertReported(UniqueConstraintViolationException::class);
+        $this->assertDatabaseCount('month_plans', 0);
     }
 
     private function approve(Budget $budget, int $month, array $amounts, int $setAside = 0): MonthPlan

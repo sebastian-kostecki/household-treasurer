@@ -12,6 +12,7 @@ use App\Models\TermDeposit;
 use App\Models\User;
 use App\Support\UserSnapshot\BalanceReconciliationRows;
 use App\Support\UserSnapshot\LedgerRows;
+use App\Support\UserSnapshot\UserSnapshotException;
 use Illuminate\Support\Facades\Storage;
 
 class BackupUserData
@@ -31,14 +32,20 @@ class BackupUserData
 
         $filename = sprintf('%d-%s.json', $user->id, now()->format('YmdHis'));
 
-        Storage::disk('local')->makeDirectory(self::SNAPSHOT_DIRECTORY);
+        $disk = Storage::disk('local');
+        $relativePath = self::SNAPSHOT_DIRECTORY.'/'.$filename;
 
-        Storage::disk('local')->put(
-            self::SNAPSHOT_DIRECTORY.'/'.$filename,
-            json_encode($snapshot, JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR),
-        );
+        // The local disk does not throw (config/filesystems.php), so an unwritten snapshot must
+        // fail here: the deployment and the category merge rely on it as their safety copy.
+        if (! $disk->makeDirectory(self::SNAPSHOT_DIRECTORY)) {
+            throw new UserSnapshotException(sprintf('Could not create the snapshot directory [%s].', $disk->path(self::SNAPSHOT_DIRECTORY)));
+        }
 
-        return Storage::disk('local')->path(self::SNAPSHOT_DIRECTORY.'/'.$filename);
+        if (! $disk->put($relativePath, json_encode($snapshot, JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR))) {
+            throw new UserSnapshotException(sprintf('Could not write the snapshot file [%s].', $disk->path($relativePath)));
+        }
+
+        return $disk->path($relativePath);
     }
 
     /**

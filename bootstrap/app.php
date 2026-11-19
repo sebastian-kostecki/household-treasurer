@@ -34,26 +34,27 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withSchedule(function (Schedule $schedule): void {
-        $schedule->command('backup:run')
-            ->dailyAt('03:00')
-            ->timezone('Europe/Warsaw')
-            ->withoutOverlapping(120)
-            ->onOneServer()
-            ->environments(['production']);
+        // Backups run in maintenance mode too: a failed deployment stays down on purpose, and
+        // without this the nightly backup and its monitor would stop without a single mail.
+        // Each run overwrites its own output file and mails it on a non-zero exit, so a crash
+        // that skips the package's own failure mail (an Error, not an Exception) still arrives.
+        $backupCommands = [
+            'backup:run' => ['03:00', 120],
+            'backup:clean' => ['03:30', 60],
+            'backup:monitor' => ['04:00', 30],
+        ];
 
-        $schedule->command('backup:clean')
-            ->dailyAt('03:30')
-            ->timezone('Europe/Warsaw')
-            ->withoutOverlapping(60)
-            ->onOneServer()
-            ->environments(['production']);
-
-        $schedule->command('backup:monitor')
-            ->dailyAt('04:00')
-            ->timezone('Europe/Warsaw')
-            ->withoutOverlapping(30)
-            ->onOneServer()
-            ->environments(['production']);
+        foreach ($backupCommands as $command => [$time, $lockMinutes]) {
+            $schedule->command($command)
+                ->dailyAt($time)
+                ->timezone('Europe/Warsaw')
+                ->withoutOverlapping($lockMinutes)
+                ->onOneServer()
+                ->evenInMaintenanceMode()
+                ->environments(['production'])
+                ->sendOutputTo(storage_path('logs/schedule-'.str_replace(':', '-', $command).'.log'))
+                ->emailOutputOnFailure(config('backup.notifications.mail.to'));
+        }
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

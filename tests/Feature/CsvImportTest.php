@@ -17,6 +17,7 @@ use App\Models\OwnTransfer;
 use App\Models\TermDeposit;
 use App\Models\User;
 use App\Support\AccountIdentity;
+use App\Support\CsvImport\CsvImportParser;
 use App\Support\CsvImport\ImportIdentityDigest;
 use App\Support\CsvImport\ImportMonthRemainingContext;
 use App\Support\CsvImport\ImportRowFields;
@@ -25,7 +26,9 @@ use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Exceptions;
 use Inertia\Testing\AssertableInertia as Assert;
+use InvalidArgumentException;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Tests\TestCase;
@@ -2224,6 +2227,34 @@ CSV;
                 'amount_column' => 2,
             ])
             ->assertSessionHasErrors('file');
+    }
+
+    public function test_an_unexpected_parser_error_is_reported_instead_of_shown_as_a_file_error(): void
+    {
+        $this->travelTo('2025-01-10');
+        Exceptions::fake();
+
+        [$user, $account] = $this->createImportFixture([
+            'opening_date' => '2025-01-01',
+        ]);
+        $this->mock(CsvImportParser::class)
+            ->shouldReceive('parse')
+            ->andThrow(new InvalidArgumentException('Undefined offset in the column mapping.'));
+
+        $this->actingAs($user)
+            ->post(route('operations.import.preview.store'), [
+                'file' => UploadedFile::fake()->createWithContent('statement.csv', "Data,Opis,Kwota\n2025-01-09,Sklep,-10.00\n"),
+                'account_id' => $account->id,
+                'import_format' => 'other',
+                'has_header' => true,
+                'date_column' => 0,
+                'description_column' => 1,
+                'amount_layout' => 'signed',
+                'amount_column' => 2,
+            ])
+            ->assertInternalServerError();
+
+        Exceptions::assertReported(fn (InvalidArgumentException $exception): bool => $exception->getMessage() === 'Undefined offset in the column mapping.');
     }
 
     public function test_bnp_paribas_import_rejects_xlsx_without_expected_header(): void

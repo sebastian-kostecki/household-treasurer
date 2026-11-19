@@ -11,7 +11,7 @@ use App\Models\Category;
 use App\Models\FinancialOperation;
 use App\Models\User;
 use App\Support\BudgetLineResolver;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
+use App\Support\InvariantViolation;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -135,12 +135,7 @@ class ManageFinancialOperation
         array $validated,
     ): FinancialOperation {
         return DB::transaction(function () use ($user, $type, $validated): FinancialOperation {
-            $account = Account::query()
-                ->whereKey($validated['account_id'])
-                ->where('user_id', $user->id)
-                ->whereNull('archived_at')
-                ->lockForUpdate()
-                ->firstOrFail();
+            $account = $this->lockActiveAccount($user->id, $validated['account_id']);
 
             $category = $this->lockLine($user, $validated['category_id'], $validated['operation_date'], null);
 
@@ -186,12 +181,7 @@ class ManageFinancialOperation
 
             $this->revertEffect($operation);
 
-            $account = Account::query()
-                ->whereKey($validated['account_id'])
-                ->where('user_id', $operation->user_id)
-                ->whereNull('archived_at')
-                ->lockForUpdate()
-                ->firstOrFail();
+            $account = $this->lockActiveAccount($operation->user_id, $validated['account_id']);
 
             $category = $this->lockLine($operation->user, $validated['category_id'], $validated['operation_date'], $currentCategoryId);
 
@@ -226,23 +216,27 @@ class ManageFinancialOperation
             ->where('year', Carbon::parse($operationDate)->year)
             ->first();
 
+        $context = ['user_id' => $user->id, 'category_id' => $categoryId, 'operation_date' => $operationDate];
+
         if (! $budget instanceof Budget) {
-            throw (new ModelNotFoundException)->setModel(Budget::class);
+            throw new InvariantViolation('An operation passed validation for a year without a Budget.', $context);
         }
 
+        $context['budget_id'] = $budget->id;
         $line = $this->resolver->forBudget($budget, $categoryId);
 
         if ($line === null) {
             if ($budget->phase !== BudgetPhase::Execution) {
-                throw (new ModelNotFoundException)->setModel(BudgetLine::class, [$categoryId]);
+                throw new InvariantViolation('An operation passed validation for a Category without a line in a draft Budget.', $context);
             }
 
-            $category = Category::query()->where('user_id', $user->id)->findOrFail($categoryId);
+            $category = Category::query()->where('user_id', $user->id)->find($categoryId)
+                ?? throw new InvariantViolation('An operation passed validation for a Category the user does not have.', $context);
             $line = $this->joinBudgetAtFirstUse->handle($budget, $category);
         }
 
         if ($categoryId !== $currentCategoryId && ($line->isArchived() || $line->category->isArchived())) {
-            throw (new ModelNotFoundException)->setModel(BudgetLine::class, [$categoryId]);
+            throw new InvariantViolation('An operation passed validation for an archived Budget Line or Category.', $context + ['budget_line_id' => $line->id]);
         }
 
         return BudgetLine::query()
@@ -250,6 +244,20 @@ class ManageFinancialOperation
             ->whereKey($line->id)
             ->lockForUpdate()
             ->firstOrFail();
+    }
+
+    private function lockActiveAccount(int $userId, int $accountId): Account
+    {
+        return Account::query()
+            ->whereKey($accountId)
+            ->where('user_id', $userId)
+            ->whereNull('archived_at')
+            ->lockForUpdate()
+            ->first()
+            ?? throw new InvariantViolation('An operation passed validation for an Account that is not an active Account of the user.', [
+                'user_id' => $userId,
+                'account_id' => $accountId,
+            ]);
     }
 
     private function revertEffect(FinancialOperation $operation): void

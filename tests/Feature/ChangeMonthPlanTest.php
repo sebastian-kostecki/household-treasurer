@@ -12,13 +12,16 @@ use App\Models\MonthPlan;
 use App\Models\MonthPlanItem;
 use App\Models\User;
 use App\Support\CategoryRhythms;
+use App\Support\InvariantViolation;
 use App\Support\IrregularCollected;
 use App\Support\MonthPlanProposal;
 use Carbon\CarbonImmutable;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Exceptions;
 use Illuminate\Validation\ValidationException;
 use Inertia\Testing\AssertableInertia as Assert;
+use RuntimeException;
 use Tests\TestCase;
 
 class ChangeMonthPlanTest extends TestCase
@@ -327,6 +330,23 @@ class ChangeMonthPlanTest extends TestCase
     /**
      * @param  array<int, int>  $amounts
      */
+    public function test_a_unique_violation_while_changing_is_reported_and_changes_nothing(): void
+    {
+        Exceptions::fake();
+        $plan = $this->approvedPlan(6, [$this->food->id => 150_000]);
+        MonthPlanItem::updating(fn () => throw new UniqueConstraintViolationException(
+            'testing',
+            'update month_plan_items',
+            [],
+            new RuntimeException('duplicate key value violates unique constraint'),
+        ));
+
+        $this->assertItemsError(fn () => $this->change(6, [$this->food->category_id => 180_000]));
+
+        Exceptions::assertReported(UniqueConstraintViolationException::class);
+        $this->assertItem($plan, $this->food, 150_000, 150_000);
+    }
+
     private function approvedPlan(int $month, array $amounts): MonthPlan
     {
         $plan = MonthPlan::factory()->for($this->budget)->create(['month' => $month]);
@@ -410,7 +430,8 @@ class ChangeMonthPlanTest extends TestCase
         try {
             app(JoinBudgetAtFirstUse::class)->handleAmounts($budget, [$foreign->id => 8000]);
             $this->fail('Expected joining to refuse a Category of another user.');
-        } catch (ModelNotFoundException) {
+        } catch (InvariantViolation $exception) {
+            $this->assertSame(['budget_id' => $budget->id, 'category_ids' => [$foreign->id]], $exception->context());
             $this->assertDatabaseMissing('budget_lines', ['category_id' => $foreign->id]);
         }
     }
