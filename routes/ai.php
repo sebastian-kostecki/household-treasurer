@@ -5,6 +5,7 @@ use App\Mcp\Servers\LocalTreasurerServer;
 use App\Mcp\Servers\TreasurerServer;
 use Illuminate\Support\Facades\Route;
 use Laravel\Mcp\Facades\Mcp;
+use Laravel\Passport\Http\Middleware\CheckToken;
 
 /*
 |--------------------------------------------------------------------------
@@ -13,7 +14,9 @@ use Laravel\Mcp\Facades\Mcp;
 |
 | `php artisan mcp:start treasurer` serves the local stdio server. `/mcp` serves
 | `TreasurerServer` (never the local one) behind Passport OAuth: discovery and
-| client registration are limited to 10 requests a minute per IP.
+| client registration are limited to 10 requests a minute per IP. A token
+| without the `mcp:use` scope is refused with 403. `LogMcpCall` runs first,
+| so refused calls (401, 403, 429) are logged too.
 |
 */
 
@@ -22,4 +25,4 @@ Mcp::local('treasurer', LocalTreasurerServer::class);
 Route::middleware('throttle:10,1')->group(fn () => Mcp::oauthRoutes());
 
 Mcp::web('/mcp', TreasurerServer::class)
-    ->middleware(['auth:api', 'throttle:mcp', LogMcpCall::class]);
+    ->middleware([LogMcpCall::class, 'auth:api', CheckToken::using('mcp:use'), 'throttle:mcp']);

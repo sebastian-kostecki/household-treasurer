@@ -232,7 +232,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** Publiczny `/mcp` z OAuth to nowa powierzchnia ataku na produkcji (Cloudflare, klucze Passport w `.env.prod`); faza 1 dotyka `DashboardController` i `BudgetController`, które mogą zmieniać S-40 i S-41; narzędzie zapisu wdrażane osobno od zmian w `ManageFinancialOperation`.
-- **Status:** planning
+- **Status:** in-progress
 
 ### S-48: Testy na produkcji
 

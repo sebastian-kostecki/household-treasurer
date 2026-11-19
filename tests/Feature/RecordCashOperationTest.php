@@ -15,6 +15,7 @@ use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Validation\ValidationException;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\Feature\Mcp\Support\TreasurerFixture;
 use Tests\TestCase;
 
@@ -131,7 +132,7 @@ class RecordCashOperationTest extends TestCase
         $action = app(RecordCashOperation::class);
 
         $first = $action->handle($household['user'], $this->input($household));
-        $again = $action->handle($household['user'], $this->input($household, ['amount' => '99', 'description' => 'Inny opis']));
+        $again = $action->handle($household['user'], $this->input($household, ['amount' => '23.50', 'description' => 'Inny opis']));
 
         $this->assertTrue($again->replayed);
         $this->assertSame($first->operationId, $again->operationId);
@@ -144,6 +145,119 @@ class RecordCashOperationTest extends TestCase
         $this->assertSame(1, FinancialOperation::query()->where('description', 'Paliwo gotowka')->count());
         $this->assertSame(97_650, $household['cash']->fresh()->current_balance_minor_units);
         $this->assertSame(54_350, $household['lines']['fuel']->fresh()->execution_minor_units);
+    }
+
+    /**
+     * @return array<string, array{0: array<string, mixed>}>
+     */
+    public static function differentEntryUnderTheSameRequestId(): array
+    {
+        return [
+            'another amount' => [['amount' => '99']],
+            'an unparseable amount' => [['amount' => 'dwadzieścia']],
+            'another kind' => [['kind' => 'refund']],
+            'another category' => [['category_id' => 'food']],
+            'another date' => [['operation_date' => '2026-06-14']],
+        ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $overrides
+     */
+    #[DataProvider('differentEntryUnderTheSameRequestId')]
+    public function test_a_request_id_reused_for_a_different_entry_is_refused_and_writes_nothing(array $overrides): void
+    {
+        $household = $this->household();
+        $action = app(RecordCashOperation::class);
+        $action->handle($household['user'], $this->input($household));
+
+        if (($overrides['category_id'] ?? null) === 'food') {
+            $overrides['category_id'] = $household['lines']['food']->category_id;
+        }
+
+        try {
+            $action->handle($household['user'], $this->input($household, $overrides));
+            $this->fail('A request_id reused for a different entry must be refused.');
+        } catch (ValidationException $exception) {
+            $this->assertSame(['request_id'], array_keys($exception->errors()));
+            $this->assertStringContainsString('already used for a different operation', $exception->errors()['request_id'][0]);
+        }
+
+        $this->assertSame(1, FinancialOperation::query()->where('account_id', $household['cash']->id)->count());
+        $this->assertSame(1, McpOperationRequest::query()->count());
+        $this->assertSame(97_650, $household['cash']->fresh()->current_balance_minor_units);
+        $this->assertSame(54_350, $household['lines']['fuel']->fresh()->execution_minor_units);
+    }
+
+    public function test_an_identical_retry_with_the_given_account_and_date_is_a_replay(): void
+    {
+        $household = $this->household();
+        $action = app(RecordCashOperation::class);
+        $first = $action->handle($household['user'], $this->input($household));
+
+        $again = $action->handle($household['user'], $this->input($household, [
+            'account_id' => $household['cash']->id,
+            'operation_date' => '2026-06-15',
+            'amount' => '23,5',
+        ]));
+
+        $this->assertTrue($again->replayed);
+        $this->assertSame($first->operationId, $again->operationId);
+        $this->assertSame(97_650, $household['cash']->fresh()->current_balance_minor_units);
+    }
+
+    public function test_a_retry_after_midnight_without_a_date_is_still_a_replay(): void
+    {
+        $household = $this->household();
+        $this->travelTo('2026-12-31 22:59:59');
+        $action = app(RecordCashOperation::class);
+        $first = $action->handle($household['user'], $this->input($household));
+
+        $this->travelTo('2026-12-31 23:00:00');
+        $again = $action->handle($household['user'], $this->input($household));
+
+        $this->assertTrue($again->replayed);
+        $this->assertSame($first->operationId, $again->operationId);
+        $this->assertSame('2026-12-31', $again->operationDate);
+    }
+
+    /**
+     * @return array<string, array{0: string}>
+     */
+    public static function oversizedAmounts(): array
+    {
+        return [
+            'overflows an integer' => ['99999999999999999999'],
+            'eleven digits' => ['10000000000'],
+            'above one billion' => ['1 000 000 000,01'],
+        ];
+    }
+
+    #[DataProvider('oversizedAmounts')]
+    public function test_an_oversized_amount_is_a_validation_error_on_amount(string $amount): void
+    {
+        $household = $this->household();
+
+        try {
+            app(RecordCashOperation::class)->handle($household['user'], $this->input($household, ['amount' => $amount]));
+            $this->fail('An oversized amount must be refused.');
+        } catch (ValidationException $exception) {
+            $this->assertSame(['amount' => ['The amount must not exceed 1 000 000 000,00 zł.']], $exception->errors());
+        }
+
+        $this->assertSame(0, McpOperationRequest::query()->count());
+        $this->assertSame(100_000, $household['cash']->fresh()->current_balance_minor_units);
+    }
+
+    public function test_one_billion_is_still_accepted(): void
+    {
+        $household = $this->household();
+
+        $result = app(RecordCashOperation::class)->handle($household['user'], $this->input($household, [
+            'kind' => 'income', 'amount' => '1 000 000 000,00', 'category_id' => $household['lines']['salary']->category_id,
+        ]));
+
+        $this->assertSame(100_000_000_000, $result->amountMinorUnits);
     }
 
     public function test_a_replay_still_answers_after_the_category_was_archived(): void

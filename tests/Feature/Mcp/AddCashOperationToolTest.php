@@ -157,6 +157,9 @@ test('it refuses what the expense form refuses', function (string $case, string 
         case 'short request id':
             $arguments['request_id'] = 'short';
             break;
+        case 'oversized amount':
+            $arguments['amount'] = '99999999999999999999';
+            break;
     }
 
     TreasurerServer::actingAs($household['user'])->tool(AddCashOperationTool::class, $arguments)
@@ -179,7 +182,21 @@ test('it refuses what the expense form refuses', function (string $case, string 
     'negative amount' => ['negative amount', 'positive number with at most two decimals'],
     'three decimals' => ['three decimals', 'positive number with at most two decimals'],
     'short request id' => ['short request id', 'request id field must be at least 8 characters'],
+    'oversized amount' => ['oversized amount', 'The amount must not exceed 1 000 000 000,00 zł.'],
 ]);
+
+test('a request_id reused for a different entry is refused and records nothing new', function () {
+    $household = cashHousehold();
+
+    TreasurerServer::actingAs($household['user'])->tool(AddCashOperationTool::class, cashArguments($household))
+        ->assertStructuredContentPath('replayed', false);
+
+    TreasurerServer::actingAs($household['user'])->tool(AddCashOperationTool::class, cashArguments($household, ['amount' => '99']))
+        ->assertHasErrors(['already used for a different operation']);
+
+    expect(FinancialOperation::query()->where('description', 'Pieczywo')->count())->toBe(1)
+        ->and($household['cash']->fresh()->current_balance_minor_units)->toBe(97_650);
+});
 
 test('a bank account and a missing or doubled cash account are refused with a fix', function () {
     $household = cashHousehold();

@@ -27,5 +27,5 @@ ADR-0110: `laravel/mcp`, a local stdio server and a public `/mcp` endpoint behin
 ## Read and write
 
 - Read tools carry `#[IsReadOnly]`; results are bounded (operations at most 50 per call, one year or one month per call).
-- The write tool (cash operation) is registered only when `MCP_WRITE_ENABLED` is true, always asks the user for approval (`requiresUserInteraction`) and is idempotent by `request_id`.
-- Logs never carry arguments, amounts or descriptions (`LogMcpCall`: user id, JSON-RPC method, tool name, status, duration).
+- The write tool (cash operation) is registered only when `MCP_WRITE_ENABLED` is true, always asks the user for approval (`requiresUserInteraction`) and is idempotent by `request_id`; a used `request_id` with a different entry is refused.
+- Logs never carry arguments, amounts, descriptions or messages (`LogMcpCall`, first in the `/mcp` middleware so 401, 403 and 429 are logged too: user id, JSON-RPC method, tool name, status, duration, `tool_error` from `result.isError` and the JSON-RPC `error_code`).

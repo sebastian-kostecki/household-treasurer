@@ -336,7 +336,7 @@ The same expense and income validation callable from a FormRequest and from non-
 
 **Intent**: Rule bodies that take a user id instead of reading the request.
 
-**Contract**: `ExpenseValidationRules::expenseStoreRulesFor(?int $userId): array` and `IncomeValidationRules::incomeStoreRulesFor(?int $userId): array`; the existing protected `storeExpenseRules()`/`storeIncomeRules()` delegate with `$this->user()?->id`. A static `payloadFrom(array $validated): array` per type replaces the request-only payload building.
+**Contract**: `ExpenseValidationRules::expenseStoreRulesFor(?int $userId): array` and `IncomeValidationRules::incomeStoreRulesFor(?int $userId): array`; the existing protected `storeExpenseRules()`/`storeIncomeRules()` delegate with `$this->user()?->id`. A static `payloadFrom(array $validated): array` per type replaces the request-only payload building. As built (impl review F4): the static rules and payload builders live in `App\Support\ExpenseEntryRules` / `IncomeEntryRules`; the traits delegate.
 
 #### 2. Value-based entry validation
 

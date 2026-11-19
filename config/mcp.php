@@ -80,30 +80,12 @@ return [
     | MCP Clients
     |--------------------------------------------------------------------------
     |
-    | Here you may configure named MCP clients that connect to external MCP
-    | servers. Every client may define a URL for the remote server, or a
-    | command and arguments for local servers plus connection options.
+    | Named MCP clients that connect to external MCP servers. `laravel/mcp`
+    | reads `mcp.clients.<name>` only when such a client is requested; the
+    | application uses none, so the published examples are gone.
     |
     */
 
-    'clients' => [
-        'github' => [
-            'url' => env('MCP_GITHUB_URL', 'https://api.githubcopilot.com/mcp/'),
-            'token' => env('MCP_GITHUB_TOKEN'),
-            'headers' => [
-                'X-MCP-Readonly' => 'true',
-            ],
-        ],
-
-        'linear' => [
-            'url' => env('MCP_LINEAR_URL', 'https://mcp.linear.app/mcp'),
-            'token' => env('MCP_LINEAR_TOKEN'),
-        ],
-
-        'playwright' => [
-            'command' => 'npx',
-            'args' => ['-y', '@playwright/mcp@latest', '--headless'],
-        ],
-    ],
+    'clients' => [],
 
 ];

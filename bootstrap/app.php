@@ -8,6 +8,7 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
 use Illuminate\Http\Request;
+use League\OAuth2\Server\Exception\OAuthServerException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -38,10 +39,6 @@ return Application::configure(basePath: dirname(__DIR__))
         // without this the nightly backup and its monitor would stop without a single mail.
         // Each run overwrites its own output file and mails it on a non-zero exit, so a crash
         // that skips the package's own failure mail (an Error, not an Exception) still arrives.
-        // OAuth housekeeping of the MCP endpoint (ADR-0108): expired tokens hourly, unused registered clients daily.
-        $schedule->command('passport:purge')->hourly()->onOneServer();
-        $schedule->command('app:prune-oauth-clients')->daily()->onOneServer();
-
         $backupCommands = [
             'backup:run' => ['03:00', 120],
             'backup:clean' => ['03:30', 60],
@@ -59,8 +56,25 @@ return Application::configure(basePath: dirname(__DIR__))
                 ->sendOutputTo(storage_path('logs/schedule-'.str_replace(':', '-', $command).'.log'))
                 ->emailOutputOnFailure(config('backup.notifications.mail.to'));
         }
+
+        // OAuth housekeeping of the MCP endpoint (ADR-0110): expired tokens hourly, unused registered clients daily.
+        $schedule->command('passport:purge')
+            ->hourly()
+            ->onOneServer()
+            ->environments(['production'])
+            ->sendOutputTo(storage_path('logs/schedule-passport-purge.log'))
+            ->emailOutputOnFailure(config('backup.notifications.mail.to'));
+        $schedule->command('app:prune-oauth-clients')
+            ->daily()
+            ->onOneServer()
+            ->environments(['production'])
+            ->sendOutputTo(storage_path('logs/schedule-prune-oauth-clients.log'))
+            ->emailOutputOnFailure(config('backup.notifications.mail.to'));
     })
     ->withExceptions(function (Exceptions $exceptions): void {
+        // Passport reports every invalid or expired bearer token: an expected 401, logged in the `mcp` channel instead.
+        $exceptions->dontReport(OAuthServerException::class);
+
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request) => $request->is('api/*') || $request->expectsJson(),
         );

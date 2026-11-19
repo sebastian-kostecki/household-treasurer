@@ -40,7 +40,7 @@ Evidence for Success Criteria: plan-scoped tests on SQLite (Mcp, Auth, RecordCas
   - Tradeoff: The guarantee depends on never adding another Passport client type.
   - Confidence: HIGH — matches current behaviour exactly.
   - Blind spot: A later change adding personal access tokens would silently widen access.
-- **Decision**: PENDING
+- **Decision**: FIXED via Fix A — `CheckToken::using('mcp:use')` after `auth:api`, plus `Passport::defaultScopes(['mcp:use'])` so a client that omits `scope` still works; test: a token without the scope gets 403 (break-check red).
 
 ### F2 — Consent page promises a revoke and an approval the server does not provide
 
@@ -59,7 +59,7 @@ Evidence for Success Criteria: plan-scoped tests on SQLite (Mcp, Auth, RecordCas
   - Tradeoff: New screen, routes, tests and kitchen-sink states — outside the plan and M-5's freeze.
   - Confidence: MED — Passport has the models, but the UI is new work.
   - Blind spot: Not planned; would need its own plan phase or change.
-- **Decision**: PENDING
+- **Decision**: FIXED via Fix A — revoke promise removed from `outro`; `scope_write` now says Claude asks for confirmation of each operation.
 
 ### F3 — A reused `request_id` with different data silently returns the first operation
 
@@ -78,7 +78,7 @@ Evidence for Success Criteria: plan-scoped tests on SQLite (Mcp, Auth, RecordCas
   - Tradeoff: Migration change and a hash definition to maintain; a retry with a reworded description is refused.
   - Confidence: MED — stricter than a retry needs.
   - Blind spot: How Claude rephrases retries.
-- **Decision**: PENDING
+- **Decision**: FIXED via Fix A — replay compares kind, amount and Category (account and date when given) with the stored operation, on both replay paths; mismatch is a validation error on `request_id` (5 data sets, break-check red).
 
 ### F4 — Static methods called directly on traits are deprecated in PHP 8.1+
 
@@ -88,7 +88,7 @@ Evidence for Success Criteria: plan-scoped tests on SQLite (Mcp, Auth, RecordCas
 - **Location**: app/Actions/RecordCashOperation.php:131-132, 142-143 (also tests/Feature/HandEntryValidationWithoutHttpTest.php:97,122,128)
 - **Detail**: `ExpenseValidationRules::expenseStoreRulesFor`, `IncomeValidationRules::incomeStoreRulesFor`, `::expensePayloadFrom`, `::incomePayloadFrom` are called on `App\Concerns` traits. PHP 8.4.1 emits "Calling static trait method … is deprecated" (reproduced). Laravel routes it to the null `deprecations` channel, so it is silent until a PHP version makes it an error. The precedent the plan cited (`IndexOperationsRequest::listRules`) is a class method.
 - **Fix**: Move the four pure functions into classes (e.g. `App\Support\ExpenseEntryRules`, `IncomeEntryRules`), have the traits delegate, and call the classes from the Action and the test.
-- **Decision**: PENDING
+- **Decision**: FIXED — rules and payload builders moved to `App\Support\ExpenseEntryRules` / `IncomeEntryRules`; the traits delegate.
 
 ### F5 — Expired tokens will flood the error log, while the `mcp` log cannot see refused calls
 
@@ -102,7 +102,7 @@ Evidence for Success Criteria: plan-scoped tests on SQLite (Mcp, Auth, RecordCas
   - Tradeoff: A malformed or forged token is no longer a stack trace in the error log — only a 401 line.
   - Confidence: HIGH — library behaviour read in vendor; middleware order is in one line.
   - Blind spot: Volume of 401s from Claude's refresh pattern is unknown until production.
-- **Decision**: PENDING
+- **Decision**: FIXED — `dontReport(OAuthServerException)`, `LogMcpCall` first in the `/mcp` stack (401/403/429 logged), `tool_error` and `error_code` fields; tests incl. invalid bearer token not reported (break-check red).
 
 ### F6 — New schedule entries: wrong ADR, split comment, failures reach no one
 
@@ -112,7 +112,7 @@ Evidence for Success Criteria: plan-scoped tests on SQLite (Mcp, Auth, RecordCas
 - **Location**: bootstrap/app.php:41-43
 - **Detail**: The comment cites ADR-0108 (report years range) instead of ADR-0110, missed in the renumbering. The block sits between the backup comment ("Backups run in maintenance mode too…") and `$backupCommands`, so that comment now describes the Passport lines. Unlike the backups, neither entry has `environments(['production'])`, `sendOutputTo` or `emailOutputOnFailure`.
 - **Fix**: Move the block after the backup loop, cite ADR-0110, and add `environments(['production'])`, `sendOutputTo(storage_path('logs/schedule-…log'))` and `emailOutputOnFailure(config('backup.notifications.mail.to'))` like the backups.
-- **Decision**: PENDING
+- **Decision**: FIXED — block moved after the backup loop, ADR-0110, `environments(['production'])`, output files and failure mail.
 
 ### F7 — Server instructions still say "Read-only" with the write tool registered
 
@@ -122,7 +122,7 @@ Evidence for Success Criteria: plan-scoped tests on SQLite (Mcp, Auth, RecordCas
 - **Location**: app/Mcp/Servers/TreasurerServer.php:20
 - **Detail**: `#[Instructions('Read-only access to the household budget…')]` while `$tools` includes `AddCashOperationTool` (:33), registered when `MCP_WRITE_ENABLED` is on. With the switch on, Claude is told the server is read-only and may refuse to record.
 - **Fix**: Reword to "Access to the household budget of one user: reading, and recording a cash operation when `add-cash-operation-tool` is listed."
-- **Decision**: PENDING
+- **Decision**: FIXED — instructions describe reading and recording one cash operation when the tool is listed.
 
 ### F8 — Gaps in the planned test contract
 
@@ -132,7 +132,7 @@ Evidence for Success Criteria: plan-scoped tests on SQLite (Mcp, Auth, RecordCas
 - **Location**: tests/Feature/Mcp/ListCategoriesToolTest.php:81, tests/Feature/Mcp/RecentOperationsToolTest.php:83, tests/Feature/Mcp/OAuthTest.php:13
 - **Detail**: Phase 2 asks every tool to cover "no Budget and draft Budget for the App Day year"; ListCategories and RecentOperations have only the no-Budget case (AccountBalances does not depend on a Budget). Discovery is tested only at `/.well-known/oauth-protected-resource`; the nested `/.well-known/oauth-protected-resource/mcp`, which `WWW-Authenticate` points to and Phase 4 check 4.1 curls, has no test.
 - **Fix**: Add a draft-Budget case to both tool tests and a test that the nested path returns `resource = <APP_URL>/mcp`.
-- **Decision**: PENDING
+- **Decision**: FIXED — draft-Budget cases for ListCategories and RecentOperations, nested discovery path test.
 
 ### F9 — An oversized amount ends in an internal error instead of a validation message
 
@@ -142,7 +142,7 @@ Evidence for Success Criteria: plan-scoped tests on SQLite (Mcp, Auth, RecordCas
 - **Location**: app/Actions/RecordCashOperation.php:109
 - **Detail**: `MinorUnits::fromMajorInput("99999999999999999999")` overflows to float and the `?int` return throws `TypeError`; values just below can overflow the `bigint` balance. Both are reported (not hidden), but Claude gets "internal error". The same gap exists in the HTTP form, so it is pre-existing in the parser.
 - **Fix**: Add an upper bound (e.g. amount ≤ 1 000 000 000 zł) in `validatedEntry` with a validation message.
-- **Decision**: PENDING
+- **Decision**: FIXED — amount with more than 10 integer digits or above 1 000 000 000,00 zł is a validation error on `amount` (break-check: TypeError again without the digit check).
 
 ### F10 — Small cleanups and doc drift
 
@@ -162,4 +162,8 @@ Evidence for Success Criteria: plan-scoped tests on SQLite (Mcp, Auth, RecordCas
   - `PruneOAuthClientsCommand` writes with `DB::table` inline; other commands delegate to `app/Actions`.
   - Deleting an operation in the UI cascades its receipt, so a late retry with the same `request_id` records it again — acceptable, worth one line in ADR-0110.
 - **Fix**: Batch these as one cleanup commit (roadmap status, plan names, config stub, `InvariantViolation` in `read()`, structured MonthPlan refusal, origin check, helper move); leave the extra Dashboard query and the prune Action as optional.
-- **Decision**: PENDING
+- **Decision**: FIXED (partly) — roadmap S-47 status, plan note on F4 names, `config/mcp.php` `clients` emptied (ClientManager reads the key), `InvariantViolation` in `read()` and replay, structured MonthPlan answer for a year not in execution, origin check in PasskeyVerify, `PassportKeys` moved to `tests/Support`, ADR-0110 lines on scope, token logging and receipt cascade. Skipped as optional: extra Dashboard Budget query, prune command as an Action.
+
+## Triage
+
+2026-11-19, user's decision: fix by the recommendations. Fixed: F1 (Fix A), F2 (Fix A), F3 (Fix A), F4, F5, F6, F7, F8, F9, F10 (partly; two optional items skipped). Break-checks went red for F1, F3, F5 and F9 and the files were restored before the commit.

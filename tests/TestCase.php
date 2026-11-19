@@ -8,7 +8,7 @@ use Illuminate\Database\Query\Builder;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 use Illuminate\Support\Facades\DB;
 use Laravel\Fortify\Features;
-use Tests\Feature\Mcp\Support\PassportKeys;
+use Tests\Support\PassportKeys;
 
 abstract class TestCase extends BaseTestCase
 {

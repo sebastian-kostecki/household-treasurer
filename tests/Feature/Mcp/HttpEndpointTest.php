@@ -2,11 +2,30 @@
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Exceptions;
 use Illuminate\Support\Facades\Log;
 use Laravel\Passport\Passport;
+use League\OAuth2\Server\Exception\OAuthServerException;
 use Tests\Feature\Mcp\Support\TreasurerFixture;
 
 uses(RefreshDatabase::class);
+
+/**
+ * Captures the context of the one line written to the `mcp` channel.
+ *
+ * @return ArrayObject<string, mixed>
+ */
+function captureMcpLogLine(): ArrayObject
+{
+    $logged = new ArrayObject;
+    $channel = Mockery::mock();
+    $channel->shouldReceive('info')->once()->andReturnUsing(function (string $message, array $context) use ($logged): void {
+        $logged->exchangeArray($context);
+    });
+    Log::shouldReceive('channel')->with('mcp')->once()->andReturn($channel);
+
+    return $logged;
+}
 
 /**
  * @param  array<string, mixed>  $params
@@ -37,6 +56,21 @@ test('a token with the mcp scope lists the tools and answers a tool call', funct
     $call->assertOk();
     expect($call->json('result.structuredContent.app_day'))->toBe('2026-06-15')
         ->and(json_encode($call->json('result.structuredContent')))->toContain('Jedzenie');
+});
+
+test('a token without the mcp scope is refused and sees no tool', function () {
+    $this->travelTo('2026-06-15 10:00:00');
+    $household = TreasurerFixture::household();
+    Passport::actingAs($household['user'], []);
+
+    $response = $this->postJson('/mcp', mcpRequest('tools/list'));
+
+    $response->assertForbidden();
+    expect($response->getContent())->not->toContain('list-categories-tool')->not->toContain('Jedzenie');
+});
+
+test('an authorization request without a scope is given the mcp scope', function () {
+    expect(Passport::defaultScopes())->toContain('mcp:use');
 });
 
 test('another user\'s token sees only its own data', function () {
@@ -105,6 +139,71 @@ test('the call log carries user, method, tool, status and duration but never the
         'method' => 'tools/call',
         'tool' => 'recent-operations-tool',
         'status' => 200,
-    ])->and(array_keys($logged))->toBe(['user_id', 'method', 'tool', 'status', 'duration_ms'])
+    ])->and(array_keys($logged))->toBe(['user_id', 'method', 'tool', 'status', 'duration_ms', 'tool_error', 'error_code'])
+        ->and($logged['tool_error'])->toBeFalse()
+        ->and($logged['error_code'])->toBeNull()
         ->and(json_encode($logged))->not->toContain('tajny-opis-operacji');
+});
+
+test('a call without a token is logged with status 401 and no user', function () {
+    $logged = captureMcpLogLine();
+
+    $this->postJson('/mcp', mcpRequest('tools/list'))->assertUnauthorized();
+
+    expect($logged->getArrayCopy())->toMatchArray([
+        'user_id' => null,
+        'method' => 'tools/list',
+        'tool' => null,
+        'status' => 401,
+        'tool_error' => null,
+        'error_code' => null,
+    ]);
+});
+
+test('an invalid bearer token is a 401 and is not reported as an error', function () {
+    Exceptions::fake();
+
+    $this->withToken('not-a-real-token')->postJson('/mcp', mcpRequest('tools/list'))->assertUnauthorized();
+
+    Exceptions::assertNotReported(OAuthServerException::class);
+});
+
+test('a tool error is logged as a tool error without the arguments or the message', function () {
+    $this->travelTo('2026-06-15 10:00:00');
+    $household = TreasurerFixture::household();
+    $stranger = TreasurerFixture::stranger();
+    Passport::actingAs($household['user'], ['mcp:use']);
+    $logged = captureMcpLogLine();
+
+    $response = $this->postJson('/mcp', mcpRequest('tools/call', [
+        'name' => 'recent-operations-tool',
+        'arguments' => ['category_id' => $stranger['line']->category_id, 'q' => 'tajny-opis-operacji'],
+    ]));
+
+    $response->assertOk();
+    expect($response->json('result.isError'))->toBeTrue()
+        ->and($logged->getArrayCopy())->toMatchArray([
+            'user_id' => $household['user']->id,
+            'tool' => 'recent-operations-tool',
+            'status' => 200,
+            'tool_error' => true,
+            'error_code' => null,
+        ])
+        ->and(json_encode($logged->getArrayCopy()))->not->toContain('tajny-opis-operacji')->not->toContain('category');
+});
+
+test('a JSON-RPC error is logged with its code only', function () {
+    Passport::actingAs(User::factory()->create(), ['mcp:use']);
+    $logged = captureMcpLogLine();
+
+    $response = $this->postJson('/mcp', mcpRequest('tools/call', ['name' => 'no-such-tool', 'arguments' => []]));
+
+    expect($response->json('error.code'))->toBeInt()
+        ->and($logged->getArrayCopy())->toMatchArray([
+            'method' => 'tools/call',
+            'tool' => 'no-such-tool',
+            'tool_error' => null,
+            'error_code' => $response->json('error.code'),
+        ])
+        ->and(json_encode($logged->getArrayCopy()))->not->toContain((string) $response->json('error.message'));
 });

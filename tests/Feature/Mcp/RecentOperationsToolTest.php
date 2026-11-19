@@ -3,6 +3,7 @@
 use App\Mcp\Servers\TreasurerServer;
 use App\Mcp\Tools\RecentOperationsTool;
 use App\Models\Budget;
+use App\Models\BudgetLine;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Feature\Mcp\Support\TreasurerFixture;
@@ -85,6 +86,17 @@ test('without a Budget it returns no operations', function () {
 
     TreasurerServer::actingAs(User::factory()->create())->tool(RecentOperationsTool::class)
         ->assertStructuredContentPaths(['returned' => 0]);
+});
+
+test('with only a draft Budget for the App Day year it returns no operations', function () {
+    $this->travelTo('2026-06-15 10:00:00');
+    $user = User::factory()->create();
+    $draft = Budget::factory()->for($user)->create(['year' => 2026]);
+    BudgetLine::factory()->for($draft)->expense()->create(['name' => 'Wakacje']);
+
+    TreasurerServer::actingAs($user)->tool(RecentOperationsTool::class)
+        ->assertOk()
+        ->assertStructuredContentPaths(['app_day' => '2026-06-15', 'limit' => 20, 'returned' => 0, 'operations' => []]);
 });
 
 test('it refuses a call without a user', function () {

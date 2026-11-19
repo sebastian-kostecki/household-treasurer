@@ -15,7 +15,6 @@ use App\Support\MonthToSpend;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Laravel\Mcp\Request;
-use Laravel\Mcp\Response;
 use Laravel\Mcp\ResponseFactory;
 use Laravel\Mcp\Server\Attributes\Description;
 use Laravel\Mcp\Server\Tool;
@@ -25,14 +24,14 @@ use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 /**
  * @phpstan-import-type MonthPlanRow from MonthPlanItemRow
  */
-#[Description('The month plan against execution: per Category the plan, the actual amount, the deviation and whether it is over plan, the Category Group sums, and the month totals. Defaults to the current month; refuses a year without a Budget in execution.')]
+#[Description('The month plan against execution: per Category the plan, the actual amount, the deviation and whether it is over plan, the Category Group sums, and the month totals. Defaults to the current month; for a year without a Budget in execution it says the year and the Budget phase and gives no month plan.')]
 #[IsReadOnly]
 #[IsIdempotent]
 class MonthPlanTool extends Tool
 {
     use AnswersForUser;
 
-    public function handle(Request $request): Response|ResponseFactory
+    public function handle(Request $request): ResponseFactory
     {
         $user = $this->userOf($request);
         $today = AppDay::today();
@@ -48,9 +47,13 @@ class MonthPlanTool extends Tool
         $budget = BudgetForYear::find($user, $year);
 
         if ($budget === null || ! $budget->isExecution()) {
-            $phase = $budget === null ? 'no Budget' : $budget->phase->value;
-
-            return Response::error("The year {$year} has no Budget in execution (phase: {$phase}), so it has no month plan. App Day: {$today->toDateString()}.");
+            return $this->answer($today, [
+                'year' => $year,
+                'month' => $month,
+                'budget_phase' => $budget?->phase->value,
+                'state' => 'none',
+                'message' => "The year {$year} has no Budget in execution, so it has no month plan.",
+            ]);
         }
 
         $timing = MonthTiming::of($year, $month, $today);

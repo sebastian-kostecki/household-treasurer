@@ -2,8 +2,6 @@
 
 namespace App\Actions;
 
-use App\Concerns\ExpenseValidationRules;
-use App\Concerns\IncomeValidationRules;
 use App\Enums\AccountType;
 use App\Enums\CategoryType;
 use App\Enums\FinancialOperationType;
@@ -16,6 +14,9 @@ use App\Models\User;
 use App\Support\AppDay;
 use App\Support\CashOperationResult;
 use App\Support\CategoryExecutionMetrics;
+use App\Support\ExpenseEntryRules;
+use App\Support\IncomeEntryRules;
+use App\Support\InvariantViolation;
 use App\Support\MinorUnits;
 use App\Support\MonthToSpend;
 use App\Support\OperationEntryValidation;
@@ -29,9 +30,16 @@ use Illuminate\Validation\ValidationException;
 /**
  * Records one cash expense, expense refund or income for the MCP write tool (ADR-0110), once per
  * `request_id`. A refund is an Expense with a negative amount, as everywhere else in the domain.
+ * A `request_id` belongs to one entry: a retry with the same kind, amount and Category (and the same
+ * account and date when they are given) replays it, anything else is refused on `request_id`.
  */
 class RecordCashOperation
 {
+    /** 1 000 000 000,00 zł, the largest amount one call records. */
+    private const int MAX_AMOUNT_MINOR_UNITS = 100_000_000_000;
+
+    private const int MAX_AMOUNT_INTEGER_DIGITS = 10;
+
     public function __construct(private readonly ManageFinancialOperation $operations) {}
 
     /**
@@ -48,7 +56,7 @@ class RecordCashOperation
             $receipt = $this->receiptFor($user, $requestId);
 
             if ($receipt !== null) {
-                return $this->read($receipt->financialOperation, null, null, true);
+                return $this->replay($receipt, $input);
             }
         }
 
@@ -83,10 +91,73 @@ class RecordCashOperation
                 throw $exception;
             }
 
-            return $this->read($receipt->financialOperation, null, null, true);
+            return $this->replay($receipt, $input);
         }
 
         return $this->read($operation, $accountBalanceBefore, $toSpendBefore, false);
+    }
+
+    /**
+     * The stored operation of the receipt, when the input describes the same entry.
+     *
+     * @param  array<string, mixed>  $input
+     *
+     * @throws ValidationException
+     */
+    private function replay(McpOperationRequest $receipt, array $input): CashOperationResult
+    {
+        $operation = $receipt->financialOperation
+            ?? throw new InvariantViolation('An MCP receipt refers to a missing financial operation.', [
+                'mcp_operation_request_id' => $receipt->id,
+                'financial_operation_id' => $receipt->financial_operation_id,
+            ]);
+
+        $stored = $this->read($operation, null, null, true);
+
+        if (! $this->describesStored($input, $stored)) {
+            throw ValidationException::withMessages([
+                'request_id' => 'This request_id was already used for a different operation. Generate a new request_id for a new entry.',
+            ]);
+        }
+
+        return $stored;
+    }
+
+    /**
+     * Kind, amount and Category always; account and date only when the input gives them, so a retry after
+     * midnight without a date still replays. Description and counterparty are not compared.
+     *
+     * @param  array<string, mixed>  $input
+     */
+    private function describesStored(array $input, CashOperationResult $stored): bool
+    {
+        $amount = $input['amount'] ?? null;
+        $parsedAmount = is_string($amount) && ! $this->hasTooManyIntegerDigits($amount)
+            ? MinorUnits::fromMajorInput($amount)
+            : null;
+
+        return ($input['kind'] ?? null) === $stored->kind
+            && $parsedAmount !== null
+            && $parsedAmount === abs($stored->amountMinorUnits)
+            && $this->sameId($input['category_id'] ?? null, $stored->categoryId)
+            && (! isset($input['account_id']) || $this->sameId($input['account_id'], $stored->accountId))
+            && (! isset($input['operation_date']) || $input['operation_date'] === $stored->operationDate);
+    }
+
+    private function sameId(mixed $given, int $stored): bool
+    {
+        return filter_var($given, FILTER_VALIDATE_INT) === $stored;
+    }
+
+    /**
+     * Checked on the normalised text before parsing: a longer integer part overflows an int.
+     */
+    private function hasTooManyIntegerDigits(string $amount): bool
+    {
+        $normalized = str_replace([' ', "\u{00A0}"], '', trim($amount));
+
+        return preg_match('/^-?(\d+)/', $normalized, $match) === 1
+            && strlen(ltrim($match[1], '0')) > self::MAX_AMOUNT_INTEGER_DIGITS;
     }
 
     /**
@@ -106,12 +177,22 @@ class RecordCashOperation
             'request_id' => ['required', 'string', 'min:8', 'max:64'],
         ])->validate();
 
+        $tooLarge = ValidationException::withMessages(['amount' => 'The amount must not exceed 1 000 000 000,00 zł.']);
+
+        if ($this->hasTooManyIntegerDigits($fields['amount'])) {
+            throw $tooLarge;
+        }
+
         $amount = MinorUnits::fromMajorInput($fields['amount']);
 
         if ($amount === null || $amount <= 0) {
             throw ValidationException::withMessages([
                 'amount' => 'The amount must be a positive number with at most two decimals, for example 23,50.',
             ]);
+        }
+
+        if ($amount > self::MAX_AMOUNT_MINOR_UNITS) {
+            throw $tooLarge;
         }
 
         $kind = $fields['kind'];
@@ -128,8 +209,8 @@ class RecordCashOperation
 
         $type = $kind === 'income' ? CategoryType::Income : CategoryType::Expense;
         $rules = $kind === 'income'
-            ? IncomeValidationRules::incomeStoreRulesFor($user->id)
-            : ExpenseValidationRules::expenseStoreRulesFor($user->id);
+            ? IncomeEntryRules::storeRulesFor($user->id)
+            : ExpenseEntryRules::storeRulesFor($user->id);
 
         $validator = Validator::make($values, $rules);
         OperationEntryValidation::attachValues($validator, $user, $type, $values, null);
@@ -139,8 +220,8 @@ class RecordCashOperation
             'kind' => $kind,
             'request_id' => $fields['request_id'],
             'payload' => $kind === 'income'
-                ? IncomeValidationRules::incomePayloadFrom($validated)
-                : ExpenseValidationRules::expensePayloadFrom($validated),
+                ? IncomeEntryRules::payloadFrom($validated)
+                : ExpenseEntryRules::payloadFrom($validated),
         ];
     }
 
@@ -200,9 +281,18 @@ class RecordCashOperation
 
     private function read(FinancialOperation $operation, ?int $balanceBefore, ?int $toSpendBefore, bool $replayed): CashOperationResult
     {
-        $account = Account::query()->findOrFail($operation->account_id);
-        $line = BudgetLine::query()->with('category')->findOrFail($operation->budget_line_id);
-        $budget = Budget::query()->findOrFail($operation->budget_id);
+        $context = [
+            'financial_operation_id' => $operation->id,
+            'account_id' => $operation->account_id,
+            'budget_line_id' => $operation->budget_line_id,
+            'budget_id' => $operation->budget_id,
+        ];
+        $account = Account::query()->find($operation->account_id)
+            ?? throw new InvariantViolation('A recorded cash operation refers to a missing Account.', $context);
+        $line = BudgetLine::query()->with('category')->find($operation->budget_line_id)
+            ?? throw new InvariantViolation('A recorded cash operation refers to a missing Budget Line.', $context);
+        $budget = Budget::query()->find($operation->budget_id)
+            ?? throw new InvariantViolation('A recorded cash operation refers to a missing Budget.', $context);
 
         $toSpendAfter = $this->toSpendOf($budget, $operation->operation_date->month);
 

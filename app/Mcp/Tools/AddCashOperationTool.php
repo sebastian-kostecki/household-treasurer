@@ -14,7 +14,7 @@ use Laravel\Mcp\Server\Tools\Annotations\IsDestructive;
 use Laravel\Mcp\Server\Tools\Annotations\IsIdempotent;
 use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 
-#[Description('Records one cash expense, expense refund or income on the user\'s cash account and returns the operation, the account balance and To Spend before and after, and the Available Limit of the Category. Generate one new random `request_id` (8-64 characters) per entry and reuse the very same one when you retry that entry, so it is recorded once. Look the Category up with list-categories-tool (`for_entry`); when more than one Category could fit, ask the user instead of guessing. `amount` is a positive text like "23,50"; `kind` gives the sign. When `to_spend_warning` is true, tell the user that To Spend went below zero.')]
+#[Description('Records one cash expense, expense refund or income on the user\'s cash account and returns the operation, the account balance and To Spend before and after, and the Available Limit of the Category. Generate one new random `request_id` (8-64 characters) per entry and reuse the very same one only when you retry that same entry, so it is recorded once; a `request_id` belongs to one entry, and reusing it with another kind, amount, Category, account or date is refused. Look the Category up with list-categories-tool (`for_entry`); when more than one Category could fit, ask the user instead of guessing. `amount` is a positive text like "23,50"; `kind` gives the sign. When `to_spend_warning` is true, tell the user that To Spend went below zero.')]
 #[IsReadOnly(false)]
 #[IsDestructive(false)]
 #[IsIdempotent]
@@ -49,7 +49,7 @@ class AddCashOperationTool extends Tool
     public function schema(JsonSchema $schema): array
     {
         return [
-            'request_id' => $schema->string()->min(8)->max(64)->required()->description('One new random id per entry; reuse it unchanged when retrying the same entry.'),
+            'request_id' => $schema->string()->min(8)->max(64)->required()->description('One new random id per entry; reuse it unchanged only when retrying the same entry, never for a new one.'),
             'kind' => $schema->string()->enum(['expense', 'refund', 'income'])->required()->description('expense, refund of an expense, or income.'),
             'amount' => $schema->string()->required()->description('Positive amount in zł as text, for example "23,50"; the sign comes from kind.'),
             'category_id' => $schema->integer()->required()->description('Id from list-categories-tool with for_entry matching the kind (expense for expense and refund).'),

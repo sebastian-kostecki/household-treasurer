@@ -18,6 +18,13 @@ test('the protected resource discovery answers with the https resource and the a
         ->assertJsonPath('scopes_supported.0', 'mcp:use');
 });
 
+test('the nested protected resource discovery of /mcp names the /mcp resource', function () {
+    $this->getJson('/.well-known/oauth-protected-resource/mcp')
+        ->assertOk()
+        ->assertJsonPath('resource', rtrim((string) config('app.url'), '/').'/mcp')
+        ->assertJsonPath('scopes_supported.0', 'mcp:use');
+});
+
 test('the authorization server discovery lists the endpoints and PKCE', function () {
     $this->getJson('https://budget.test/.well-known/oauth-authorization-server')
         ->assertOk()
@@ -101,7 +108,7 @@ test('the consent text names recording cash operations only when the write tool 
 
     expect(OAuthConsentProps::scopeDescriptions())->toBe([
         'czytać salda kont, plan miesiąca i roku oraz operacje',
-        'zapisywać operacje gotówkowe, każdą po Twoim zatwierdzeniu',
+        'zapisywać operacje gotówkowe — Claude poprosi Cię o potwierdzenie każdej z nich',
     ]);
 
     config()->set('services.mcp.write_enabled', false);

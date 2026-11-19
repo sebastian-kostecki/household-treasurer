@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature\Mcp\Support;
+namespace Tests\Support;
 
 use phpseclib4\Crypt\RSA;
 

@@ -52,9 +52,12 @@ class AppServiceProvider extends ServiceProvider
 
     /**
      * Passport is the OAuth server of the MCP endpoint (ADR-0110): short access tokens, Inertia consent page.
+     * `mcp:use` is the default scope, so a client that asks without `scope` still gets a token `/mcp` accepts;
+     * the authorization server reads it when it is first resolved, after boot.
      */
     protected function configurePassport(): void
     {
+        Passport::defaultScopes(['mcp:use']);
         Passport::tokensExpireIn(now()->addHour());
         Passport::refreshTokensExpireIn(now()->addDays(30));
 

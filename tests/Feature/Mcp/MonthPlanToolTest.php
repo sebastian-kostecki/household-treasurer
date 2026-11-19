@@ -98,16 +98,28 @@ test('the App Day month turns at Polish midnight on 31 December', function () {
         ->assertStructuredContentPaths(['app_day' => '2027-01-01', 'year' => 2027, 'month' => 1]);
 });
 
-test('it refuses a year without a Budget in execution and names the phase', function () {
+test('a year without a Budget in execution is answered with its phase and no month plan', function () {
     $this->travelTo('2026-06-15 10:00:00');
     $user = User::factory()->create();
     Budget::factory()->for($user)->create(['year' => 2027]);
 
     TreasurerServer::actingAs($user)->tool(MonthPlanTool::class, ['year' => 2027])
-        ->assertHasErrors(['2027', 'draft']);
+        ->assertOk()
+        ->assertStructuredContentPaths([
+            'app_day' => '2026-06-15',
+            'year' => 2027,
+            'month' => 6,
+            'budget_phase' => 'draft',
+            'state' => 'none',
+        ])
+        ->assertStructuredContentMissingPath('income')
+        ->assertStructuredContentMissingPath('expense')
+        ->assertSee('no month plan');
 
     TreasurerServer::actingAs($user)->tool(MonthPlanTool::class, ['year' => 2026])
-        ->assertHasErrors(['2026', 'no Budget']);
+        ->assertOk()
+        ->assertStructuredContentPaths(['app_day' => '2026-06-15', 'year' => 2026, 'budget_phase' => null, 'state' => 'none'])
+        ->assertStructuredContentMissingPath('income');
 });
 
 test('it refuses a call without a user', function () {

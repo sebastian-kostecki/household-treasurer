@@ -20,10 +20,14 @@ type Props = {
 
 const props = defineProps<Props>();
 
-const isOAuthAuthorizeUrl = (url: string): boolean =>
-    new URL(url, window.location.origin).pathname.startsWith(
-        '/oauth/authorize',
+const isOAuthAuthorizeUrl = (url: string): boolean => {
+    const target = new URL(url, window.location.origin);
+
+    return (
+        target.origin === window.location.origin &&
+        target.pathname.startsWith('/oauth/authorize')
     );
+};
 
 const { verify, isLoading, error, isSupported } = usePasskeyVerify({
     ...(props.routes

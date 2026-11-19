@@ -4,6 +4,7 @@ use App\Enums\FinancialOperationType;
 use App\Mcp\Servers\TreasurerServer;
 use App\Mcp\Tools\ListCategoriesTool;
 use App\Models\Budget;
+use App\Models\BudgetLine;
 use App\Models\FinancialOperation;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -83,6 +84,23 @@ test('a user without a Budget has no Categories', function () {
 
     TreasurerServer::actingAs(User::factory()->create())->tool(ListCategoriesTool::class)
         ->assertOk()
+        ->assertStructuredContentCount(0, 'categories');
+});
+
+test('with only a draft Budget for the App Day year there is nothing to list or to record on', function () {
+    $this->travelTo('2026-06-15 10:00:00');
+    $user = User::factory()->create();
+    $draft = Budget::factory()->for($user)->create(['year' => 2026]);
+    BudgetLine::factory()->for($draft)->expense()->create(['name' => 'Wakacje']);
+
+    TreasurerServer::actingAs($user)->tool(ListCategoriesTool::class)
+        ->assertOk()
+        ->assertStructuredContentPath('app_day', '2026-06-15')
+        ->assertStructuredContentCount(0, 'categories');
+
+    TreasurerServer::actingAs($user)->tool(ListCategoriesTool::class, ['for_entry' => 'expense'])
+        ->assertOk()
+        ->assertStructuredContentPath('app_day', '2026-06-15')
         ->assertStructuredContentCount(0, 'categories');
 });
 

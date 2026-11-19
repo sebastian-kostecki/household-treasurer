@@ -2,13 +2,13 @@
 
 namespace Tests\Feature;
 
-use App\Concerns\ExpenseValidationRules;
 use App\Enums\BudgetPhase;
 use App\Enums\CategoryType;
 use App\Models\Account;
 use App\Models\Budget;
 use App\Models\BudgetLine;
 use App\Models\User;
+use App\Support\ExpenseEntryRules;
 use App\Support\OperationEntryValidation;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Validator;
@@ -94,7 +94,7 @@ class HandEntryValidationWithoutHttpTest extends TestCase
             ->assertSessionHasErrors();
         $httpErrors = session('errors')->getBag('default')->getMessages();
 
-        $validator = Validator::make($input, ExpenseValidationRules::expenseStoreRulesFor($user->id));
+        $validator = Validator::make($input, ExpenseEntryRules::storeRulesFor($user->id));
         OperationEntryValidation::attachValues($validator, $user, CategoryType::Expense, $input, null);
 
         $this->assertArrayHasKey($failingField, $httpErrors);
@@ -119,13 +119,13 @@ class HandEntryValidationWithoutHttpTest extends TestCase
             'category_id' => $line->category_id,
         ];
 
-        $validator = Validator::make($input, ExpenseValidationRules::expenseStoreRulesFor($user->id));
+        $validator = Validator::make($input, ExpenseEntryRules::storeRulesFor($user->id));
         OperationEntryValidation::attachValues($validator, $user, CategoryType::Expense, $input, null);
 
         $this->assertTrue($validator->passes());
         $this->assertEquals(
             [...$input, 'counterparty' => null],
-            ExpenseValidationRules::expensePayloadFrom($validator->validated()),
+            ExpenseEntryRules::payloadFrom($validator->validated()),
         );
     }
 }
