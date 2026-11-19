@@ -26,7 +26,7 @@ Setup and everyday commands: `README.md` ("Uruchomienie", "Testy i jakość"). R
 
 - `app/Actions` writes; `app/Support` readings and calculations; `app/Http/Requests`; `app/Policies`.
 - `resources/js/pages`; `components` (domain); `components/ui` (shadcn-vue); `lib` (pure logic, `*.test.ts` next to it).
-- `context/foundation/` cross-change docs: `glossary.md`; `adr/` decisions; `design-system.md`; `prd-mvp.md` and `mvp.md` product requirements, `prd.md` and `prd-vN.md` change PRDs from `/10x-prd`; `tech-stack.md`; `roadmap.md`, `test-plan.md`; `agents/` procedures.
+- `context/foundation/` cross-change docs: `glossary.md`; `adr/` decisions; `design-system.md`; `prd-mvp.md` and `mvp.md` product requirements, `prd.md` and `prd-vN.md` change PRDs from `/10x-prd`; `tech-stack.md`; `roadmap.md`, `test-plan.md`; `development-directions.md` candidate directions not yet on the roadmap (read it before proposing what to build next); `agents/` procedures.
 - `context/changes/<id>/` the 10x change in progress; `context/archive/` closed changes (pre-10x feature specs sit there as `<date>-<name>/spec.md`).
 
 ## Rules by path

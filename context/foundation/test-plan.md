@@ -6,7 +6,7 @@
 >
 > Refresh: re-run `/10x-test-plan --refresh` when stale (see §8).
 >
-> Last updated: 2026-11-06
+> Last updated: 2026-11-17
 
 Plan jest po polsku jak pozostałe dokumenty w `context/foundation/`; wartości Status w §3 zostają po angielsku, bo czyta je orkiestrator. Terminy domenowe według `context/foundation/glossary.md`.
 
@@ -47,7 +47,7 @@ research's job, see §1 principle #3).
 | 1 | Zatwierdzenie Importu po cichu dubluje albo gubi operacje: wyciąg nakłada się na wcześniej zaimportowany, bank zmienił format, preambułę albo układ kolumn, a częściowa porażka nie wycofuje całego zestawu | High | High | interview Q1, Q2; `context/foundation/prd-mvp.md` §9 (atomowość zestawu, duplikaty, preambuła), NFR-DAT-01; hot-spot dir `app/Support/CsvImport` (9 zmian plików/30d, 24 commity/60d) |
 | 2 | „do wydania” w podglądzie przeglądarki (TS) różni się od liczby z serwera (PHP), zwłaszcza po zmianie reguły dla wydatku nieregularnego | High | High | roadmap S-14 Risk („dwie kopie kalkulatorów (PHP i TS)”); `prd.md` Wymagania jakościowe (aktualna i poprawna liczba po operacji i Imporcie); hot-spot dirs `app/Support`, `resources/js/lib` (109 zmian plików/30d) |
 | 3 | Sumy raportu okresu nie zgadzają się co do grosza z wykonaniem w budżecie rocznym albo z Wynikiem miesiąca (zwroty, transfery własne, ruchy kapitału, zarchiwizowane kategorie, granica miesiąca i roku) | High | High | `prd-v2.md` Guardrails i „najszybszy sygnał awarii”, US-01, US-02; roadmap S-11 (status planning), S-12; `context/foundation/prd-mvp.md` BR-01, BR-02, BR-08, BR-09, BR-19 |
-| 4 | Podpowiedzi kategorii w Imporcie trafiają gorzej po zmianie łączenia kategorii między latami, a spadku nikt nie mierzy | Medium | High | `prd-v2.md` FR-013, Guardrails; roadmap S-16 Risk (pomiar trafności przed i po); interview Q1 |
+| 4 | Podpowiedzi kategorii w Imporcie trafiają gorzej po zmianie kodu podpowiadacza albo listy kategorii (scalenie, archiwum), a spadku nie łapie żadna bramka | Medium | High | `prd-v3.md` FR-020 i Guardrails; S-23 `measurements.md`; interview Q1 |
 | 5 | Backup (`user:backup` i backup aplikacji) kończy się sukcesem, ale snapshot jest niekompletny: pomija encję, nowe pola albo plany miesięcy. Albo backup pada bez czytelnego sygnału i przed wdrożeniem nie ma kopii, do której można wrócić | High | Medium | user comment on the seed brief („kluczowa akcja”); `prd-v2.md` Wycofanie zmiany (backup przed wdrożeniem), FR-014; `prd.md` Kompatybilność wsteczna; roadmap S-14 i S-16 dodają dane do snapshotu; roadmap Baseline (`backup:monitor`) |
 | 6 | `user:restore` snapshotu w starszej wersji (1–5) wczytuje się bez błędu, ale gubi plany miesięcy, powiązania albo kwoty | High | Medium | `prd.md` Kompatybilność wsteczna (wersje 1 do 4 działają dalej); `prd-v2.md` FR-014 (stary format z wartościami domyślnymi); roadmap S-14, S-16 (snapshot v6, uzgodnienie numerów wersji) |
 | 7 | Krytyczny przepływ w przeglądarce (wgranie pliku → podgląd → zatwierdzenie Importu, dialog operacji, plan miesiąca) przestaje działać, choć testy HTTP i Vitest przechodzą | Medium | High | interview Q4; hot-spot dirs `resources/js/components` (231 zmian plików/30d), `resources/js/pages` (106); brak warstwy e2e (profil bazy testów) |
@@ -57,10 +57,10 @@ research's job, see §1 principle #3).
 
 | Risk | What would prove protection | Must challenge | Context `/10x-research` must ground | Likely cheapest layer | Anti-pattern to avoid |
 |------|-----------------------------|----------------|--------------------------------------|-----------------------|-----------------------|
-| #1 | Ponowny Import nakładającego się wyciągu nie tworzy żadnej nowej operacji. Wariant formatu albo preambuły daje komplet wierszy. Błąd jednego wybranego wiersza wycofuje cały zestaw: liczba operacji i salda kont przed i po są równe | „Podgląd oznaczył duplikat, więc zapis go nie utworzy” | Granica podgląd → zatwierdzenie, tożsamość wiersza Importu, transakcja zapisu, obsługiwane formaty banków, zanonimizowane prawdziwe warianty wyciągów jako fixture | integracja (Feature na PostgreSQL) z plikami fixture | Fixture wygenerowany przez parser zamiast z prawdziwego wyciągu; asercja tylko na odpowiedzi HTTP, bez stanu bazy |
+| #1 | Ponowny Import nakładającego się wyciągu nie tworzy żadnej nowej operacji. Wariant formatu albo preambuły daje komplet wierszy. Błąd jednego wybranego wiersza wycofuje cały zestaw: liczba operacji i salda kont przed i po są równe. Komplet wierszy dowodzi ręcznie policzona liczba wierszy pliku (wyrocznia, nie parser) | „Podgląd oznaczył duplikat, więc zapis go nie utworzy”; wiersz pomijany po cichu (FR-IMP-08) przy zmianie formatu komórki | Granica podgląd → zatwierdzenie, tożsamość wiersza Importu, transakcja zapisu, obsługiwane formaty banków, zanonimizowane prawdziwe warianty wyciągów jako fixture | integracja (Feature na PostgreSQL) z plikami fixture | Fixture wygenerowany przez parser zamiast z prawdziwego wyciągu; asercja tylko na odpowiedzi HTTP, bez stanu bazy |
 | #2 | Jedna tabela przypadków (wejście → oczekiwane „do wydania”, wyliczone ręcznie z reguły To Spend w `context/foundation/glossary.md`) przechodzi po stronie PHP i TS | „Kopia TS jest przepisana 1:1, więc liczy to samo” | Które kalkulatory mają dwie kopie, skąd każda bierze wejścia, gdzie reguła jest zapisana, jak S-14 ją zmieni | test kontraktu i parzystości: unit po obu stronach na wspólnym fixture | Problem wyroczni: oczekiwane wartości wyliczone kodem PHP i wklejone do testu TS |
 | #3 | Na zestawie operacji z ręcznie wyliczonym wynikiem (zwrot, transfer własny, ruch kapitału, zarchiwizowana kategoria, operacja na granicy miesiąca i roku) raport = wykonanie w budżecie rocznym = Wynik miesiąca | „Obie liczby pochodzą z tego samego odczytu, więc się zgadzają” | Odczyty liczące wykonanie i Wynik miesiąca, co testy S-11 już pokrywają, reguła przynależności operacji do budżetu (BR-13) | integracja na PostgreSQL | Asercja raport == inny odczyt (dwa błędy się znoszą) zamiast niezależnej, ręcznie policzonej wyroczni |
-| #4 | Stały zestaw referencyjny (opis z wyciągu → oczekiwana kategoria) ma trafność co najmniej równą zapisanemu poziomowi bazowemu, a spadek czerwieni bramkę | „Testy jednostkowe podpowiadacza przechodzą, więc trafność się nie zmieniła” | Jak podpowiadacz łączy kategorie między latami, źródło zestawu referencyjnego (prawdziwe opisy po porządkowaniu kategorii, przed S-16), sposób zapisu poziomu bazowego | test benchmarku (integracja) z progiem | Próg dopasowany do bieżącego wyniku bez zapisanego pomiaru „przed” |
+| #4 | Stały zestaw referencyjny (pseudonimizowany opis → oczekiwana kategoria) ma trafność co najmniej równą zapisanemu poziomowi bazowemu, a spadek czerwieni bramkę | „Testy jednostkowe podpowiadacza przechodzą, więc trafność się nie zmieniła” | Głos po id kategorii listy plus oferta `CategoryChoiceOptions`; zestaw pseudonimizowany bez tekstu z banku, z poziomem bazowym zapisanym w repo razem z zestawem | test benchmarku (integracja) z progiem | Próg obniżony do bieżącego wyniku po spadku albo poziom bazowy spoza repo |
 | #5 | Backup i restore do pustej bazy dają te same liczności i sumy kwot na każdą tabelę użytkownika. Strażnik kompletności czerwieni się, gdy nowa tabela albo kolumna z danymi użytkownika nie trafia do snapshotu. Błąd backupu daje niezerowy kod wyjścia i nie zostawia pliku udającego kompletny | „Plik powstał i jest poprawnym JSON, więc backup jest pełny” | Zakres `user:backup` i backupu aplikacji, lista tabel z danymi użytkownika, obsługa błędów i kod wyjścia, istniejące testy backupu | integracja (Artisan na PostgreSQL) | Test, który sprawdza tylko istnienie pliku albo klucze najwyższego poziomu |
 | #6 | Zamrożony snapshot każdej wspieranej wersji wczytuje się do pustej bazy, a kwoty, powiązania i liczności są równe oczekiwanym, z wartościami domyślnymi dla pól spoza danej wersji | „Restore bez wyjątku oznacza pełny restore” | Formaty v1–v5 i encje każdej wersji, mapowanie wartości domyślnych, istniejące testy round-trip | integracja (Artisan) z zamrożonymi plikami snapshotów w repo | Snapshot generowany bieżącym kodem backupu, który nigdy nie sprawdza starego formatu |
 | #7 | Kilka testów w przeglądarce przechodzi krytyczne przepływy do końca, bez błędów JS, i widzi ich skutek (operacja na liście, zmienione „do wydania” po Imporcie) | „Kitchen sink się renderuje, więc przepływ działa” | Które przepływy zależą od stanu klienta (dialogi, wgranie pliku, podgląd), czego nie łapią testy `assertInertia` i Vitest, jak uruchomić aplikację z bazą testową | e2e: 3–5 testów (Pest Browser plugin albo Playwright; dodanie zależności wymaga zgody użytkownika) | Zrzuty pikselowe przy ciągłych restylach Atrament; e2e dla zachowania, które łapie test Feature |
@@ -74,13 +74,13 @@ orchestrator updates Status as artifacts appear on disk.
 
 | # | Phase name | Goal (one line) | Risks covered | Test types | Status | Change folder |
 |---|---|---|---|---|---|---|
-| 1 | Integralność Importu | Dowieść, że Import nie dubluje, nie gubi i nie zostawia połowicznych zestawów, i zapisać poziom bazowy trafności podpowiedzi przed S-16 | #1, #4 | integracja + benchmark | change opened | `context/changes/testing-import-integrity/` |
+| 1 | Integralność Importu | Dowieść, że Import nie dubluje, nie gubi i nie zostawia połowicznych zestawów, i zapisać poziom bazowy trafności podpowiedzi na stałym zestawie referencyjnym | #1, #4 | integracja + benchmark | change opened | `context/changes/testing-import-integrity/` |
 | 2 | Niezmienniki kwot | Dowieść zgodności „do wydania” PHP↔TS przed S-14 oraz zgodności raportu z wykonaniem i Wynikiem miesiąca po S-11 | #2, #3 | kontrakt/parzystość + integracja | not started | — |
 | 3 | Backup i restore | Dowieść, że backup jest kompletny i głośno pada, a restore v1–v5 jest bezstratny, zanim S-14/S-16 wprowadzą v6 | #5, #6 | integracja | not started | — |
 | 4 | Przepływy w przeglądarce | Dowieść, że krytyczne przepływy działają w prawdziwej przeglądarce bez błędów JS | #7 | e2e | not started | — |
 | 5 | Bramki jakości | Utrwalić poziom: przegląd tras pod izolację, testy `arch()` dla twardych zasad, testy pod PHPStan, e2e w CI | #8, przekrojowo | integracja + bramki | not started | — |
 
-Kolejność: etap 1 to obawa nr 1 i wcześniejsza wpadka użytkownika, a poziom „przed” dla #4 musi powstać przed S-16. Etap 2 musi wylądować przed zmianą reguły w S-14; część #3 czeka na S-11. Etap 3 stoi przed v6 snapshotu. Etap 4 wymaga decyzji o zależności. Etap 5 utrwala to, co dostarczą etapy 1–4. Warstwa AI-native nie ma etapu: deterministyczne testy dają sygnał dla każdego ryzyka.
+Kolejność: etap 1 to obawa nr 1 i wcześniejsza wpadka użytkownika. Etap 2 musi wylądować przed zmianą reguły w S-14; część #3 czeka na S-11. Etap 3 stoi przed v6 snapshotu. Etap 4 wymaga decyzji o zależności. Etap 5 utrwala to, co dostarczą etapy 1–4. Warstwa AI-native nie ma etapu: deterministyczne testy dają sygnał dla każdego ryzyka.
 
 ## 4. Stack
 
@@ -115,7 +115,7 @@ phase lands; before that, the gate is `planned`.
 |---|---|---|---|
 | lint + format (`vp check`, Pint), typecheck (`vue-tsc`, PHPStan poziom 7), Sloppy | local + CI | required | dryf składni i typów, wzorce zapytań w pętli |
 | unit + integration na PostgreSQL (`composer ci:check`) | local (Sail) + CI | required | regresje logiki i odczytów |
-| testy integralności Importu i benchmark trafności podpowiedzi | local + CI | required after §3 Phase 1 | duplikaty i zgubione wiersze, spadek trafności |
+| testy integralności Importu i benchmark trafności podpowiedzi | local + CI | required | duplikaty i zgubione wiersze, spadek trafności |
 | testy parzystości „do wydania” PHP↔TS i niezmienników raportu | local + CI | required after §3 Phase 2 | rozjazd kopii kalkulatorów, sumy różne od budżetu |
 | round-trip backup/restore i strażnik kompletności snapshotu | local + CI | required after §3 Phase 3 | niekompletny backup, stratny restore starszych wersji |
 | e2e krytycznych przepływów | CI on PR | required after §3 Phase 5 (planned in Phase 4) | zepsute przepływy w przeglądarce |
@@ -138,7 +138,17 @@ the relevant rollout phase ships; before that, the sub-section reads
 
 - **Location**: `tests/Feature/`, `php artisan make:test --pest <Name>Test`. Dane przez fabryki modeli; daty jawne, nie losowe.
 - **Run locally on PostgreSQL**: komenda z `AGENTS.md` (Commands), dla testów z bazą zawsze.
-- Import z prawdziwymi wariantami wyciągów i stanem bazy przed i po: TBD — see §3 Phase 1 (wzorzec dla duplikatów, zgubionych wierszy i atomowości zestawu).
+- **Import z prawdziwymi wariantami wyciągów** (duplikaty, zgubione wiersze, atomowość zestawu): wzorzec w `tests/Feature/ImportIntegrityTest.php`, na PostgreSQL.
+  - Test robi migawkę stanu bazy przed i po zatwierdzeniu (helpery `importIntegrity*`) i porównuje liczności operacji, przelewów własnych, ruchów kapitału i pozycji budżetu, salda kont i lokat oraz wykonanie pozycji; asercja tylko na odpowiedzi HTTP nie wystarcza.
+  - Wyrocznie są niezależne od parsera: ręcznie policzona liczba wierszy pliku, ręczne krotki (data, kwota w groszach) z pliku sprawdzane na podglądzie, saldo pochodne z `AccountBalanceOnDate`.
+  - Fixture pochodzi z prawdziwego pliku, edytowanego ręcznie (anonimizacja, nakładka, układ) w `tests/Fixtures/import/`, nigdy wygenerowanego parserem. Obecne: mbank-overlap, no-preamble, long-preamble, reordered-columns, renamed-amount. Warianty BNP (xlsx) test buduje w locie przez PhpSpreadsheet.
+  - Atomowość: wiersz, który pada po wierszu już zapisanym, musi wycofać cały zestaw (stan bazy jak przed).
+  - Nowy wariant banku: weź prawdziwy plik, zanonimizuj ręcznie, policz wiersze ręcznie, dodaj plik do `tests/Fixtures/import/` i przypadek do `ImportIntegrityTest.php` z oczekiwanymi krotkami zapisanymi w teście.
+  - Świeże eksporty użytkownika (wrzesień i październik 2026, mBank i BNP) są zanonimizowane razem z kwotami i leżą poza gitem w `storage/app/private/import-fixtures/` ze skryptami `tools/anonymize.php` i `tools/verify.php`. Ich testy w `ImportIntegrityTest.php` są pomijane z komunikatem, gdy plików brak, więc w CI się nie uruchamiają. Przy nowym eksporcie: oryginał do `storage/app/private/statements/`, potem `anonymize.php`, `verify.php` i nowe liczby w teście.
+- **Benchmark trafności podpowiedzi kategorii**: `tests/Feature/ImportSuggestionAccuracyBenchmarkTest.php` (około 10 s na PostgreSQL) porównuje trafność ze stałym zestawem `tests/Fixtures/suggestions/reference-2026.json` (1031 wierszy, pseudonimy tokenów posortowane w wierszu, kategorie „Kategoria N” w kolejności niezależnej od id, bez kwot i bez tekstu z banku) i poziomem bazowym `tests/Fixtures/suggestions/reference-2026-baseline.json`.
+  - Regeneracja zestawu: `php artisan import:suggestion-reference {snapshot} --year=2026` na snapshocie `user:backup` w wersji co najmniej 10. Generator wymusza równość rankingu przed i po pseudonimizacji.
+  - Świadome podniesienie bazy: uruchom test z `SUGGESTION_BASELINE_WRITE=1` (odmawia przy ustawionym `CI`), a nowy poziom bazowy trafia do commita razem z uzasadnieniem.
+  - Spadek poniżej poziomu bazowego czerwieni test i wypisuje listę wierszy, które przestały trafiać. Nie obniżaj progu, żeby test przeszedł.
 - Niezmiennik raportu z ręcznie policzoną wyrocznią: TBD — see §3 Phase 2.
 
 ### 6.3 Adding an e2e test
@@ -158,12 +168,17 @@ the relevant rollout phase ships; before that, the sub-section reads
 
 (Po każdym etapie `/10x-implement` dopisuje tu 2–3 linie o tym, czego etap nauczył.)
 
+- **Etap 1, Integralność Importu**: luka A (powtórzony `rows.*.index`) zamknięta regułą `distinct` po czerwonym teście. Luki B i C zostają otwarte jako issue #271 i #272.
+- Wyroczni „kompletu wierszy” nie da się wziąć z parsera: liczba wierszy pliku jest liczona ręcznie i zapisana w teście.
+- Poziom bazowy trafności (zmierzony na zestawie 2026): rok — z podpowiedzią 77,0%, trafne wśród podpowiedzianych 93,7% (poziom suggestion); sierpień–listopad — 79,6% i 96,9%.
+
 ## 7. What We Deliberately Don't Test
 
 Exclusions agreed during the rollout (Phase 2 interview, Q5). Future
 contributors should respect these unless the underlying assumption changes.
 
 - **Lokaty (Term Deposit) i ruchy kapitału (Capital Movement)** — bez nowych testów ponad istniejące. Ocenić ponownie, gdy zmiana dotknie ich reguł, Importu ruchów kapitału albo Total funds. (Source: Phase 2 interview Q5.)
+- **Równoczesne podwójne zatwierdzenie Importu** — świadomie nietestowane: jest jeden użytkownik, przycisk jest blokowany w trakcie wysyłki, a ponowne wysłanie po sukcesie ma test. Ocenić ponownie, gdy w gospodarstwie pojawi się drugi użytkownik albo Import przez API. Znane, otwarte luki formatów: issue #271 i #272. (Source: `testing-import-integrity`, plan faza 6.)
 - **Zrzuty pikselowe widoków** — nie wykrywają regresji przy ciągłych restylach Atrament; stan widoku chronią kitchen sinki `/dev/...` i `npm run check:ui`. Ocenić ponownie, gdy design system się ustabilizuje. (Source: challenger pass, seed brief.)
 
 ## 8. Freshness Ledger
