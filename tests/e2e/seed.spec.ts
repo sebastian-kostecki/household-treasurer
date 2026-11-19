@@ -39,10 +39,10 @@ test(
             .filter({ has: page.getByText(description, { exact: true }) })
             .filter({ has: page.getByRole('button', { name: 'Więcej akcji' }) })
             .last();
-        await expect(row).toContainText('−12,34');
+        await expect(row).toContainText('−99,99');
 
         await page.reload();
-        await expect(row).toContainText('−12,34');
+        await expect(row).toContainText('−99,99');
 
         // Cleanup — asserted, so a cleanup that fails turns the run red.
         await row.getByRole('button', { name: 'Więcej akcji' }).click();
