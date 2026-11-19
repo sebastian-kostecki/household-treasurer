@@ -58,7 +58,7 @@ Cztery kamienie milowe powstały w dwa tygodnie, a aplikacja nie przeszła jeszc
 | S-40 | session-year-follows-year-turn  | użytkownik po przełomie otwiera aplikację w nowym roku bez ręcznej zmiany roku                                 | F-08, S-39    | MS-02    | proposed |
 | S-41 | year-turn-notices               | użytkownik widzi przed przełomem, co czeka: plan grudnia, Budżet następnego roku i Import przy szkicu          | F-08, S-39    | MS-03    | proposed |
 | S-42 | import-across-draft-year        | użytkownik importuje wyciąg z przełomu przy szkicu nowego roku i wie, co zrobić z wierszami nowego roku        | —             | MS-04    | done     |
-| S-43 | years-report-in-early-january   | użytkownik widzi w „Latach” i w roku do roku sensowny odczyt w pierwszych dniach stycznia                     | F-08, S-39    | MS-05    | planning |
+| S-43 | years-report-in-early-january   | użytkownik widzi w „Latach” i w roku do roku sensowny odczyt w pierwszych dniach stycznia                     | F-08, S-39    | MS-05    | in-progress |
 | S-44 | e2e-in-ci                       | użytkownik (właściciel repo) widzi czerwone CI, gdy zmiana psuje przepływ w przeglądarce                       | F-09          | MS-07    | done     |
 | S-45 | production-error-tracking       | użytkownik (właściciel) dostaje zgłoszenie wyjątku z produkcji ze stosem wywołań i kontekstem żądania          | —             | MS-08    | blocked  |
 | S-46 | docs-match-code                 | użytkownik i agent czytają słownik i ADR bez zdublowanych numerów i terminów, których nie ma w kodzie          | —             | MS-09    | done     |
@@ -179,7 +179,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Unknowns:**
   - Co „Lata” pokazują na początku stycznia: domyślnie „Pełne lata”, cięcie do końca poprzedniego miesiąca czy jak dziś z podpowiedzią? — Owner: user. Block: no.
 - **Risk:** Zmienia ADR-0097 (Same-day Cut) i może dotknąć ADR-0074; sumy w „Latach” muszą dalej równać się raportowi Rok.
-- **Status:** planning
+- **Status:** in-progress
 
 ### S-44: E2E w CI
 

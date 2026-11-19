@@ -284,8 +284,8 @@ None: no schema or stored data changes.
 
 #### Automated
 
-- [ ] 1.1 ADR-0108 exists and is referenced from the glossary, ADR-0097 and ADR-0101
-- [ ] 1.2 No other ADR uses the number 0108 in this branch
+- [x] 1.1 ADR-0108 exists and is referenced from the glossary, ADR-0097 and ADR-0101
+- [x] 1.2 No other ADR uses the number 0108 in this branch
 
 #### Manual
 
