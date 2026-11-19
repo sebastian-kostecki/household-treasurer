@@ -398,10 +398,10 @@ None. No schema change, and the prop changes are additive except the new `approv
 
 #### Automated
 
-- [x] 2.1 Dashboard and year-turn Feature tests pass on PostgreSQL
-- [x] 2.2 Vitest passes for the presentation and the fixtures
-- [x] 2.3 Types and UI guards pass
-- [x] 2.4 PHP style is clean
+- [x] 2.1 Dashboard and year-turn Feature tests pass on PostgreSQL — c60e1625
+- [x] 2.2 Vitest passes for the presentation and the fixtures — c60e1625
+- [x] 2.3 Types and UI guards pass — c60e1625
+- [x] 2.4 PHP style is clean — c60e1625
 
 #### Manual
 
