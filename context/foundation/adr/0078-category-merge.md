@@ -37,3 +37,5 @@ We rejected:
 - a merge log and undo in the application (`user:restore` from the snapshot is the way back, and the merge is a rare clean-up).
 
 > Numbering: planned and archived (`context/archive/2026-11-11-category-merge/`) as ADR-0076. Another change took 0076 and 0077 on `development` first, so the merge renumbered this ADR to 0078.
+
+Amended by ADR-0104: Cash Expectation, Earmark and Reserve left the glossary, so the sentence on their re-pointing in the merge no longer holds, and "Usuń" no longer refuses a Category over a Cash Expectation.

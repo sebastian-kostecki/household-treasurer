@@ -20,3 +20,5 @@ Rejected:
 - archive allowed only with a Budget Line in a Budget in execution (a Category with only a draft line could be neither archived nor deleted);
 - archive without delete (a Category created by mistake would stay on the list for good);
 - the description in the selectors (it would turn a choice list into a reading list and lengthen every row).
+
+Amended by ADR-0104: Cash Expectation left the glossary, so the clause "which is added with Cash Expectation itself" no longer holds; the condition for deleting is final: no Financial Operation in any year and no Budget Line in a Budget in execution.

@@ -25,3 +25,5 @@ We rejected:
 - storing the state `agrees` (it would go stale on every late edit and need a recompute on every write path of three operation types);
 - a free number of reconciliations per day (the second one on the same day says the first was wrong or the day moved; one row per day keeps "the last reconciliation" a plain maximum of D);
 - deleting a reconciliation in this change (a wrong value is replaced by saving the day again; a wrong day can be left as a harmless row, and removal can follow if the User asks for it).
+
+Amended by ADR-0104: Cash Expectation left the glossary, so the sentences "A Cash Expectation is not in it" and "the Import and the Cash Expectation settlement do not read it" no longer apply.

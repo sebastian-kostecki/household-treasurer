@@ -317,10 +317,10 @@ Brak migracji. Po scaleniu do `development` w głównym checkoucie zmień S-46 w
 
 #### Automated
 
-- [x] 1.1 Przed zmianą numeru test nie przechodzi i wymienia oba pliki 0008
-- [x] 1.2 Po zmianie numeru ten sam test przechodzi
-- [x] 1.3 Pint bez uwag dla pliku testu
-- [x] 1.4 grep 0008 zwraca tylko adr/0013 i nazwę pliku snapshotów
+- [x] 1.1 Przed zmianą numeru test nie przechodzi i wymienia oba pliki 0008 — df449e2
+- [x] 1.2 Po zmianie numeru ten sam test przechodzi — df449e2
+- [x] 1.3 Pint bez uwag dla pliku testu — df449e2
+- [x] 1.4 grep 0008 zwraca tylko adr/0013 i nazwę pliku snapshotów — df449e2
 
 #### Manual
 
@@ -330,9 +330,9 @@ Brak migracji. Po scaleniu do `development` w głównym checkoucie zmień S-46 w
 
 #### Automated
 
-- [ ] 2.1 AdrNumberingTest przechodzi po dodaniu 0104
-- [ ] 2.2 Każdy z ADR 0017–0022, 0029, 0030 ma „Superseded by ADR-0104”
-- [ ] 2.3 Każdy z ADR 0031, 0063, 0067, 0078, 0086, 0091 ma „Amended by ADR-0104”
+- [x] 2.1 AdrNumberingTest przechodzi po dodaniu 0104
+- [x] 2.2 Każdy z ADR 0017–0022, 0029, 0030 ma „Superseded by ADR-0104”
+- [x] 2.3 Każdy z ADR 0031, 0063, 0067, 0078, 0086, 0091 ma „Amended by ADR-0104”
 
 #### Manual
 
