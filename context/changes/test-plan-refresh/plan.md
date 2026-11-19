@@ -377,11 +377,11 @@ Brak. Orkiestrator `/10x-test-plan` czyta §3 tymi samymi literałami statusów.
 
 #### Automated
 
-- [x] 1.1 Warunki wstępne spełnione (development i roadmapa M-5 zmergowane)
-- [x] 1.2 §2 ma 9 wierszy ryzyk i 9 wierszy guidance
-- [x] 1.3 §1–§2 bez slice'ów M-2
-- [x] 1.4 Tabela ryzyk §2 bez kotwic kodu
-- [x] 1.5 §7 bez zmian
+- [x] 1.1 Warunki wstępne spełnione (development i roadmapa M-5 zmergowane) — 367d55d
+- [x] 1.2 §2 ma 9 wierszy ryzyk i 9 wierszy guidance — 367d55d
+- [x] 1.3 §1–§2 bez slice'ów M-2 — 367d55d
+- [x] 1.4 Tabela ryzyk §2 bez kotwic kodu — 367d55d
+- [x] 1.5 §7 bez zmian — 367d55d
 
 #### Manual
 
@@ -391,10 +391,10 @@ Brak. Orkiestrator `/10x-test-plan` czyta §3 tymi samymi literałami statusów.
 
 #### Automated
 
-- [ ] 2.1 §3 ma 6 wierszy etapów z dozwolonymi statusami
-- [ ] 2.2 §3–§5 bez slice'ów M-2 i nieaktualnych wpisów e2e
-- [ ] 2.3 §5 wymienia cztery istniejące specy-bramki i retries: 0
-- [ ] 2.4 §7 bez zmian
+- [x] 2.1 §3 ma 6 wierszy etapów z dozwolonymi statusami
+- [x] 2.2 §3–§5 bez slice'ów M-2 i nieaktualnych wpisów e2e
+- [x] 2.3 §5 wymienia cztery istniejące specy-bramki i retries: 0
+- [x] 2.4 §7 bez zmian
 
 #### Manual
 

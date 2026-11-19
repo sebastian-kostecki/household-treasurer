@@ -76,36 +76,43 @@ orchestrator updates Status as artifacts appear on disk.
 
 | # | Phase name | Goal (one line) | Risks covered | Test types | Status | Change folder |
 |---|---|---|---|---|---|---|
-| 1 | Integralność Importu | Dowieść, że Import nie dubluje, nie gubi i nie zostawia połowicznych zestawów, i zapisać poziom bazowy trafności podpowiedzi na stałym zestawie referencyjnym | #1, #4 | integracja + benchmark | change opened | `context/changes/testing-import-integrity/` |
-| 2 | Niezmienniki kwot | Dowieść zgodności „do wydania” PHP↔TS przed S-14 oraz zgodności raportu z wykonaniem i Wynikiem miesiąca po S-11 | #2, #3 | kontrakt/parzystość + integracja | not started | — |
-| 3 | Backup i restore | Dowieść, że backup jest kompletny i głośno pada, a restore v1–v5 jest bezstratny, zanim S-14/S-16 wprowadzą v6 | #5, #6 | integracja | not started | — |
-| 4 | Przepływy w przeglądarce | Dowieść, że krytyczne przepływy działają w prawdziwej przeglądarce bez błędów JS | #7 | e2e | not started | — |
-| 5 | Bramki jakości | Utrwalić poziom: przegląd tras pod izolację, testy `arch()` dla twardych zasad, testy pod PHPStan, e2e w CI | #8, przekrojowo | integracja + bramki | not started | — |
+| 1 | Integralność Importu | Dowieść, że Import nie dubluje, nie gubi i nie zostawia połowicznych zestawów, i zapisać poziom bazowy trafności podpowiedzi na stałym zestawie referencyjnym | #1, #4 | integracja + benchmark | `complete` | `context/archive/2026-11-17-testing-import-integrity/` |
+| 2 | Bramki E2E w CI | CI na pushu i PR do `development` czerwieni się, gdy merge psuje zatwierdzenie Importu, dialog operacji albo plan miesiąca; bramka tylko ze stabilnych speców, bez powtórek (roadmap S-44, zmiana `e2e-in-ci`) | #7 | e2e w CI | `not started` | — |
+| 3 | Wierność Importu | Zapisana operacja = transakcja z pliku (data, kwota ze znakiem, rachunek); po decyzji o FR-IMP-08/10 przypięte #271 i #272 | #1 | integracja | `not started` | — |
+| 4 | Backup i restore | Strażnik kompletności snapshotu czerwieni się przy tabeli albo kolumnie z danymi użytkownika spoza snapshotu, restore każdej starszej wersji jest bezstratny (głośna porażka zapisu ma już test z `backup-signals`) | #5, #6 | integracja | `not started` | — |
+| 5 | Niezmienniki kwot | „do wydania” PHP = TS na wspólnej tabeli przypadków; raport = wykonanie = Wynik miesiąca na ręcznej wyroczni | #2, #3 | kontrakt/parzystość + integracja | `not started` | — |
+| 6 | Bramki jakości | Przegląd tras pod izolację, `arch()` dla twardych zasad, PHPStan na `tests/` | #8, przekrojowo | integracja + bramki | `not started` | — |
 
-Kolejność: etap 1 to obawa nr 1 i wcześniejsza wpadka użytkownika. Etap 2 musi wylądować przed zmianą reguły w S-14; część #3 czeka na S-11. Etap 3 stoi przed v6 snapshotu. Etap 4 wymaga decyzji o zależności. Etap 5 utrwala to, co dostarczą etapy 1–4. Warstwa AI-native nie ma etapu: deterministyczne testy dają sygnał dla każdego ryzyka.
+Kolejność:
+
+- Etap 2 jest jedynym etapem planu testów w M-5 (roadmap S-44); etapy 4–6 są w Parked.
+- Etap 3 to obawa nr 1 i zaczyna się od decyzji produktowej o FR-IMP-08/10.
+- Etap 4 wyprzedza etap 5, bo kopia jest drogą odwrotu przy wdrożeniach, a osiem podbić wersji snapshotu przeszło bez strażnika kompletności (#5 High/High).
+- Ryzyko #9 nie ma etapu: testy jadą z S-39…S-43 według §6.2, a bramka stoi w §5. To świadomy wyjątek od zasady „każda bramka ma etap §3”. Orkiestrator nie śledzi jej stanu, więc sprawdza go ręcznie następny `--refresh`.
+- Warstwa AI-native nie ma etapu: deterministyczne testy dają sygnał dla każdego ryzyka.
 
 ## 4. Stack
 
 The classic test base for this project. AI-native tools (if any) carry a
 `checked:` date so future readers can see which lines need re-verification.
 
-Profil bazy testów: **meaningful**. Skonfigurowane Pest i Vitest, 94 pliki testów PHP (Feature, Unit, Nfr) i 26 plików `*.test.ts` w `resources/js/lib`, bramka `composer ci:check` w CI na PostgreSQL 18 i PHP 8.5.
+Profil bazy testów: **meaningful**. Skonfigurowane Pest i Vitest, 176 plików testów PHP (133 w `tests/Feature`, 43 w `tests/Unit`), 63 pliki `*.test.ts`, 15 speców Playwright i 44 pliki PHP z zamrożonym czasem (`travelTo`), bramka `composer ci:check` w CI na PostgreSQL 18 i PHP 8.5.
 
 | Layer | Tool | Version | Notes |
 |---|---|---|---|
 | unit + integration (PHP) | Pest (PHPUnit) | 5.3 (13.4) | `phpunit.xml` domyślnie SQLite w pamięci; dowód dla bazy tylko na PostgreSQL (komendy w `AGENTS.md`) |
 | wydajność (NFR) | Pest, grupa `nfr` | 5.3 | `phpunit.nfr.xml`, PostgreSQL; wzorzec 2 s przy 10 000 operacji |
-| unit (TS) | Vitest przez `vp test` (vite-plus) | 5 (vite-plus 1.4) | pliki `*.test.ts` obok logiki w `resources/js/lib` |
+| unit (TS) | Vitest przez `vp test` (vite-plus) | 5.1 (vite-plus 1.6) | pliki `*.test.ts` obok logiki w `resources/js/lib` |
 | kontrakt PHP ↔ Vue | `assertInertia` w testach Feature | — | wymóg z `AGENTS.md` dla każdego propsa Inertia |
 | strażnik UI | `npm run check:ui` | — | skaner literałów UI i tokenów Atrament |
-| e2e | none yet — see Phase 4 | — | kandydaci: Pest Browser plugin (`pestphp/pest-plugin-browser` + Playwright) albo `@playwright/test`; zależność wymaga zgody użytkownika |
-| testy architektury | none yet — see Phase 5 | — | Pest `arch()` |
+| e2e | Playwright (`@playwright/test`) | 1.65 | lokalnie do §3 Phase 2: jeden worker, serwer z obrazu Sail, baza `household_treasurer_e2e` z `demo:seed-household`, a dla raportów `demo:seed-previous-year`; szczegóły w `context/foundation/test-stack.md` |
+| testy architektury | none yet — see Phase 6 | — | Pest `arch()` |
 
 **Stack grounding tools (current session):**
-- Docs: Laravel Boost `search-docs` (pestphp/pest 5.x) — potwierdzono Browser Testing w Pest 5: plugin `pestphp/pest-plugin-browser` na Playwright, `visit()`, `assertNoJavaScriptErrors`, `assertNoSmoke`, `assertNoAccessibilityIssues`, tryb ciemny i urządzenia mobilne; checked: 2026-11-06
-- Search: Exa (`web_search_exa`) — dostępne, nieużyte; oficjalna dokumentacja przez Boost wystarczyła; checked: 2026-11-06
-- Runtime/browser: none — w tej sesji nie ma MCP Playwright ani narzędzia przeglądarki; etap 4 dobiera runner w kodzie testów, nie przez MCP; checked: 2026-11-06
-- Provider/platform: `gh` CLI dla GitHub Actions (historia przebiegów CI); GitLab MCP nie połączył się w tej sesji; checked: 2026-11-06
+- Docs: Laravel Boost `search-docs` — dostępne, nieużyte; wersje i konfiguracja wzięte z `composer.lock`, `package-lock.json` i `context/foundation/test-stack.md`; checked: 2026-11-19
+- Search: Exa (`web_search_exa`) — dostępne, nieużyte; checked: 2026-11-19
+- Runtime/browser: skill `playwright-cli`, bez MCP Playwright; opcję `failOnFlakyTests` sprawdzono w typach zainstalowanego Playwright 1.65.0; checked: 2026-11-19
+- Provider/platform: `gh` CLI dla GitHub Actions (historia przebiegów CI); checked: 2026-11-19
 
 ## 5. Quality Gates
 
@@ -115,13 +122,15 @@ phase lands; before that, the gate is `planned`.
 
 | Gate | Where | Required? | Catches |
 |---|---|---|---|
-| lint + format (`vp check`, Pint), typecheck (`vue-tsc`, PHPStan poziom 7), Sloppy | local + CI | required | dryf składni i typów, wzorce zapytań w pętli |
+| lint + format (`vp check`, Pint), typecheck (`vue-tsc`, PHPStan poziom 7 (Larastan 3.15)), Sloppy | local + CI | required | dryf składni i typów, wzorce zapytań w pętli |
 | unit + integration na PostgreSQL (`composer ci:check`) | local (Sail) + CI | required | regresje logiki i odczytów |
-| testy integralności Importu i benchmark trafności podpowiedzi | local + CI | required | duplikaty i zgubione wiersze, spadek trafności |
-| testy parzystości „do wydania” PHP↔TS i niezmienników raportu | local + CI | required after §3 Phase 2 | rozjazd kopii kalkulatorów, sumy różne od budżetu |
-| round-trip backup/restore i strażnik kompletności snapshotu | local + CI | required after §3 Phase 3 | niekompletny backup, stratny restore starszych wersji |
-| e2e krytycznych przepływów | CI on PR | required after §3 Phase 5 (planned in Phase 4) | zepsute przepływy w przeglądarce |
-| przegląd tras pod izolację, `arch()`, PHPStan na `tests/` | local + CI | required after §3 Phase 5 | dostęp do cudzych danych, złamane twarde zasady |
+| testy integralności Importu i benchmark trafności podpowiedzi | local + CI | required (§3 Phase 1 `complete`) | duplikaty i zgubione wiersze, spadek trafności |
+| e2e speców-bramek: `seed`, `import-other-format-without-header`, `month-plan-groups`, `irregular-collected` i nowy spec zatwierdzenia Importu (nazwę nada S-44) | CI na pushu i PR do `development` | required after §3 Phase 2; w CI `retries: 0` i trace przy porażce (`retain-on-failure`); pozostałe specy lokalnie | zepsuty przepływ w przeglądarce |
+| testy przełomu roku (granice 22:59:59/23:00 UTC, strażnik zegara w domenowym JS) | local + CI | required od zarchiwizowania zmiany S-39 (`one-app-day`), rozszerzane przez S-40…S-43; wyjątek od zasady „bramka z etapem §3” (§3, akapit kolejności) | różne „dziś” serwera i przeglądarki |
+| wierność Importu (krotki po zapisie) | local + CI | required after §3 Phase 3 | zapis inny niż plik |
+| round-trip backup/restore i strażnik kompletności snapshotu | local + CI | required after §3 Phase 4 (kod wyjścia przy nieudanym zapisie jest już w `composer ci:check`) | niekompletny backup, stratny restore starszych wersji |
+| testy parzystości „do wydania” PHP↔TS i niezmienników raportu | local + CI | required after §3 Phase 5 | rozjazd kopii kalkulatorów, sumy różne od budżetu |
+| przegląd tras pod izolację, `arch()`, PHPStan na `tests/` | local + CI | required after §3 Phase 6 | dostęp do cudzych danych, złamane twarde zasady |
 
 ## 6. Cookbook Patterns
 
