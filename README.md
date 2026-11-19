@@ -336,17 +336,18 @@ Procedura N→N+1 (np. 2026→2027). Rok zmienia się o 00:00 czasu polskiego (A
 - zapomniany grudzień: stycznia nie da się już skopiować z grudnia, Propozycja bierze roczny udział planu, a kwoty poprawiasz ręcznie przed zatwierdzeniem;
 - zapomniany start: uruchom N+1 w dowolnej chwili. Dashboard do tego czasu pokazuje kartę „Budżet jest w szkicu”, a podgląd Importu pokazuje przy wierszach N+1 notatkę „Budżet N+1 jest szkicem” z odnośnikiem do Budżetu, a zaznaczony dochód, wydatek albo zwrot z N+1 blokuje „Zatwierdź import” osobnym powodem. Odznacz te wiersze, żeby zapisać grudzień (ADR-0106). Po starcie Zebrane i Propozycje uzupełniają się same. Potem wgraj plik ponownie: grudzień wróci jako duplikaty (niezaznaczone), a styczeń dostanie kategorie.
 
-Rok wybrany w sesji (2026) zostaje po przełomie: przełącz go ręcznie w menu na N+1.
+Rok N wybrany w menu albo założony jako nowy Budżet w trakcie roku N ustępuje od 00:00 czasu polskiego roku N+1 samoczynnie, bez komunikatu (ADR-0111). Inny rok wybrany do przeglądania (np. 2023) oraz rok N+1 wybrany jeszcze w grudniu zostają. Rok N wybrany ponownie już po przełomie też zostaje.
 
 **Co sprawdzić 1–2 stycznia:**
 
 - Dashboard pokazuje datę i „budżet N+1 w realizacji” z blokiem wykonania;
+- Budżet otwiera się na N+1 bez ręcznej zmiany roku w menu;
 - Budżet N+1: „zebrane startowe” bez „prognozy”;
 - Propozycja stycznia ma kwoty z grudnia dla opłat stałych i pozycji bez rytmu;
 - Raport „Lata”: każdy rok liczony „do 1.01”, więc 1 stycznia porównuje tylko jeden dzień poprzednich lat (to zwykły skutek, nie błąd danych);
 - Import grudnia: operacje zapisują się w pozycjach Budżetu N, a styczniowe w Budżecie N+1.
 
-**Próba przed przełomem:** `docker compose exec -u sail laravel.test php artisan app:rehearsal-clock "2026-12-30 10:00"` ustawia „dziś” aplikacji (tylko `APP_ENV=local`, format `RRRR-MM-DD GG:MM` w UTC; dzień aplikacji wynika z tej chwili w czasie polskim); `--off` wyłącza. Komenda odmawia momentu starszego niż czas sesji (120 min), bo przeglądarka odrzuciłaby ciasteczka jako wygasłe. Póki zegar stoi, nieudane logowania się nie przedawniają (limit 5 na minutę). Przeglądarka bierze dzień z `shell.today`, więc osobnego zegara nie ustawiasz. Kopię danych weź jako snapshot użytkownika: `scripts/artisan.sh user:backup <id>` na VPS, odczyt przez `ssh … 'docker compose … exec -T app cat <plik>'`, potem `user:create`, `user:restore` i kroki jak w „Próba lokalna”. Każdy skok zegara o ponad 2 godziny do przodu wylogowuje, więc zaloguj się ponownie.
+**Próba przed przełomem:** `docker compose exec -u sail laravel.test php artisan app:rehearsal-clock "2026-12-30 10:00"` ustawia „dziś” aplikacji (tylko `APP_ENV=local`, format `RRRR-MM-DD GG:MM` w UTC; dzień aplikacji wynika z tej chwili w czasie polskim); `--off` wyłącza. Komenda odmawia momentu starszego niż czas sesji (120 min), bo przeglądarka odrzuciłaby ciasteczka jako wygasłe. Póki zegar stoi, nieudane logowania się nie przedawniają (limit 5 na minutę). Przeglądarka bierze dzień z `shell.today`, więc osobnego zegara nie ustawiasz. Kopię danych weź jako snapshot użytkownika: `scripts/artisan.sh user:backup <id>` na VPS, odczyt przez `ssh … 'docker compose … exec -T app cat <plik>'`, potem `user:create`, `user:restore` i kroki jak w „Próba lokalna”. Każdy skok zegara o ponad 2 godziny do przodu wylogowuje, więc zaloguj się ponownie. Żeby zobaczyć samoczynną zmianę roku, wybierz rok N w menu przed 23:00 UTC 31.12; rok wybrany później (np. po ponownym logowaniu wymuszonym skokiem zegara) jest wyborem w roku N+1 i zostaje.
 
 #### Liczby kontrolne
 

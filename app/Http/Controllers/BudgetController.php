@@ -118,7 +118,7 @@ class BudgetController extends Controller
 
         $budget = $createBudget->handle($request->user(), $validated['year']);
 
-        $request->session()->put('budget_year', $budget->year);
+        SelectedBudgetYear::choose($request->session(), $budget->year);
 
         Inertia::flash('toast', [
             'type' => 'success',
@@ -135,7 +135,7 @@ class BudgetController extends Controller
         $budget->delete();
 
         if ((int) $request->session()->get('budget_year') === $budget->year) {
-            $request->session()->forget('budget_year');
+            SelectedBudgetYear::forget($request->session());
         }
 
         Inertia::flash('toast', [
@@ -150,7 +150,7 @@ class BudgetController extends Controller
     {
         $validated = $request->validated();
 
-        $request->session()->put('budget_year', $validated['year']);
+        SelectedBudgetYear::choose($request->session(), (int) $validated['year']);
 
         return match ($validated['destination'] ?? 'budget') {
             'month-plan' => to_route('month-plan'),

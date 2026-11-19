@@ -217,8 +217,8 @@ No database migration. Live sessions without `budget_year_chosen_in` keep today'
 
 #### Automated
 
-- [x] 1.1 ADR file `context/foundation/adr/0111-session-year-follows-the-year-turn.md` exists and no other ADR uses number 0111
-- [x] 1.2 Glossary entry Budget cites ADR-0111
+- [x] 1.1 ADR file `context/foundation/adr/0111-session-year-follows-the-year-turn.md` exists and no other ADR uses number 0111 — 18ac4756
+- [x] 1.2 Glossary entry Budget cites ADR-0111 — 18ac4756
 
 #### Manual
 
@@ -228,14 +228,14 @@ No database migration. Live sessions without `budget_year_chosen_in` keep today'
 
 #### Automated
 
-- [ ] 2.1 Before the code change, the rewritten January test and the midnight test fail on PostgreSQL (red)
-- [ ] 2.2 After the change, `SelectedBudgetYearTest`, `YearTurnTest` and `BudgetTest` pass on PostgreSQL
-- [ ] 2.3 No `_known_gap` test remains in the suite
-- [ ] 2.4 Only `SelectedBudgetYear` writes the session year
-- [ ] 2.5 Clock guard green: `tests/Unit/AppDayClockGuardTest.php`
-- [ ] 2.6 `vendor/bin/pint --dirty --format agent` leaves no changes
-- [ ] 2.7 Gate green: `composer ci:check`
-- [ ] 2.8 `vendor/bin/sloppy ci` on the host reports no new finding
+- [x] 2.1 Before the code change, the rewritten January test and the midnight test fail on PostgreSQL (red)
+- [x] 2.2 After the change, `SelectedBudgetYearTest`, `YearTurnTest` and `BudgetTest` pass on PostgreSQL
+- [x] 2.3 No `_known_gap` test remains in the suite
+- [x] 2.4 Only `SelectedBudgetYear` writes the session year
+- [x] 2.5 Clock guard green: `tests/Unit/AppDayClockGuardTest.php`
+- [x] 2.6 `vendor/bin/pint --dirty --format agent` leaves no changes
+- [x] 2.7 Gate green: `composer ci:check`
+- [x] 2.8 `vendor/bin/sloppy ci` on the host reports no new finding
 
 #### Manual
 
