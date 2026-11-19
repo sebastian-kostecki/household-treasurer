@@ -1,7 +1,7 @@
 ---
 change_id: image-rollback-tags
 title: Image rollback tags
-status: plan_reviewed
+status: implementing
 created: 2026-11-19
 updated: 2026-11-19
 archived_at: null

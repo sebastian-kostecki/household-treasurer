@@ -278,10 +278,10 @@ Brak migracji bazy. Pierwsze wdrożenie po zmianie wymaga `git pull --ff-only or
 
 #### Automated
 
-- [ ] 1.1 Testy funkcji przechodzą: `php artisan test --compact tests/Unit/ProductionImagesScriptTest.php`
-- [ ] 1.2 Składnia skryptów poprawna: `bash -n scripts/deploy.sh scripts/lib/production-images.sh`
-- [ ] 1.3 Istniejący test plików wdrożenia przechodzi: `php artisan test --compact tests/Unit/ProductionPostgresClientVersionTest.php`
-- [ ] 1.4 Pint bez uwag: `vendor/bin/pint --dirty --format agent`
+- [x] 1.1 Testy funkcji przechodzą: `php artisan test --compact tests/Unit/ProductionImagesScriptTest.php`
+- [x] 1.2 Składnia skryptów poprawna: `bash -n scripts/deploy.sh scripts/lib/production-images.sh`
+- [x] 1.3 Istniejący test plików wdrożenia przechodzi: `php artisan test --compact tests/Unit/ProductionPostgresClientVersionTest.php`
+- [x] 1.4 Pint bez uwag: `vendor/bin/pint --dirty --format agent`
 
 #### Manual
 

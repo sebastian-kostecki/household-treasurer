@@ -146,3 +146,9 @@ RUN mkdir -p storage/framework/cache storage/framework/sessions storage/framewor
 EXPOSE 80/tcp
 
 ENTRYPOINT ["start-container"]
+
+# Last on purpose: the value changes on every deployment, so anything placed after it
+# would lose its layer cache. LABEL only changes metadata.
+ARG GIT_REVISION=
+ARG DEPLOYED_AT=
+LABEL org.opencontainers.image.revision=$GIT_REVISION household-treasurer.deployed-at=$DEPLOYED_AT
