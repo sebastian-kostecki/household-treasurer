@@ -12,6 +12,7 @@
 import { test, expect, type Page } from '@playwright/test';
 import {
     expectSelectedBudgetYear,
+    newestExecutionBudgetYear,
     selectBudgetYear,
 } from './support/budget-year';
 
@@ -51,11 +52,11 @@ async function deleteExpense(page: Page, description: string) {
     await expect(page.getByText(description, { exact: true })).toBeHidden();
 }
 
-// The month plan opens the selected budget year (the oldest one by default),
-// and a bill dated today lands in the budget of the current year.
+// The month plan opens the selected budget year (the oldest one by default);
+// the test picks the newest Budget that is not a draft.
 async function openCurrentMonthPlan(page: Page) {
     await page.goto('/month-plan');
-    const year = new Date().getFullYear();
+    const year = await newestExecutionBudgetYear(page);
     await selectBudgetYear(page, year);
     await expectSelectedBudgetYear(page, year);
     await page.goto('/month-plan');
@@ -67,82 +68,89 @@ function planRow(page: Page, name: string) {
         .filter({ has: page.getByText(name, { exact: true }) });
 }
 
-test('an irregular Category: a bill covered by the collected amount, then one over it', async ({
-    page,
-}) => {
-    const stamp = Date.now();
-    const category = `E2E nieregularna ${stamp}`;
-    const firstBill = `E2E rachunek A ${stamp}`;
-    const secondBill = `E2E rachunek B ${stamp}`;
-    const created: string[] = [];
+test(
+    'an irregular Category: a bill covered by the collected amount, then one over it',
+    { tag: '@gate' },
+    async ({ page }) => {
+        const pageErrors: Error[] = [];
+        page.on('pageerror', (error) => pageErrors.push(error));
 
-    // Setup: an expense Category „nieregularna” with 500,00 collected at the start.
-    await page.goto('/categories');
-    await page
-        .getByRole('button', { name: 'Dodaj kategorię', exact: true })
-        .click();
-    const dialog = page.getByRole('dialog');
-    await dialog.getByLabel('Nazwa').fill(category);
-    await dialog
-        .getByRole('button', { name: 'Nieregularna', exact: true })
-        .click();
-    await expect(dialog).toContainText(
-        'Co miesiąc stawka trafia do „zebrane” i pokrywa rachunek.',
-    );
-    await dialog.getByLabel('Zebrane startowe').fill('500,00');
-    await dialog.getByRole('button', { name: 'Zapisz' }).click();
-    await expect(dialog).toHaveCount(0);
+        const stamp = Date.now();
+        const category = `E2E nieregularna ${stamp}`;
+        const firstBill = `E2E rachunek A ${stamp}`;
+        const secondBill = `E2E rachunek B ${stamp}`;
+        const created: string[] = [];
 
-    try {
-        // A bill of 400,00 is covered by the collected amount: 100,00 is left.
-        await addExpense(page, category, '400,00', firstBill);
-        created.push(firstBill);
-
-        await openCurrentMonthPlan(page);
-        const row = planRow(page, category);
-        await expect(row).toContainText('Nieregularna');
-        await expect(row.locator('[data-collected]')).toContainText(
-            'zebrane 100,00',
-        );
-        await expect(row).not.toContainText('ponad plan');
-
-        // A bill of 300,00 more is 200,00 over the collected amount.
-        await addExpense(page, category, '300,00', secondBill);
-        created.push(secondBill);
-
-        await page.goto('/month-plan');
-        await expect(row.locator('[data-collected]')).toContainText(
-            'zebrane 0,00',
-        );
-        await expect(row).toContainText('ponad plan');
-        await expect(row.locator('.month-plan-cell-deviation')).toContainText(
-            '200,00',
-        );
-    } finally {
-        for (const description of created) {
-            await deleteExpense(page, description);
-        }
-
-        // The first bill joined the Category to a Budget in execution, so the
-        // list no longer allows deleting it; archiving takes it off the lists.
+        // Setup: an expense Category „nieregularna” with 500,00 collected at the start.
         await page.goto('/categories');
         await page
-            .locator('[data-category-row]')
-            .filter({ has: page.getByText(category, { exact: true }) })
-            .getByRole('button', {
-                name: `Więcej działań kategorii ${category}`,
-            })
+            .getByRole('button', { name: 'Dodaj kategorię', exact: true })
             .click();
-        await page.getByRole('menuitem', { name: 'Archiwizuj' }).click();
-        await page
-            .getByRole('dialog')
-            .getByRole('button', { name: 'Archiwizuj' })
+        const dialog = page.getByRole('dialog');
+        await dialog.getByLabel('Nazwa').fill(category);
+        await dialog
+            .getByRole('button', { name: 'Nieregularna', exact: true })
             .click();
-        await expect(page.getByRole('dialog')).toHaveCount(0);
-        await expect(
-            page
-                .locator('[data-tab="expense"]')
-                .getByText(category, { exact: true }),
-        ).toHaveCount(0);
-    }
-});
+        await expect(dialog).toContainText(
+            'Co miesiąc stawka trafia do „zebrane” i pokrywa rachunek.',
+        );
+        await dialog.getByLabel('Zebrane startowe').fill('500,00');
+        await dialog.getByRole('button', { name: 'Zapisz' }).click();
+        await expect(dialog).toHaveCount(0);
+
+        try {
+            // A bill of 400,00 is covered by the collected amount: 100,00 is left.
+            await addExpense(page, category, '400,00', firstBill);
+            created.push(firstBill);
+
+            await openCurrentMonthPlan(page);
+            const row = planRow(page, category);
+            await expect(row).toContainText('Nieregularna');
+            await expect(row.locator('[data-collected]')).toContainText(
+                'zebrane 100,00',
+            );
+            await expect(row).not.toContainText('ponad plan');
+
+            // A bill of 300,00 more is 200,00 over the collected amount.
+            await addExpense(page, category, '300,00', secondBill);
+            created.push(secondBill);
+
+            await page.goto('/month-plan');
+            await expect(row.locator('[data-collected]')).toContainText(
+                'zebrane 0,00',
+            );
+            await expect(row).toContainText('ponad plan');
+            await expect(
+                row.locator('.month-plan-cell-deviation'),
+            ).toContainText('200,00');
+        } finally {
+            for (const description of created) {
+                await deleteExpense(page, description);
+            }
+
+            // The first bill joined the Category to a Budget in execution, so the
+            // list no longer allows deleting it; archiving takes it off the lists.
+            await page.goto('/categories');
+            await page
+                .locator('[data-category-row]')
+                .filter({ has: page.getByText(category, { exact: true }) })
+                .getByRole('button', {
+                    name: `Więcej działań kategorii ${category}`,
+                })
+                .click();
+            await page.getByRole('menuitem', { name: 'Archiwizuj' }).click();
+            await page
+                .getByRole('dialog')
+                .getByRole('button', { name: 'Archiwizuj' })
+                .click();
+            await expect(page.getByRole('dialog')).toHaveCount(0);
+            await expect(
+                page
+                    .locator('[data-tab="expense"]')
+                    .getByText(category, { exact: true }),
+            ).toHaveCount(0);
+        }
+
+        expect(pageErrors).toEqual([]);
+    },
+);

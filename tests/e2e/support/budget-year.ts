@@ -24,6 +24,39 @@ export async function budgetYearCount(page: Page): Promise<number> {
     return count;
 }
 
+// The newest year whose Budget is not a draft (ADR-0098: the „szkic” pill,
+// `.sidebar-year-state-draft`, sits inside the row); the menu is closed again.
+// Needs a page with the sidebar.
+export async function newestExecutionBudgetYear(page: Page): Promise<number> {
+    await openYearMenu(page);
+    const items = page.getByRole('menuitemradio');
+    const count = await items.count();
+    const years: number[] = [];
+
+    for (let index = 0; index < count; index++) {
+        const item = items.nth(index);
+
+        if ((await item.locator('.sidebar-year-state-draft').count()) > 0) {
+            continue;
+        }
+
+        const year = Number((await item.textContent())?.match(/\d{4}/)?.[0]);
+
+        if (Number.isInteger(year)) {
+            years.push(year);
+        }
+    }
+
+    await page.keyboard.press('Escape');
+    await expect(page.getByRole('menu')).toHaveCount(0);
+
+    if (years.length === 0) {
+        throw new Error('The year menu has no Budget outside the draft phase.');
+    }
+
+    return Math.max(...years);
+}
+
 // The year „Dodaj rok” offers; the menu is closed again.
 export async function nextBudgetYear(page: Page): Promise<number> {
     await openYearMenu(page);

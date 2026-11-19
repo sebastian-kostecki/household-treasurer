@@ -427,20 +427,20 @@ Brak migracji danych. Zmiana seedera dotyczy tylko nowych seedów i nie rusza is
 
 #### Automated
 
-- [x] 1.1 Nowy test seedera jest czerwony przed poprawką (`2027-01-15` > dziś) na PostgreSQL
-- [x] 1.2 Po poprawce `SeedDemoHouseholdCommandTest.php` przechodzi na PostgreSQL
-- [x] 1.3 `DatabaseSeederTest.php` i `SeedPreviousYearCommandTest.php` przechodzą na PostgreSQL
-- [x] 1.4 Pint na zmienionych plikach PHP
+- [x] 1.1 Nowy test seedera jest czerwony przed poprawką (`2027-01-15` > dziś) na PostgreSQL — 8fead57
+- [x] 1.2 Po poprawce `SeedDemoHouseholdCommandTest.php` przechodzi na PostgreSQL — 8fead57
+- [x] 1.3 `DatabaseSeederTest.php` i `SeedPreviousYearCommandTest.php` przechodzą na PostgreSQL — 8fead57
+- [x] 1.4 Pint na zmienionych plikach PHP — 8fead57
 
 ### Phase 2: Specy-bramki zgodne z §6.3
 
 #### Automated
 
-- [ ] 2.1 Każdy z czterech speców przechodzi lokalnie na bazie `e2e_e2e_in_ci`
-- [ ] 2.2 Celowe zepsucie przepływu czerwieni każdy z czterech speców, a po cofnięciu spec jest zielony
-- [ ] 2.3 `throw` w `onMounted` strony przepływu czerwieni spec przez asercję `pageerror`
-- [ ] 2.4 Brak `new Date().getFullYear()` w czterech specach-bramkach
-- [ ] 2.5 `npx vp check` przechodzi dla zmienionych plików TS
+- [x] 2.1 Każdy z czterech speców przechodzi lokalnie na bazie `e2e_e2e_in_ci`
+- [x] 2.2 Celowe zepsucie przepływu czerwieni każdy z czterech speców, a po cofnięciu spec jest zielony
+- [x] 2.3 `throw` w `onMounted` strony przepływu czerwieni spec przez asercję `pageerror`
+- [x] 2.4 Brak `new Date().getFullYear()` w czterech specach-bramkach
+- [x] 2.5 `npx vp check` przechodzi dla zmienionych plików TS
 
 ### Phase 3: Spec zatwierdzenia Importu
 
