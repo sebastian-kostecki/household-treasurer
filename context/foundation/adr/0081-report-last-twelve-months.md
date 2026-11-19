@@ -2,6 +2,8 @@
 
 S-32 (FR-025) adds a fourth view to Reports, „12 miesięcy”: the Period Report of the last 12 closed months counted from today, whatever Budget year is selected. ADR-0070 fixed what a report row is, ADR-0074 added the year before and ADR-0077 the Trend; this ADR fixes the window, what covers it, where the numbers come from and how the view is reached, before the code. It adds to ADR-0070 and changes none of its clauses for the Year and the Month.
 
+Superseded in part by ADR-0103: the month before today is counted from the App Day (the date in Europe/Warsaw), not from UTC („the month before today (UTC, like ADR-0074 and ADR-0077)”); the rest stands.
+
 Window. The window is the 12 closed calendar months ending with the month before today (UTC, like ADR-0074 and ADR-0077). On 12 November 2026 it is 2025-11-01 to 2026-10-31; on 1 January 2027 it is 2026-01-01 to 2026-12-31 and equals the year report of 2026. The current month is never in it, so the window has no „w toku” mark. The start is computed from the first day of the last month with `subMonthsNoOverflow`, so 31 March does not skip February.
 
 Coverage. Only months whose Budget is in execution are counted. A month without such a Budget is not read and not estimated; the page names the missing stretch and says how many of the 12 months the amounts cover. The covered part and the missing part are each one continuous stretch (a window touches at most two Budget years). With no covered month there is no report and the page shows an empty state. The segment is always available when the User has any Budget; it is never hidden or disabled for partial coverage.

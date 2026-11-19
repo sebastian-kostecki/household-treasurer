@@ -2,6 +2,8 @@
 
 ADR-0087 made „Rok budżetu” a menu button with a flat list of years. The list says nothing about a year: the user cannot tell the current calendar year from a draft Budget, and with 2020–2027 the old years crowd the ones in use. The Atrament `Sidebar` card (variant B) answers with state marks, groups, a caption under „Dodaj rok” and a dark menu. This ADR extends ADR-0087; everything it does not mention (empty state, pending state, the shared dialog, `budgetYearMenu` as the one source of logic) stays.
 
+Superseded in part by ADR-0103: „bieżący” is the calendar year of the App Day from `shell.today` (the date in Europe/Warsaw), not `new Date().getFullYear()` in the browser („as `createYear` does today”); the rest stands.
+
 Rule. The state of a year has two independent marks. „bieżący” means the calendar year (`new Date().getFullYear()` in the browser, as `createYear` does today). „szkic” means `BudgetPhase::Draft`. Both are shown together when both hold; a year in execution that is not the current one has no mark.
 
 Button. The selected year is set in JetBrains Mono (`font-mono`). The pills of the selected year sit before the chevron, right-aligned: „bieżący” with an outline of `sidebar-border` and text of `sidebar-foreground`, „szkic” in `warning` on `warning-soft`. Classes `.sidebar-year-*` in `resources/css/app.css`, no new tokens.
