@@ -459,20 +459,20 @@ Brak migracji danych. Zmiana seedera dotyczy tylko nowych seedów i nie rusza is
 
 #### Automated
 
-- [x] 4.1 `--list --project=gate` pokazuje `setup` i dokładnie pięć bramek
-- [x] 4.2 `--list` pokazuje każdy spec dokładnie raz
-- [x] 4.3 Próba w trybie CI: `setup` zielony, potem 20 rund bramek (100 przebiegów) bez porażki
-- [x] 4.4 Wymuszona porażka w trybie CI zostawia trace i raport
-- [x] 4.5 `npx vp check` i `npm run types:check` przechodzą
-- [x] 4.6 Smoke `e2e-server-ci.sh` w obrazie Sail: `/login` i asset 200, `public/hot` daje błąd
+- [x] 4.1 `--list --project=gate` pokazuje `setup` i dokładnie pięć bramek — 07c0d5f
+- [x] 4.2 `--list` pokazuje każdy spec dokładnie raz — 07c0d5f
+- [x] 4.3 Próba w trybie CI: `setup` zielony, potem 20 rund bramek (100 przebiegów) bez porażki — 07c0d5f
+- [x] 4.4 Wymuszona porażka w trybie CI zostawia trace i raport — 07c0d5f
+- [x] 4.5 `npx vp check` i `npm run types:check` przechodzą — 07c0d5f
+- [x] 4.6 Smoke `e2e-server-ci.sh` w obrazie Sail: `/login` i asset 200, `public/hot` daje błąd — 07c0d5f
 
 ### Phase 5: Job `e2e` w CI i dokumenty
 
 #### Automated
 
-- [ ] 5.1 `actionlint` na `tests.yml` bez uwag
-- [ ] 5.2 Każde `uses:` w `tests.yml` przypięte pełnym SHA
-- [ ] 5.3 Pełna bramka `ci:check` na `testing_e2e_in_ci` i Sloppy
+- [x] 5.1 `actionlint` na `tests.yml` bez uwag
+- [x] 5.2 Każde `uses:` w `tests.yml` przypięte pełnym SHA
+- [x] 5.3 Pełna bramka `ci:check` na `testing_e2e_in_ci` i Sloppy
 
 #### Manual
 
