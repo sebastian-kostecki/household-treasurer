@@ -167,8 +167,13 @@ describe('importSubmitBlockReason', () => {
             );
         });
 
-        it('blocks a capital movement with interest', () => {
-            const rows = [late(0, '2027-01-05')];
+        it('blocks a capital movement whose interest splits off as income', () => {
+            const rows = [
+                row(0, {
+                    operation_date: '2027-01-05',
+                    amount_minor_units: 100_000,
+                }),
+            ];
 
             expect(
                 importSubmitBlockReason(
@@ -188,6 +193,30 @@ describe('importSubmitBlockReason', () => {
                 count: 1,
                 years: [2027],
             });
+        });
+
+        it('leaves an invalid interest split to the incomplete rows reason', () => {
+            const rows = [
+                row(0, {
+                    operation_date: '2027-01-05',
+                    amount_minor_units: 1000,
+                }),
+            ];
+
+            expect(
+                importSubmitBlockReason(
+                    rows,
+                    {
+                        0: selected(rows[0], {
+                            type: 'capital_movement',
+                            interest_amount_input: '10',
+                        }),
+                    },
+                    [],
+                    false,
+                    states,
+                ),
+            ).toEqual({ key: 'import_block_incomplete_rows', count: 1 });
         });
 
         it('blocks a missing year and ignores an execution year', () => {

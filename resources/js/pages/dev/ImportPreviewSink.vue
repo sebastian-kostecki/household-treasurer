@@ -89,7 +89,7 @@ const submitBarStates = computed(() => [
         key: 'year-turn-draft',
         title: 'Pasek: zablokowany Budżetem bez realizacji (przełom roku)',
         reason: t.operations.import_block_budget_year_not_in_execution
-            .replace(':count', '3')
+            .replace(':count', '2')
             .replace(':years', '2025, 2027'),
         processing: false,
     },

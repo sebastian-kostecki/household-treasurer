@@ -753,6 +753,20 @@ CSV;
         $this->assertDatabaseCount('financial_operations', 0);
     }
 
+    public function test_empty_import_preview_sends_the_budget_year_states_as_an_empty_list(): void
+    {
+        [$user, $account] = $this->createImportFixture();
+        $this->previewCsv($user, $account, "date,description,amount\n31.02.2026,Zakupy,45.50");
+
+        $this->actingAs($user)
+            ->get(route('operations.import.preview'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('rows', [])
+                ->where('budgetYearStates', []),
+            );
+    }
+
     public function test_own_transfer_row_in_a_draft_year_is_imported(): void
     {
         $this->travelTo('2027-01-02 09:00');

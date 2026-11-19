@@ -229,6 +229,10 @@ describe('showsCategorySuggestion', () => {
 describe('budget year note of a row', () => {
     const draft2027 = { '2027': 'draft' } as const;
     const row2027 = suggestionRow({ operation_date: '2027-01-02' });
+    const credit2027 = suggestionRow({
+        operation_date: '2027-01-02',
+        amount_minor_units: 10_000,
+    });
     const pick = (overrides: Partial<ReturnType<typeof emptySelection>>) => ({
         ...emptySelection(row2027),
         selected: true,
@@ -249,21 +253,26 @@ describe('budget year note of a row', () => {
         ).toBeNull();
     });
 
-    it('shows the note for income, expense, refund and a not yet chosen type', () => {
-        for (const type of [
-            'income',
-            'expense',
-            'refund',
-            undefined,
-        ] as const) {
+    it('shows the note for income, expense and refund', () => {
+        for (const type of ['income', 'expense', 'refund'] as const) {
             expect(
-                rowBudgetYearNotice(
-                    row2027,
-                    pick({ type } as never),
-                    draft2027,
-                ),
+                rowBudgetYearNotice(row2027, pick({ type }), draft2027),
             ).toEqual({ state: 'draft', year: 2027 });
         }
+    });
+
+    it('has no note for an invalid row, which a Budget would not unblock', () => {
+        expect(
+            rowBudgetYearNotice(
+                suggestionRow({
+                    operation_date: '2027-01-02',
+                    valid: false,
+                    invalid_reason: 'future_date',
+                }),
+                pick({}),
+                { '2027': 'missing' },
+            ),
+        ).toBeNull();
     });
 
     it('has no note for an own transfer or a capital movement without interest', () => {
@@ -283,10 +292,10 @@ describe('budget year note of a row', () => {
         ).toBeNull();
     });
 
-    it('has a note for a capital movement with interest', () => {
+    it('has a note for a capital movement whose interest splits off as income', () => {
         expect(
             rowBudgetYearNotice(
-                row2027,
+                credit2027,
                 pick({
                     type: 'capital_movement',
                     interest_amount_input: '12,50',
@@ -296,13 +305,30 @@ describe('budget year note of a row', () => {
         ).toEqual({ state: 'missing', year: 2027 });
     });
 
+    it('has no note for a capital movement whose interest the server refuses before the year', () => {
+        const withInterest = (source: ImportRow, interest: string) =>
+            rowBudgetYearNotice(
+                source,
+                pick({
+                    type: 'capital_movement',
+                    interest_amount_input: interest,
+                }),
+                draft2027,
+            );
+
+        expect(withInterest(row2027, '5,00')).toBeNull();
+        expect(withInterest(credit2027, '0')).toBeNull();
+        expect(withInterest(credit2027, '100,00')).toBeNull();
+        expect(withInterest(credit2027, '150,00')).toBeNull();
+    });
+
     it('has no note for an execution year', () => {
         expect(
             rowBudgetYearNotice(row2027, pick({}), { '2027': 'execution' }),
         ).toBeNull();
     });
 
-    it('needs the budget only when selected and the type is chosen', () => {
+    it('needs the budget only when the row is selected', () => {
         expect(rowNeedsBudgetInExecution(row2027, pick({}), draft2027)).toBe(
             true,
         );
@@ -310,13 +336,6 @@ describe('budget year note of a row', () => {
             rowNeedsBudgetInExecution(
                 row2027,
                 pick({ selected: false }),
-                draft2027,
-            ),
-        ).toBe(false);
-        expect(
-            rowNeedsBudgetInExecution(
-                row2027,
-                pick({ type: undefined } as never),
                 draft2027,
             ),
         ).toBe(false);

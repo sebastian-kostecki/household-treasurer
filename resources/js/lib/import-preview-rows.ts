@@ -246,6 +246,10 @@ export function rowBudgetYearNotice(
     selection: RowSelection,
     states: ImportBudgetYearStates,
 ): { state: 'draft' | 'missing'; year: number } | null {
+    if (!row.valid) {
+        return null;
+    }
+
     const state = rowBudgetYearState(row, states);
 
     if (state === null || state === 'execution') {
@@ -258,7 +262,7 @@ export function rowBudgetYearNotice(
 
     if (
         selection.type === 'capital_movement' &&
-        parsedInterestAmountMinorUnits(selection) === null
+        !interestSplitsFileAmount(row, selection)
     ) {
         return null;
     }
@@ -276,8 +280,26 @@ export function rowNeedsBudgetInExecution(
 ): boolean {
     return (
         selection.selected &&
-        rowBudgetYearNotice(row, selection, states) !== null &&
-        selection.type !== undefined
+        rowBudgetYearNotice(row, selection, states) !== null
+    );
+}
+
+/**
+ * The interest splits off as income: a credit row with 0 < interest < file
+ * amount (`CapitalMovementInterestImportValidator::splitAmounts`).
+ */
+function interestSplitsFileAmount(
+    row: ImportRow,
+    selection: RowSelection,
+): boolean {
+    const interestAmount = parsedInterestAmountMinorUnits(selection);
+    const fileAmount = row.amount_minor_units ?? 0;
+
+    return (
+        interestAmount !== null &&
+        interestAmount > 0 &&
+        interestAmount < fileAmount &&
+        fileAmount > 0
     );
 }
 
@@ -285,19 +307,11 @@ export function interestSplitValid(
     row: ImportRow,
     selection: RowSelection,
 ): boolean {
-    const interestAmount = parsedInterestAmountMinorUnits(selection);
-
-    if (interestAmount === null) {
+    if (parsedInterestAmountMinorUnits(selection) === null) {
         return selection.interest_category_id === '';
     }
 
-    const fileAmount = row.amount_minor_units ?? 0;
-
-    if (
-        interestAmount <= 0 ||
-        interestAmount >= fileAmount ||
-        fileAmount <= 0
-    ) {
+    if (!interestSplitsFileAmount(row, selection)) {
         return false;
     }
 

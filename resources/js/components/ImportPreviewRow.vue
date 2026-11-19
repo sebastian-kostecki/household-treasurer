@@ -208,7 +208,12 @@ const budgetYearNotice = computed(() =>
 
 const createBudgetDialog = useCreateBudgetDialog();
 
-/** A year switch in flight: the link is disabled and a failure shows the sidebar's toast. */
+/**
+ * A year switch in flight: the link is disabled and a failure shows the sidebar's toast.
+ * Each row keeps its own flag and listener (unlike ReportYearsTable's one for all links):
+ * the ui-contract guard wants the listener in the file with the `<Link>`, only the row in
+ * flight reports the failure, and a second row's POST only selects a Budget year.
+ */
 const selectYearPending = ref(false);
 
 function onSelectYearFailed(): void {
@@ -751,7 +756,7 @@ function onPairCandidateChange(value: string): void {
                         :preserve-state="false"
                         :disabled="selectYearPending ? true : undefined"
                         :aria-busy="selectYearPending ? 'true' : undefined"
-                        class="cursor-pointer text-left underline"
+                        class="text-brand-text focus-visible:ring-ring cursor-pointer rounded-xs text-left font-medium underline-offset-4 outline-none hover:underline focus-visible:ring-2 aria-busy:cursor-wait"
                         @start="selectYearPending = true"
                         @error="onSelectYearFailed"
                         @finish="selectYearPending = false"

@@ -1,7 +1,7 @@
 ---
 change_id: import-across-draft-year
 title: Import across a draft year
-status: implemented
+status: impl_reviewed
 created: 2026-11-18
 updated: 2026-11-19
 ---
