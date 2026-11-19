@@ -6,7 +6,7 @@
 >
 > Refresh: re-run `/10x-test-plan --refresh` when stale (see §8).
 >
-> Last updated: 2026-11-19
+> Last updated: 2026-11-19 (e2e w CI)
 
 Plan jest po polsku jak pozostałe dokumenty w `context/foundation/`; wartości Status w §3 zostają po angielsku, bo czyta je orkiestrator. Terminy domenowe według `context/foundation/glossary.md`.
 
@@ -107,7 +107,7 @@ Profil bazy testów: **meaningful**. Skonfigurowane Pest i Vitest, 176 plików t
 | unit (TS) | Vitest przez `vp test` (vite-plus) | 5.1 (vite-plus 1.6) | pliki `*.test.ts` obok logiki w `resources/js/lib` |
 | kontrakt PHP ↔ Vue | `assertInertia` w testach Feature | — | wymóg z `AGENTS.md` dla każdego propsa Inertia |
 | strażnik UI | `npm run check:ui` | — | skaner literałów UI i tokenów Atrament |
-| e2e | Playwright (`@playwright/test`) | 1.65 | lokalnie do §3 Phase 2: jeden worker, serwer z obrazu Sail, baza `household_treasurer_e2e` z `demo:seed-household`, a dla raportów `demo:seed-previous-year`; szczegóły w `context/foundation/test-stack.md` |
+| e2e | Playwright (`@playwright/test`) | 1.65 | CI: job `e2e` w `.github/workflows/tests.yml`, projekt `gate` (`npm run e2e:gate`, pięć speców `@gate`, `retries: 0`); lokalnie wszystkie specy: jeden worker, serwer z obrazu Sail, baza `household_treasurer_e2e` z `demo:seed-household`, a dla raportów `demo:seed-previous-year`; szczegóły w `context/foundation/test-stack.md` |
 | testy architektury | none yet — see Phase 6 | — | Pest `arch()` |
 
 **Stack grounding tools (current session):**
@@ -127,7 +127,7 @@ phase lands; before that, the gate is `planned`.
 | lint + format (`vp check`, Pint), typecheck (`vue-tsc`, PHPStan poziom 7 (Larastan 3.15)), Sloppy | local + CI | required | dryf składni i typów, wzorce zapytań w pętli |
 | unit + integration na PostgreSQL (`composer ci:check`) | local (Sail) + CI | required | regresje logiki i odczytów |
 | testy integralności Importu i benchmark trafności podpowiedzi | local + CI | required (§3 Phase 1 `complete`) | duplikaty i zgubione wiersze, spadek trafności |
-| e2e speców-bramek: `seed`, `import-other-format-without-header`, `month-plan-groups`, `irregular-collected` i nowy spec zatwierdzenia Importu (nazwę nada S-44) | CI na pushu i PR do `development` | required after §3 Phase 2; w CI `retries: 0` i trace przy porażce (`retain-on-failure`); pozostałe specy lokalnie. Spec staje się bramką dopiero po spełnieniu §6.3: sprawdza brak `pageerror` i bierze rok budżetu z aplikacji, nie z zegara runnera (dziś `month-plan-groups`, `irregular-collected` i `import-other-format-without-header` biorą go z `new Date().getFullYear()`, a dwa pierwsze nie sprawdzają `pageerror`) | zepsuty przepływ w przeglądarce |
+| e2e speców-bramek: `seed`, `import-other-format-without-header`, `month-plan-groups`, `irregular-collected` i `import-approve` (zatwierdzenie Importu) | CI na pushu do `main` i `development` oraz na każdym PR | required after §3 Phase 2; w CI `retries: 0` i trace przy porażce (`retain-on-failure`); pozostałe specy lokalnie. Spec staje się bramką dopiero po spełnieniu §6.3: sprawdza brak `pageerror` i bierze rok budżetu z aplikacji, nie z zegara runnera | zepsuty przepływ w przeglądarce |
 | testy przełomu roku (granice 22:59:59/23:00 UTC, strażnik zegara w domenowym JS) | local + CI | required od zarchiwizowania zmiany S-39 (`one-app-day`), rozszerzane przez S-40…S-43; wyjątek od zasady „bramka z etapem §3” (§3, akapit kolejności) | różne „dziś” serwera i przeglądarki |
 | wierność Importu (krotki po zapisie) | local + CI | required after §3 Phase 3 | zapis inny niż plik |
 | round-trip backup/restore i strażnik kompletności snapshotu | local + CI | required after §3 Phase 4 (kod wyjścia przy nieudanym zapisie jest już w `composer ci:check`) | niekompletny backup, stratny restore starszych wersji |
@@ -189,7 +189,7 @@ the relevant rollout phase ships; before that, the sub-section reads
 - **Run**: według `context/foundation/test-stack.md`.
 - Nowy spec-bramka: celowe zepsucie przepływu musi go zaczerwienić. Bez `waitForTimeout` i bez `test.skip` przy braku danych.
 - Lista speców-bramek: §5.
-- Spec zatwierdzenia Importu: TBD — see §3 Phase 2.
+- Spec zatwierdzenia Importu (`tests/e2e/import-approve.spec.ts`): stempel w opisach to `Date.now().toString(36)` (base 36, bo 13–19 cyfr z rzędu Import wycina jako numer karty, Luhn); data wierszy `<rok>-01-01`, rok z menu roku; kategoria wybierana jawnie, także gdy aplikacja ją podpowiada; jedno konto (`eKonto`) i nietypowe kwoty (`-12,37`, `-3,41`), żeby wiersze nie wyglądały na parę przelewu własnego (wykrywanie par ±3 dni); sprzątanie przez `withCleanup` (`tests/e2e/support/cleanup.ts`; po porażce przepływu błąd sprzątania jest logowany i nie przykrywa przyczyny), po nagłówku strony, wiersz po wierszu (menu „Więcej akcji” → „Usuń”), tylko istniejących, z asercją zniknięcia.
 
 ### 6.4 Adding a test for a new route or Inertia page
 
@@ -209,6 +209,10 @@ the relevant rollout phase ships; before that, the sub-section reads
 - Poziom bazowy trafności (zmierzony na zestawie 2026): rok — z podpowiedzią 77,0%, trafne wśród podpowiedzianych 93,7% (poziom suggestion); sierpień–listopad — 79,6% i 96,9%.
 - **Etap 5, Niezmienniki kwot** (zmiana `testing-amount-invariants`, otwarta 2026-11-18 jako etap 2 przed odświeżeniem planu): parzystość kalkulatora i ścieżka wejść zielone po obu stronach, poza kandydatem 2 (kategoria dołączająca w styczniu): Feature zielony, Vitest czerwony (podgląd TS nie ma planu dla kategorii bez `BudgetLine`). Poprawka nie mieści się w jednym miejscu, więc issue #273 (`needs-triage`), przypadek Vitest ma `it.skip` z numerem, a Feature zostaje aktywny.
 - Raport, strona Budżetu, licznik pozycji i Wynik miesiąca zgadzają się z ręcznymi literałami, granice 31.03/01.04 i 31.12/01.01 oraz rok z arkusza włącznie; po drodze test arkusza wymagał obu etykiet przychodu w ładowarce.
+- **Etap 2, E2E w CI** (zmiana `e2e-in-ci`): w specach Importu stamp w opisie to `Date.now().toString(36)`, bo 13–19 cyfr przechodzi test Luhna i Import wycina je jako numer karty (flake w `import-other-format-without-header`); poza Importem dziesiętny `Date.now()` jest bezpieczny. Rok budżetu spec czyta z menu roku (`newestExecutionBudgetYear`), nie z zegara runnera, ale dialog wydatku podpowiada dzisiejszą datę (od S-39 App Day z `shell.today`): lokalnie, gdy w wykonaniu jest już Budżet następnego roku, `month-plan-groups` i `irregular-collected` otworzą plan innego roku niż wydatek. W CI seed tworzy tylko bieżący rok.
+- Sprzątanie w `finally` przykrywało błąd przepływu, gdy samo padło na tym samym zepsutym serwerze; bramki sprzątają przez `withCleanup`, które po porażce loguje błąd sprzątania i rzuca pierwotny.
+- `--repeat-each` powtarza też projekt `setup`, a logowanie ma limit 5 prób na minutę, więc próba stabilności loguje się raz (`--project=setup`), a bramki powtarza z `--no-deps`. Pierwsze 20 rund dało 99/100 dwa razy (limit testu 30 s dla długich przepływów i wolna animacja wyjścia dialogu), po poprawce limitów w configu 100/100.
+- Sam `throw` w `onMounted` nie daje `pageerror`, bo Vue przechwytuje błąd hooka; dowód asercji `pageerror` to błąd rzucony z `setTimeout`.
 
 ## 7. What We Deliberately Don't Test
 
