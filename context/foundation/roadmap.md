@@ -151,7 +151,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Parallel with:** S-40, S-42, S-43, F-09, S-44, S-45, S-46
 - **Blockers:** —
 - **Unknowns:**
-  - Czy miniony miesiąc bez zatwierdzonego planu ma dać się zatwierdzić po północy (zmiana reguły), czy wystarczy ostrzeżenie przed nią? — Owner: user. Block: no.
+  - ~~Czy miniony miesiąc bez zatwierdzonego planu ma dać się zatwierdzić po północy (zmiana reguły), czy wystarczy ostrzeżenie przed nią?~~ Answered: the warning only, no rule change (ADR-0108).
 - **Risk:** Powiadomienia Dashboardu mają własne reguły wagi i progów (F-01); trzy nowe powiadomienia naraz w grudniu nie mogą zasłonić istniejących ostrzeżeń planu miesiąca.
 - **Status:** ready
 
@@ -227,7 +227,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 | F-09       | test-plan-refresh              | Plan testów: odświeżenie po M-4 i próbie przełomu                         | yes                   | Run `/10x-test-plan --refresh`, nie `/10x-plan`                        |
 | S-39       | one-app-day                    | Przełom roku: ten sam dzień w menu, na Dashboardzie i w dialogach         | yes                    | Run `/10x-plan one-app-day`; gwiazda przewodnia, spis miejsc w ADR-0103                                                               |
 | S-40       | session-year-follows-year-turn | Przełom roku: rok w sesji przechodzi na nowy rok                          | yes                   | Run `/10x-plan session-year-follows-year-turn`; S-39 (`AppDay`) scalone |
-| S-41       | year-turn-notices              | Przełom roku: przypomnienia w „Wymaga uwagi” i w menu roku                | yes                   | Run `/10x-plan year-turn-notices`; S-39 scalone; obejmuje MPL-1 z audytu obserwowalności |
+| S-41       | year-turn-notices              | Przełom roku: przypomnienia w „Wymaga uwagi” i w menu roku                | yes                   | Run `/10x-plan year-turn-notices`; S-39 scalone; MPL-1 z audytu obserwowalności zamknięty commitem 1659a87, zostają przypomnienia |
 | S-42       | import-across-draft-year       | Import: wyciąg z przełomu przy szkicu nowego roku                         | yes                   | Run `/10x-plan import-across-draft-year`                               |
 | S-43       | years-report-in-early-january  | Raporty: „Lata” i rok do roku na początku stycznia                        | yes                   | Run `/10x-plan years-report-in-early-january`; S-39 (`AppDay`) scalone |
 | S-44       | e2e-in-ci                      | CI: testy Playwright na pushu i PR                                        | yes                    | Run `/10x-plan e2e-in-ci`; bramki w test-plan.md (F-09)                                                               |
