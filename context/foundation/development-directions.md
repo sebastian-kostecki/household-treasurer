@@ -69,7 +69,7 @@ Kolejność to rekomendacja agenta. Wiersze 1–6 to terminy i zabezpieczenia; z
 | 2   | Odświeżenie planu testów                         | plan z 6 listopada nie odpowiada stanowi repo                                              | mały             | otwarte |
 | 3   | E2E w CI                                         | testy istnieją, CI ich nie uruchamia                                                       | mały             | otwarte |
 | 4   | Śledzenie błędów na produkcji                    | dziś tylko log plikowy                                                                     | mały do średniego | otwarte |
-| 5   | Porządek w dokumentach                           | terminy bez kodu w słowniku, zdublowany numer ADR 0008                                     | mały             | zrobione (docs-match-code): ADR-0103, ADR-0104 |
+| 5   | Porządek w dokumentach                           | terminy bez kodu w słowniku, zdublowany numer ADR 0008                                     | mały             | zrobione (docs-match-code): ADR-0104, ADR-0105 |
 | 6   | Lista tarć                                       | użytkownik zapisuje przez grudzień i styczeń, co go spowalnia; podstawa wyboru etapu       | zerowy           | otwarte |
 | 7   | Plan roczny 2027 z historii                      | propozycja kwot ze średniej i trendu lat 2019–2026, „co jeśli”; przydaje się tylko przy układaniu roku | średni           | otwarte |
 | 8   | „Zapłacone / czeka” dla stałych opłat            | lista rachunków miesiąca z sumą „czeka” obok salda; bez nowych pól                          | mały             | otwarte |
