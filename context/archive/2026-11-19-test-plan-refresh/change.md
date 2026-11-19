@@ -1,10 +1,10 @@
 ---
 change_id: test-plan-refresh
 title: Refresh the test plan after M-4 and the year-turn rehearsal
-status: impl_reviewed
+status: archived
 created: 2026-11-19
 updated: 2026-11-19
-archived_at: null
+archived_at: 2026-11-19T06:44:46Z
 ---
 
 ## Notes
