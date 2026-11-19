@@ -9,7 +9,9 @@ export type NoticeLabelKey =
     | 'over_limit'
     | 'plan_not_approved'
     | 'pace_ahead'
-    | 'collected_not_covered';
+    | 'collected_not_covered'
+    | 'budget_draft'
+    | 'budget_missing';
 
 export type NoticeIdentity =
     | { type: 'name'; name: string }
@@ -18,11 +20,14 @@ export type NoticeIdentity =
           name: string;
           avatar: Pick<AccountIdentityFields, 'type' | 'bank' | 'mark_url'>;
       }
-    | { type: 'month'; month: number };
+    | { type: 'month'; month: number }
+    | { type: 'year'; year: number };
 
 export type NoticeValue =
     | { type: 'money'; minorUnits: number }
     | { type: 'pace'; percent: number; daysPercent: number }
+    | { type: 'approve_by'; date: string }
+    | { type: 'import_refused'; year: number }
     | {
           type: 'collected_shortfall';
           shortfallMinorUnits: number;
@@ -90,7 +95,7 @@ export function noticePresentation(
             return {
                 labelKey: 'plan_not_approved',
                 identity: { type: 'month', month: notice.month },
-                value: null,
+                value: { type: 'approve_by', date: notice.approve_by },
             };
         case 'month_pace_ahead':
             return {
@@ -114,6 +119,15 @@ export function noticePresentation(
                     shortfallMinorUnits: notice.shortfall_minor_units,
                     collectedMinorUnits: notice.collected_minor_units,
                 },
+            };
+        case 'budget_not_in_execution':
+            return {
+                labelKey:
+                    notice.state === 'draft'
+                        ? 'budget_draft'
+                        : 'budget_missing',
+                identity: { type: 'year', year: notice.year },
+                value: { type: 'import_refused', year: notice.year },
             };
     }
 }

@@ -25,4 +25,4 @@ We rejected:
 - letting the User collapse a group with an unreadable field (the red field would leave the view while „Zatwierdź” stays blocked).
 
 Amended by ADR-0097: the order of groups and Categories „as in the reports” (:5) holds for the Trend and „Lata”; the Year, the Month and the last twelve months are a Ranking by amount.
-Amended by ADR-0108: the server computes the read-mode group sums for MCP answers only (`App\Support\MonthPlanGroupSums`, guarded by a parity test); the page still never takes group sums from the server.
+Amended by ADR-0110: the server computes the read-mode group sums for MCP answers only (`App\Support\MonthPlanGroupSums`, guarded by a parity test); the page still never takes group sums from the server.

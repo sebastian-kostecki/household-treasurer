@@ -8,7 +8,7 @@ use Laravel\Mcp\Facades\Mcp;
 
 /*
 |--------------------------------------------------------------------------
-| MCP servers (ADR-0108)
+| MCP servers (ADR-0110)
 |--------------------------------------------------------------------------
 |
 | `php artisan mcp:start treasurer` serves the local stdio server. `/mcp` serves

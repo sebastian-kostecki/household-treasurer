@@ -138,6 +138,7 @@ const defaultProps: DashboardPageProps = {
     },
     year_elapsed_as_of: '2026-09-23',
     year_elapsed_percent: 73,
+    waiting_budget_year: null,
     dashboardNotices: [
         {
             severity: 'exceeded',
@@ -149,6 +150,7 @@ const defaultProps: DashboardPageProps = {
             severity: 'warning',
             kind: 'month_plan_not_approved',
             month: 10,
+            approve_by: '2026-10-31',
         },
     ],
     month_to_spend: { state: 'approved', to_spend_minor_units: 154000 },
@@ -306,6 +308,7 @@ const emptyNewUserProps: DashboardPageProps = {
     expenseTotals: zeroTotals,
     year_elapsed_as_of: null,
     year_elapsed_percent: null,
+    waiting_budget_year: null,
     dashboardNotices: [],
     month_to_spend: null,
     month_pace: null,
@@ -327,6 +330,28 @@ const draftProps: DashboardPageProps = {
     ...noBudgetProps,
     budget: { year: 2026, phase: 'draft' },
     planSummary: defaultProps.planSummary,
+    dashboardNotices: [
+        {
+            severity: 'warning',
+            kind: 'budget_not_in_execution',
+            year: 2026,
+            state: 'draft',
+        },
+    ],
+};
+
+const forgottenStartProps: DashboardPageProps = {
+    ...draftProps,
+    budget_year: 2027,
+    budget: { year: 2027, phase: 'draft' },
+    dashboardNotices: [
+        {
+            severity: 'warning',
+            kind: 'budget_not_in_execution',
+            year: 2027,
+            state: 'draft',
+        },
+    ],
 };
 
 const noCategoriesProps: DashboardPageProps = {
@@ -499,6 +524,7 @@ const allNoticeKindsProps: DashboardPageProps = {
             severity: 'warning',
             kind: 'month_plan_not_approved',
             month: 10,
+            approve_by: '2026-10-31',
         },
         {
             severity: 'warning',
@@ -512,6 +538,7 @@ const allNoticeKindsProps: DashboardPageProps = {
             severity: 'warning',
             kind: 'month_plan_not_approved',
             month: 11,
+            approve_by: '2026-11-30',
         },
         {
             severity: 'warning',
@@ -519,6 +546,87 @@ const allNoticeKindsProps: DashboardPageProps = {
             month: 9,
             shortfall_minor_units: 10_000,
             collected_minor_units: 60_000,
+        },
+        {
+            severity: 'warning',
+            kind: 'budget_not_in_execution',
+            year: 2027,
+            state: 'draft',
+        },
+    ],
+};
+
+// The status line and the month pace of a December App Day, so the cards and the line agree.
+function onDecemberDay(day: number): DashboardPageProps {
+    const date = `2026-12-${String(day).padStart(2, '0')}`;
+
+    return {
+        ...defaultProps,
+        year_elapsed_as_of: date,
+        year_elapsed_percent: Math.round((100 * (334 + day)) / 365),
+        month_pace: {
+            ...defaultProps.month_pace!,
+            as_of: date,
+            elapsed_day: day,
+            days_in_month: 31,
+        },
+        current_month: 12,
+    };
+}
+
+const decemberBeforeTurnProps: DashboardPageProps = {
+    ...onDecemberDay(29),
+    dashboardNotices: [
+        {
+            severity: 'warning',
+            kind: 'month_plan_not_approved',
+            month: 12,
+            approve_by: '2026-12-31',
+        },
+        {
+            severity: 'warning',
+            kind: 'budget_not_in_execution',
+            year: 2027,
+            state: 'draft',
+        },
+    ],
+};
+
+const nextYearMissingProps: DashboardPageProps = {
+    ...onDecemberDay(10),
+    dashboardNotices: [
+        {
+            severity: 'warning',
+            kind: 'budget_not_in_execution',
+            year: 2027,
+            state: 'missing',
+        },
+    ],
+};
+
+const nextYearWaitingProps: DashboardPageProps = {
+    ...onDecemberDay(30),
+    dashboardNotices: [],
+    waiting_budget_year: 2027,
+};
+
+// A draft current year in December with a missing next year: two cards in year order.
+const decemberDraftTurnProps: DashboardPageProps = {
+    ...draftProps,
+    year_elapsed_as_of: '2026-12-10',
+    year_elapsed_percent: Math.round((100 * 344) / 365),
+    dashboardNotices: [
+        {
+            severity: 'warning',
+            kind: 'budget_not_in_execution',
+            year: 2026,
+            state: 'draft',
+        },
+        {
+            severity: 'warning',
+            kind: 'budget_not_in_execution',
+            year: 2027,
+            state: 'missing',
         },
     ],
 };
@@ -596,6 +704,31 @@ export const dashboardScenarios: DashboardScenario[] = [
         key: 'all-notice-kinds',
         title: 'all-notice-kinds',
         props: allNoticeKindsProps,
+    },
+    {
+        key: 'december-before-turn',
+        title: 'december-before-turn',
+        props: decemberBeforeTurnProps,
+    },
+    {
+        key: 'next-year-missing',
+        title: 'next-year-missing',
+        props: nextYearMissingProps,
+    },
+    {
+        key: 'next-year-waiting',
+        title: 'next-year-waiting',
+        props: nextYearWaitingProps,
+    },
+    {
+        key: 'forgotten-start',
+        title: 'forgotten-start',
+        props: forgottenStartProps,
+    },
+    {
+        key: 'december-draft-turn',
+        title: 'december-draft-turn',
+        props: decemberDraftTurnProps,
     },
     { key: 'deposits-only', title: 'deposits-only', props: depositsOnlyProps },
     { key: 'month-start', title: 'month-start', props: monthStartProps },

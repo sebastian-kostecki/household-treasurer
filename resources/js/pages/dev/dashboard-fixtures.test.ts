@@ -21,6 +21,11 @@ test('scenario keys are unique and cover the state matrix', () => {
             'income-over-100',
             'overrun',
             'all-notice-kinds',
+            'december-before-turn',
+            'next-year-missing',
+            'next-year-waiting',
+            'forgotten-start',
+            'december-draft-turn',
             'deposits-only',
             'month-start',
             'month-end',
@@ -48,11 +53,11 @@ test('income-over-100 and overrun go past their plan', () => {
     );
 });
 
-test('all-notice-kinds has eight kinds and more than six cards', () => {
+test('all-notice-kinds has nine kinds and more than six cards', () => {
     const notices = scenario('all-notice-kinds').dashboardNotices;
 
     expect(notices.length).toBeGreaterThan(6);
-    expect(new Set(notices.map((notice) => notice.kind)).size).toBe(8);
+    expect(new Set(notices.map((notice) => notice.kind)).size).toBe(9);
 });
 
 test('deposits-only has term deposits and no accounts', () => {
@@ -78,4 +83,32 @@ test('month pace scenarios hit their edges', () => {
 test('liquidity caption has both states: with and without the collected total', () => {
     expect(scenario('all-notice-kinds').collected_minor_units).toBe(60_000);
     expect(scenario('no-month-plan').collected_minor_units).toBeNull();
+});
+
+test('a draft current year has its card; in December the next year follows it', () => {
+    expect(scenario('draft').dashboardNotices).toEqual([
+        expect.objectContaining({ year: 2026, state: 'draft' }),
+    ]);
+    expect(
+        scenario('december-draft-turn').dashboardNotices.map(
+            (notice) => 'year' in notice && notice.year,
+        ),
+    ).toEqual([2026, 2027]);
+});
+
+test('December scenarios read a December day', () => {
+    for (const key of [
+        'december-before-turn',
+        'next-year-missing',
+        'next-year-waiting',
+    ]) {
+        expect(scenario(key).year_elapsed_as_of?.slice(0, 7)).toBe('2026-12');
+        expect(scenario(key).current_month).toBe(12);
+    }
+});
+
+test('next-year-waiting names the waiting Budget year and the others do not', () => {
+    expect(scenario('next-year-waiting').waiting_budget_year).toBe(2027);
+    expect(scenario('december-before-turn').waiting_budget_year).toBeNull();
+    expect(scenario('many-categories').waiting_budget_year).toBeNull();
 });

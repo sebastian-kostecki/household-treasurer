@@ -105,7 +105,7 @@ const stopListeningForYearSelectionFailure =
 onUnmounted(stopListeningForYearSelectionFailure);
 
 function hasState(entry: BudgetYearMenuEntry | null): boolean {
-    return entry !== null && (entry.current || entry.draft);
+    return entry !== null && (entry.current || entry.draft || entry.waiting);
 }
 
 function rowStateId(year: number): string {
@@ -222,6 +222,12 @@ function selectYear(value: unknown): void {
                         >
                             {{ t.shell.year_draft }}
                         </span>
+                        <span
+                            v-if="menu.selected.waiting"
+                            class="sidebar-year-state sidebar-year-state-waiting"
+                        >
+                            {{ t.shell.year_waiting }}
+                        </span>
                     </span>
                     <ChevronsUpDown
                         class="size-4 shrink-0"
@@ -279,6 +285,12 @@ function selectYear(value: unknown): void {
                                     class="sidebar-year-state sidebar-year-state-draft"
                                 >
                                     {{ t.shell.year_draft }}
+                                </span>
+                                <span
+                                    v-if="entry.waiting"
+                                    class="sidebar-year-state sidebar-year-state-waiting"
+                                >
+                                    {{ t.shell.year_waiting }}
                                 </span>
                             </span>
                         </DropdownMenuRadioItem>

@@ -70,8 +70,39 @@ class DashboardTest extends TestCase
                 ->where('expenseCategories', [])
                 ->where('dashboardNotices', [])
                 ->where('year_elapsed_as_of', null)
-                ->where('year_elapsed_percent', null),
+                ->where('year_elapsed_percent', null)
+                ->where('waiting_budget_year', null),
             );
+    }
+
+    public function test_waiting_budget_year_names_the_next_year_in_execution_until_polish_midnight(): void
+    {
+        $user = User::factory()->create();
+        Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        Budget::factory()->for($user)->execution()->create(['year' => 2027]);
+
+        $this->travelTo('2026-12-31 22:59:59');
+        $this->actingAs($user)->get(route('dashboard'))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('budget_year', 2026)
+                ->where('waiting_budget_year', 2027));
+
+        $this->travelTo('2026-12-31 23:00:00');
+        $this->actingAs($user)->get(route('dashboard'))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('budget_year', 2027)
+                ->where('waiting_budget_year', null));
+    }
+
+    public function test_waiting_budget_year_is_null_while_the_next_year_is_a_draft(): void
+    {
+        $user = User::factory()->create();
+        Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        Budget::factory()->for($user)->create(['year' => 2027]);
+
+        $this->travelTo('2026-12-31 22:59:59');
+        $this->actingAs($user)->get(route('dashboard'))
+            ->assertInertia(fn (Assert $page) => $page->where('waiting_budget_year', null));
     }
 
     public function test_dashboard_year_changes_at_polish_midnight(): void
@@ -1223,6 +1254,7 @@ class DashboardTest extends TestCase
                         'kind' => 'month_plan_not_approved',
                         'severity' => 'warning',
                         'month' => 9,
+                        'approve_by' => '2026-09-30',
                     ],
                 ]),
             );
@@ -1327,9 +1359,15 @@ class DashboardTest extends TestCase
             ->get(route('dashboard'))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
-                ->has('dashboardNotices', 1)
+                ->has('dashboardNotices', 2)
                 ->where('dashboardNotices.0.kind', 'negative_account')
-                ->where('dashboardNotices.0.id', $negativeAccount->id),
+                ->where('dashboardNotices.0.id', $negativeAccount->id)
+                ->where('dashboardNotices.1', [
+                    'kind' => 'budget_not_in_execution',
+                    'severity' => 'warning',
+                    'year' => 2026,
+                    'state' => 'draft',
+                ]),
             );
 
         $otherYearUser = User::factory()->create();
@@ -1352,6 +1390,177 @@ class DashboardTest extends TestCase
                 ->has('dashboardNotices', 1)
                 ->where('dashboardNotices.0.kind', 'negative_term_deposit')
                 ->where('dashboardNotices.0.id', $negativeTermDeposit->id),
+            );
+    }
+
+    public function test_dashboard_names_the_approval_deadline_as_the_last_day_of_the_month(): void
+    {
+        $user = User::factory()->create();
+        Account::factory()->for($user)->create(['opening_date' => '2026-01-01']);
+        $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        BudgetLine::factory()->for($budget)->income()->create(['planned_amount_minor_units' => 100_000]);
+
+        $this->travelTo('2026-11-27 09:00:00');
+
+        $this->actingAs($user)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('dashboardNotices.0.kind', 'month_plan_not_approved')
+                ->where('dashboardNotices.0.approve_by', '2026-11-30'),
+            );
+
+        $this->travelTo('2026-12-31 22:59:59');
+
+        $this->actingAs($user)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('dashboardNotices.0.kind', 'month_plan_not_approved')
+                ->where('dashboardNotices.0.approve_by', '2026-12-31'),
+            );
+    }
+
+    public function test_dashboard_notices_a_draft_next_year_budget_from_the_first_polish_day_of_december(): void
+    {
+        $user = User::factory()->create();
+        Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        Budget::factory()->for($user)->create(['year' => 2027]);
+
+        $this->travelTo('2026-11-30 22:59:59');
+
+        $this->actingAs($user)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('dashboardNotices', fn ($notices) => collect($notices)
+                    ->doesntContain(fn ($notice) => $notice['kind'] === 'budget_not_in_execution')),
+            );
+
+        $this->travelTo('2026-11-30 23:00:00');
+
+        $this->actingAs($user)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('dashboardNotices', fn ($notices) => collect($notices)->last() === [
+                    'kind' => 'budget_not_in_execution',
+                    'severity' => 'warning',
+                    'year' => 2027,
+                    'state' => 'draft',
+                ]),
+            );
+    }
+
+    public function test_dashboard_notices_a_missing_next_year_budget_in_december(): void
+    {
+        $user = User::factory()->create();
+        Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+
+        $this->travelTo('2026-12-10 09:00:00');
+
+        $this->actingAs($user)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('dashboardNotices', fn ($notices) => collect($notices)->last() === [
+                    'kind' => 'budget_not_in_execution',
+                    'severity' => 'warning',
+                    'year' => 2027,
+                    'state' => 'missing',
+                ]),
+            );
+    }
+
+    public function test_dashboard_has_no_next_year_notice_when_next_year_runs_or_current_year_has_no_budget(): void
+    {
+        $this->travelTo('2026-12-10 09:00:00');
+
+        $running = User::factory()->create();
+        Budget::factory()->for($running)->execution()->create(['year' => 2026]);
+        Budget::factory()->for($running)->execution()->create(['year' => 2027]);
+
+        $this->actingAs($running)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('dashboardNotices', fn ($notices) => collect($notices)
+                    ->doesntContain(fn ($notice) => $notice['kind'] === 'budget_not_in_execution')),
+            );
+
+        $withoutCurrent = User::factory()->create();
+        Budget::factory()->for($withoutCurrent)->create(['year' => 2027]);
+
+        $this->actingAs($withoutCurrent)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('budget', null)
+                ->where('dashboardNotices', []),
+            );
+    }
+
+    public function test_dashboard_lists_budget_not_in_execution_notices_last_in_year_order(): void
+    {
+        $this->travelTo('2026-12-10 09:00:00');
+
+        $user = User::factory()->create();
+        $negativeAccount = Account::factory()->for($user)->negative()->create(['name' => 'Overdrawn']);
+        $account = Account::factory()->for($user)->create(['opening_date' => '2026-01-01']);
+        $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        $groceries = BudgetLine::factory()->for($budget)->expense()->create([
+            'planned_amount_minor_units' => 1_200_000,
+        ]);
+        $this->recordOperation($user, $account, $budget, $groceries, '2026-12-05', 150_000);
+        Budget::factory()->for($user)->create(['year' => 2027]);
+
+        $this->actingAs($user)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('dashboardNotices', function ($notices): bool {
+                    $notices = collect($notices);
+                    $kinds = $notices->pluck('kind')->all();
+
+                    $planPosition = array_search('month_plan_not_approved', $kinds, true);
+
+                    return $kinds[0] === 'negative_account'
+                        && $notices->last()['kind'] === 'budget_not_in_execution'
+                        && $notices->last()['year'] === 2027
+                        && $planPosition !== false
+                        && $planPosition < count($kinds) - 1;
+                }),
+            );
+    }
+
+    public function test_dashboard_lists_a_draft_current_year_before_the_next_year_in_december(): void
+    {
+        $this->travelTo('2026-12-10 09:00:00');
+
+        $user = User::factory()->create();
+        Account::factory()->for($user)->create(['opening_date' => '2026-01-01']);
+        Budget::factory()->for($user)->create(['year' => 2026]);
+
+        $this->actingAs($user)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('dashboardNotices', [
+                    ['kind' => 'budget_not_in_execution', 'severity' => 'warning', 'year' => 2026, 'state' => 'draft'],
+                    ['kind' => 'budget_not_in_execution', 'severity' => 'warning', 'year' => 2027, 'state' => 'missing'],
+                ]),
+            );
+
+        Budget::factory()->for($user)->create(['year' => 2027]);
+
+        $this->actingAs($user)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('dashboardNotices', [
+                    ['kind' => 'budget_not_in_execution', 'severity' => 'warning', 'year' => 2026, 'state' => 'draft'],
+                    ['kind' => 'budget_not_in_execution', 'severity' => 'warning', 'year' => 2027, 'state' => 'draft'],
+                ]),
             );
     }
 

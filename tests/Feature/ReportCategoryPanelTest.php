@@ -356,6 +356,26 @@ test('the panel years of a current year equal the row of the Years report in sam
     }
 });
 
+test('in January the panel years of the current year are full years, from February the same day mode', function () {
+    [$user, $account] = panelUser();
+    $budgets = [2026 => panelBudget($user, 2026), 2027 => panelBudget($user, 2027)];
+    $category = Category::factory()->for($user)->expense()->create(['name' => 'Żywność']);
+    foreach ($budgets as $year => $budget) {
+        $line = panelLine($user, $budget, 'expense', 'x', $category);
+        panelOperation($user, $account, $line, "{$year}-01-01", 1_000);
+        panelOperation($user, $account, $line, "{$year}-01-20", 500);
+    }
+
+    $january = panelFor($budgets[2027], '2027-01-02', null, false, 'years')['panel'];
+    $years = panelYears($user, CarbonImmutable::parse('2027-01-02', 'UTC'))->toArray();
+    $february = panelFor($budgets[2027], '2027-02-01', null, false, 'years')['panel'];
+
+    expect($january['years']['mode'])->toBe('full')
+        ->and(panelItem($january, $category->id)['years'])->toBe(yearsRowOf($years['full']['expense']['entries'], $category->id))
+        ->and(panelItem($january, $category->id)['years']['cells'])->toBe([1_500, 1_500])
+        ->and($february['years']['mode'])->toBe('same_day');
+});
+
 test('a past year panel uses full years and its 2025 and 2024 cells equal the year report amounts', function () {
     [$user, $account] = panelUser();
     $budgets = [2024 => panelBudget($user, 2024), 2025 => panelBudget($user, 2025), 2026 => panelBudget($user, 2026)];

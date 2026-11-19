@@ -24,5 +24,5 @@ Before planning or editing, find the row whose globs match the file's path and r
 | app/Support/**/*.php, resources/js/pages/**/*.vue, resources/js/components/ui/chart/**, tests/Feature/Nfr/*.php, resources/js/components/Report*.vue, resources/js/lib/format-share*.ts, resources/js/lib/report-ranking*.ts, resources/js/lib/report-category-panel*.ts, resources/js/lib/report-trend*.ts, resources/js/lib/report-years*.ts, resources/js/lib/report-window*.ts, resources/js/lib/reports-fixtures.ts, tests/Unit/ReportsHardcodedUiTest.php, tests/Feature/ReportAmountInvariantTest.php | .ai/rules/reports.md |
 | app/**/*.php, .sloppy-baseline.json | .ai/rules/sloppy.md |
 | app/Actions/BackupUserData.php, app/Actions/RestoreUserData.php, tests/Feature/UserSnapshotCommandTest.php, tests/Feature/ApplicationBackupRestoreTest.php | .ai/rules/snapshot.md |
-| app/Support/DashboardNotices.php | .ai/rules/support.md |
+| app/Support/DashboardNotices.php, app/Support/BudgetNotInExecutionNotices.php | .ai/rules/support.md |
 | routes/*.php, app/Http/Controllers/**/*.php, resources/js/**/*.vue | .ai/rules/wayfinder.md |

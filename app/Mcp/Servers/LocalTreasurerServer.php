@@ -9,7 +9,7 @@ use RuntimeException;
 /**
  * The stdio variant: over stdio there is no middleware, so the only user is the one named in
  * `MCP_LOCAL_USER`, and only in the `local` environment. `TreasurerServer` has no such code,
- * so the web endpoint can never reach it (ADR-0108).
+ * so the web endpoint can never reach it (ADR-0110).
  */
 class LocalTreasurerServer extends TreasurerServer
 {

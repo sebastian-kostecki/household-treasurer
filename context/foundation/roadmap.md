@@ -55,10 +55,10 @@ Cztery kamienie milowe powstały w dwa tygodnie, a aplikacja nie przeszła jeszc
 | F-08 | app-day-decision                | (foundation) ADR i słownik ustalają jeden „dzień aplikacji” dla serwera i przeglądarki w miejsce „dziś w UTC”  | —             | MS-01    | done     |
 | F-09 | test-plan-refresh               | (foundation) plan testów odpowiada stanowi repo i wskazuje przepływy E2E, które są bramką CI                   | —             | MS-06    | done     |
 | S-39 | one-app-day                     | użytkownik widzi ten sam dzień i rok w menu roku, na Dashboardzie i w domyślnej dacie dialogów wokół północy   | F-08          | MS-01    | done |
-| S-40 | session-year-follows-year-turn  | użytkownik po przełomie otwiera aplikację w nowym roku bez ręcznej zmiany roku                                 | F-08, S-39    | MS-02    | proposed |
-| S-41 | year-turn-notices               | użytkownik widzi przed przełomem, co czeka: plan grudnia, Budżet następnego roku i Import przy szkicu          | F-08, S-39    | MS-03    | proposed |
+| S-40 | session-year-follows-year-turn  | użytkownik po przełomie otwiera aplikację w nowym roku bez ręcznej zmiany roku                                 | F-08, S-39    | MS-02    | ready    |
+| S-41 | year-turn-notices               | użytkownik widzi przed przełomem, co czeka: plan grudnia, Budżet następnego roku i Import przy szkicu          | F-08, S-39    | MS-03    | done     |
 | S-42 | import-across-draft-year        | użytkownik importuje wyciąg z przełomu przy szkicu nowego roku i wie, co zrobić z wierszami nowego roku        | —             | MS-04    | done     |
-| S-43 | years-report-in-early-january   | użytkownik widzi w „Latach” i w roku do roku sensowny odczyt w pierwszych dniach stycznia                     | F-08, S-39    | MS-05    | proposed |
+| S-43 | years-report-in-early-january   | użytkownik widzi w „Latach” i w roku do roku sensowny odczyt w pierwszych dniach stycznia                     | F-08, S-39    | MS-05    | done     |
 | S-44 | e2e-in-ci                       | użytkownik (właściciel repo) widzi czerwone CI, gdy zmiana psuje przepływ w przeglądarce                       | F-09          | MS-07    | done     |
 | S-45 | production-error-tracking       | użytkownik (właściciel) dostaje zgłoszenie wyjątku z produkcji ze stosem wywołań i kontekstem żądania          | —             | MS-08    | blocked  |
 | S-46 | docs-match-code                 | użytkownik i agent czytają słownik i ADR bez zdublowanych numerów i terminów, których nie ma w kodzie          | —             | MS-09    | done     |
@@ -73,7 +73,7 @@ Navigation aid — groups items that share a Prerequisites chain. Canonical orde
 | A      | Przełom roku          | `F-08` → `S-39` → `S-40` · `S-41` · `S-43`; `S-42`       | Przy celu „jakość” najpierw decyzja o dniu; `S-40`, `S-41`, `S-43` idą równolegle po `S-39`, który wprowadza `AppDay` (ADR-0103); `S-42` nie czeka na nic. |
 | B      | Siatka testów         | `F-09` → `S-44`                                         | Odświeżony plan wybiera przepływy-bramki; E2E w CI chroni wdrożenia poprawek strumienia A.                                    |
 | C      | Porządek produkcji    | `S-45` · `S-46`                                         | Dwa samodzielne wycinki; `S-45` czeka na wybór dostawcy, `S-46` może iść od razu.                                             |
-| D      | Claude i budżet       | `F-08` → `S-47`                                         | Serwer MCP (ADR-0108); po fazie 1 (wspólne czytniki) idzie równolegle z `S-40` i `S-41`; na produkcję przed ok. 15 grudnia 2026. |
+| D      | Claude i budżet       | `F-08` → `S-47`                                         | Serwer MCP (ADR-0110); po fazie 1 (wspólne czytniki) idzie równolegle z `S-40` i `S-41`; na produkcję przed ok. 15 grudnia 2026. |
 
 ## Baseline
 
@@ -142,7 +142,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Unknowns:**
   - Czy przeskakuje tylko rok, który był bieżący przed przełomem, czy także rok wybrany ręcznie do przeglądania (np. 2023)? — Owner: user. Block: no.
 - **Risk:** Zmienia ADR-0075 (rok z sesji ma pierwszeństwo); za szeroka reguła wyrzuci użytkownika z roku, który świadomie przegląda.
-- **Status:** proposed
+- **Status:** ready
 
 ### S-41: Przypomnienia przed przełomem
 
@@ -153,9 +153,9 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Parallel with:** S-40, S-42, S-43, F-09, S-44, S-45, S-46
 - **Blockers:** —
 - **Unknowns:**
-  - Czy miniony miesiąc bez zatwierdzonego planu ma dać się zatwierdzić po północy (zmiana reguły), czy wystarczy ostrzeżenie przed nią? — Owner: user. Block: no.
+  - ~~Czy miniony miesiąc bez zatwierdzonego planu ma dać się zatwierdzić po północy (zmiana reguły), czy wystarczy ostrzeżenie przed nią?~~ Answered: the warning only, no rule change (ADR-0109).
 - **Risk:** Powiadomienia Dashboardu mają własne reguły wagi i progów (F-01); trzy nowe powiadomienia naraz w grudniu nie mogą zasłonić istniejących ostrzeżeń planu miesiąca.
-- **Status:** proposed
+- **Status:** done
 
 ### S-42: Import wyciągu z przełomu przy szkicu roku
 
@@ -178,10 +178,9 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Prerequisites:** F-08, S-39 (`AppDay` z ADR-0103)
 - **Parallel with:** S-40, S-41, S-42, F-09, S-44, S-45, S-46
 - **Blockers:** —
-- **Unknowns:**
-  - Co „Lata” pokazują na początku stycznia: domyślnie „Pełne lata”, cięcie do końca poprzedniego miesiąca czy jak dziś z podpowiedzią? — Owner: user. Block: no.
+- **Unknowns:** — (rozstrzygnięte w ADR-0108: domyślnie „Pełne lata” przez cały styczeń, poza pierwszym rokiem z budżetem; rok do roku bez zmian, tylko testy)
 - **Risk:** Zmienia ADR-0097 (Same-day Cut) i może dotknąć ADR-0074; sumy w „Latach” muszą dalej równać się raportowi Rok.
-- **Status:** proposed
+- **Status:** done
 
 ### S-44: E2E w CI
 
@@ -241,10 +240,10 @@ Foundations below assume these are present and do NOT re-scaffold them.
 | F-08       | app-day-decision               | ADR i słownik: jeden dzień aplikacji zamiast „dziś w UTC”                 | no                    | Zrobione (ADR-0103)  |
 | F-09       | test-plan-refresh              | Plan testów: odświeżenie po M-4 i próbie przełomu                         | yes                   | Run `/10x-test-plan --refresh`, nie `/10x-plan`                        |
 | S-39       | one-app-day                    | Przełom roku: ten sam dzień w menu, na Dashboardzie i w dialogach         | yes                    | Run `/10x-plan one-app-day`; gwiazda przewodnia, spis miejsc w ADR-0103                                                               |
-| S-40       | session-year-follows-year-turn | Przełom roku: rok w sesji przechodzi na nowy rok                          | no                    | Po scaleniu S-39 (`AppDay`); plan `/10x-plan session-year-follows-year-turn` można przygotować wcześniej |
-| S-41       | year-turn-notices              | Przełom roku: przypomnienia w „Wymaga uwagi” i w menu roku                | no                    | Po scaleniu S-39 (`AppDay`, ten sam widok); plan `/10x-plan year-turn-notices` można przygotować wcześniej |
+| S-40       | session-year-follows-year-turn | Przełom roku: rok w sesji przechodzi na nowy rok                          | yes                   | Run `/10x-plan session-year-follows-year-turn`; S-39 (`AppDay`) scalone |
+| S-41       | year-turn-notices              | Przełom roku: przypomnienia w „Wymaga uwagi” i w menu roku                | yes                   | Run `/10x-plan year-turn-notices`; S-39 scalone; MPL-1 z audytu obserwowalności zamknięty commitem 1659a87, zostają przypomnienia |
 | S-42       | import-across-draft-year       | Import: wyciąg z przełomu przy szkicu nowego roku                         | yes                   | Run `/10x-plan import-across-draft-year`                               |
-| S-43       | years-report-in-early-january  | Raporty: „Lata” i rok do roku na początku stycznia                        | no                    | Po scaleniu S-39 (`AppDay`); plan `/10x-plan years-report-in-early-january` można przygotować wcześniej |
+| S-43       | years-report-in-early-january  | Raporty: „Lata” i rok do roku na początku stycznia                        | yes                   | Run `/10x-plan years-report-in-early-january`; S-39 (`AppDay`) scalone |
 | S-44       | e2e-in-ci                      | CI: testy Playwright na pushu i PR                                        | yes                    | Run `/10x-plan e2e-in-ci`; bramki w test-plan.md (F-09)                                                               |
 | S-45       | production-error-tracking      | Produkcja: śledzenie błędów                                               | no                    | Audyt zrobiony (`context/audits/observability/2026-11-19_import-operations-year-turn-backups.md`); teraz `/10x-infra-research`       |
 | S-46       | docs-match-code                | Dokumenty: numer ADR 0008 i terminy słownika bez kodu                     | yes                   | Run `/10x-plan docs-match-code`                                        |
@@ -320,3 +319,5 @@ This table is the clean handoff to Jira/Linear or any MCP-backed backlog. Includ
 - **F-08: (foundation) nowy ADR ustala, który dzień kalendarzowy jest „dziś” dla aplikacji i że przeglądarka bierze ten sam dzień co serwer (ADR-0103, App Day w Europe/Warsaw), a słownik i starsze ADR przestają mówić „dziś w UTC” na własną rękę.** — Archived 2026-11-19 → `context/archive/2026-11-18-app-day-decision/`. Lesson: —. Wpis i status dopisane przez `/10x-roadmap` 2026-11-19, bo zamknięcie zmiany nie zaktualizowało roadmapy.
 - **S-39: użytkownik o 00:30 1 stycznia (i o każdej porze wokół północy) widzi w menu roku, na Dashboardzie i jako domyślną datę w dialogach operacji, rachunku, lokaty, ruchu kapitału i uzgodnienia salda ten sam dzień i rok** — Archived 2026-11-19 → `context/archive/2026-11-19-one-app-day/`. Lesson: —.
 - **S-44: użytkownik (właściciel repo) widzi czerwone CI na pushu i PR do `development`, gdy zmiana psuje przepływ, który odświeżony plan testów wskazał jako bramkę** — Archived 2026-11-19 → `context/archive/2026-11-19-e2e-in-ci/`. Lesson: —.
+- **S-43: użytkownik 1–N stycznia widzi w „Latach” i w raporcie rok do roku odczyt, który porównuje coś więcej niż jeden dzień poprzednich lat, a wynik rok do roku na 1 stycznia jest sprawdzony** — Archived 2026-11-19 → `context/archive/2026-11-19-years-report-in-early-january/`. Lesson: —.
+- **S-41: użytkownik widzi w grudniu w „Wymaga uwagi”, że plan grudnia czeka na zatwierdzenie i po północy nie da się go już zatwierdzić, czy Budżet następnego roku jest szkicem (Import nie przyjmie jego wierszy), a po uruchomieniu menu roku i Dashboard mówią, że Budżet czeka na rok kalendarzowy** — Archived 2026-11-19 → `context/archive/2026-11-19-year-turn-notices/`. Lesson: —.

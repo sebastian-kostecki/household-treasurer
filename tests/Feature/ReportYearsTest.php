@@ -475,6 +475,22 @@ test('own transfers, capital movements, other users and drafts are not in the re
         ->and($shape['same_day']['income']['entries'])->toBe([]);
 });
 
+test('the default range is full years in January and the same day cut from February', function () {
+    [$user, $account] = yearsUser();
+    $budgets = yearsBudgets($user, [2025, 2026, 2027]);
+    $line = yearsLines($budgets, yearsCategory($user, 'Dom'));
+    yearsOperation($user, $account, $line[2026], '2026-01-01', 1_000);
+    yearsOperation($user, $account, $line[2027], '2027-01-01', 3_000);
+
+    $january = yearsShape($user, '2027-01-02');
+    $november = yearsShape($user, '2026-11-14');
+
+    expect($january['same_day'])->not->toBeNull()
+        ->and($january['cut'])->toBe(['month' => 1, 'day' => 2])
+        ->and($january['default_range'])->toBe('full')
+        ->and($november['default_range'])->toBe('same_day');
+});
+
 test('without a current year there is no same day mode and all years are full', function () {
     [$user, $account] = yearsUser();
     $budgets = yearsBudgets($user, [2025, 2026]);

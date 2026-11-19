@@ -22,7 +22,7 @@ Claude Code answers from local data over stdio. On production, `https://budget.k
 | Timing | Whole change in M-5 as S-47 | User decision; roadmap gets S-47 and an exception note on the parked line | Research (user) |
 | Scope | Local read → production read → cash write | User decision 1a | Research (user) |
 | Auth | Passport OAuth, no Sanctum stage | Static headers are beta for limited organizations; OAuth is the documented path to the phone | Research |
-| Dependencies | laravel/mcp ^1.2 in Phase 1, Passport ^13 in Phase 3, one ADR-0108 | Each package arrives with the code that uses it | Plan |
+| Dependencies | laravel/mcp ^1.2 in Phase 1, Passport ^13 in Phase 3, one ADR-0110 | Each package arrives with the code that uses it | Plan |
 | Deploy window | Read endpoint and write tool on production before ~15.12 | User chose option A; write path gets full entry tests on SQLite and PostgreSQL | Plan |
 | Month group sums | Port ADR-0079 read-mode rule to PHP with a parity test | Claude must not sum Category rows itself | Plan |
 | Year without Budget in execution | Say so with the App Day, year and phase; balances still answer | Same reading as the Dashboard; no closed month posing as current | Plan |
@@ -37,7 +37,7 @@ Claude Code answers from local data over stdio. On production, `https://budget.k
 ## Scope
 
 **In scope:**
-- ADR-0108, tech stack, roadmap S-47, `.ai/rules/mcp.md`
+- ADR-0110, tech stack, roadmap S-47, `.ai/rules/mcp.md`
 - Shared readers: `BudgetForYear`, `CurrentMonthReading`, `MonthTiming`, `FinancialOperationRows`, `MonthPlanGroupSums`
 - Six read tools, one write tool, local stdio and HTTP `/mcp`
 - Passport, discovery, DCR limited to Claude redirects, consent page, login/2FA/passkey redirect fix, rate limit, `mcp` call log, client cleanup

@@ -43,7 +43,7 @@ return [
             'provider' => 'users',
         ],
 
-        // Passport access tokens for the MCP endpoint (ADR-0108).
+        // Passport access tokens for the MCP endpoint (ADR-0110).
         'api' => [
             'driver' => 'passport',
             'provider' => 'users',

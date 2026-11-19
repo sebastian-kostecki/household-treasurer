@@ -51,7 +51,7 @@ class AppServiceProvider extends ServiceProvider
     }
 
     /**
-     * Passport is the OAuth server of the MCP endpoint (ADR-0108): short access tokens, Inertia consent page.
+     * Passport is the OAuth server of the MCP endpoint (ADR-0110): short access tokens, Inertia consent page.
      */
     protected function configurePassport(): void
     {

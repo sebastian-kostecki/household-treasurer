@@ -7,7 +7,7 @@ paths:
 
 # MCP server
 
-ADR-0108: `laravel/mcp`, a local stdio server and a public `/mcp` endpoint behind Passport OAuth. Tools are thin: they read through `app/Support` and write through `app/Actions`.
+ADR-0110: `laravel/mcp`, a local stdio server and a public `/mcp` endpoint behind Passport OAuth. Tools are thin: they read through `app/Support` and write through `app/Actions`.
 
 ## Every query starts at the user
 

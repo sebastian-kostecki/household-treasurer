@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vite-plus/test';
 import {
     financialOperationAmountClass,
     formatDayLabel,
+    formatDayMonth,
     formatFinancialOperationAmount,
     formatLongDate,
     formatMoney,
@@ -136,6 +137,13 @@ describe('operationDaySumClass', () => {
         expect(operationDaySumClass(100)).toBe('text-success');
         expect(operationDaySumClass(0)).toBe('text-foreground');
         expect(operationDaySumClass(-100)).toBe('text-foreground');
+    });
+});
+
+describe('formatDayMonth', () => {
+    it('writes the day and the month as DD.MM', () => {
+        expect(formatDayMonth('2026-11-30')).toBe('30.11');
+        expect(formatDayMonth('2026-02-01')).toBe('01.02');
     });
 });
 

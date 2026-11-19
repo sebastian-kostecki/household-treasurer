@@ -49,7 +49,7 @@ Verification: per-phase Success Criteria below, plus the manual phone check in P
 
 ## Implementation Approach
 
-Refactor first, then add. Phase 1 moves the shared orchestration into `app/Support` with no behaviour change, guarded by the existing controller tests, and records the decisions (ADR-0108, tech stack, roadmap, rule file). Phase 2 builds the server and read tools against those readers and proves them locally over stdio. Phase 3 adds OAuth without touching the tools (they only read `$request->user()`). Phase 4 is the production rollout of the read endpoint. Phase 5 makes hand-entry validation callable without HTTP, again with no behaviour change. Phase 6 adds the write tool on top of Phase 5 and deploys it behind a server switch.
+Refactor first, then add. Phase 1 moves the shared orchestration into `app/Support` with no behaviour change, guarded by the existing controller tests, and records the decisions (ADR-0110, tech stack, roadmap, rule file). Phase 2 builds the server and read tools against those readers and proves them locally over stdio. Phase 3 adds OAuth without touching the tools (they only read `$request->user()`). Phase 4 is the production rollout of the read endpoint. Phase 5 makes hand-entry validation callable without HTTP, again with no behaviour change. Phase 6 adds the write tool on top of Phase 5 and deploys it behind a server switch.
 
 All tools share one response shape: `app_day` (`YYYY-MM-DD`), the year and Budget phase they used where relevant, amounts as `*_minor_units` integers plus a display string from `MinorUnits::toMajorDisplay` with " zł", and only ids and fields that come from the user's own relations.
 
@@ -69,22 +69,22 @@ Record the decisions, add the dependency, and move the orchestration that tools 
 
 ### Changes Required:
 
-#### 1. ADR-0108
+#### 1. ADR-0110
 
-**File**: `context/foundation/adr/0108-mcp-server-with-oauth-through-passport.md`
+**File**: `context/foundation/adr/0110-mcp-server-with-oauth-through-passport.md`
 
 **Intent**: Record the MCP server: laravel/mcp, local stdio variant, `/mcp` with Passport OAuth (DCR, one scope), Atrament consent page, read tools on `app/Support` readers, the server-side month group sums for MCP (amends ADR-0079), one cash write tool with a key table, forced approval and the `MCP_WRITE_ENABLED` switch, and the App Day in every answer.
 
-**Contract**: Supersedes the sentence "Osobne REST/JSON API nie powstaje w MVP" (`context/foundation/tech-stack.md:35`) and the "API | brak" row (`:87`). Rejected options with one-line reasons: Sanctum token (static headers beta for limited organizations), custom read/write scopes, Blade consent view, key column on `financial_operations` (snapshot 13 → 14), port of the TS entry warning, year fallback (ADR-0075) in tools. ADR-0079 gets a line "Amended by ADR-0108". `tests/Unit/AdrNumberingTest.php` must stay green.
+**Contract**: Supersedes the sentence "Osobne REST/JSON API nie powstaje w MVP" (`context/foundation/tech-stack.md:35`) and the "API | brak" row (`:87`). Rejected options with one-line reasons: Sanctum token (static headers beta for limited organizations), custom read/write scopes, Blade consent view, key column on `financial_operations` (snapshot 13 → 14), port of the TS entry warning, year fallback (ADR-0075) in tools. ADR-0079 gets a line "Amended by ADR-0110". `tests/Unit/AdrNumberingTest.php` must stay green.
 
 #### 2. Tech stack, roadmap, rule file
 
 **File**: `context/foundation/tech-stack.md`, `context/foundation/roadmap.md`, `.ai/rules/mcp.md`, `.ai/rules/index.md`
 
-**Intent**: Add laravel/mcp and Passport to the stack with ADR-0108; add S-47 to M-5; give `app/Mcp` its own rules.
+**Intent**: Add laravel/mcp and Passport to the stack with ADR-0110; add S-47 to M-5; give `app/Mcp` its own rules.
 
 **Contract**:
-- tech-stack: §1 stack list, §2 and the §7 table row "API" point at ADR-0108; §8 drops "osobne REST API" from the deferred list.
+- tech-stack: §1 stack list, §2 and the §7 table row "API" point at ADR-0110; §8 drops "osobne REST API" from the deferred list.
 - roadmap: S-47 row in `## At a glance` (`S-47 | mcp-read-only-server | użytkownik pyta Claude'a o stan budżetu i dopisuje gotówkę z telefonu | F-08 | — | planning`), a `### S-47` section in the existing slice format (Outcome, Change ID, Prerequisites, Parallel with: S-40/S-41 after Phase 1, Risk), a row in `## Streams`, and the parked line `roadmap.md:248` annotated "wyjątek: S-47 (decyzja użytkownika 2026-11-19)". Frontmatter `updated` if present.
 - `.ai/rules/mcp.md` with `paths:` `app/Mcp/**/*.php`, `routes/ai.php`, `tests/Feature/Mcp/**`. Rules: every query starts at a `$user->…` relation and ids from input are checked against them; no session and no `SelectedBudgetYear`; "today" from `AppDay` and `app_day` in every answer; amounts from `app/Support` readers, never recomputed in a tool; read tools `#[IsReadOnly]`; results bounded (operations ≤ 50); the write tool stays behind `MCP_WRITE_ENABLED` and `requiresUserInteraction`. Regenerate the index with `php artisan boost:index-rules`.
 
@@ -122,7 +122,7 @@ Record the decisions, add the dependency, and move the orchestration that tools 
 
 - Unit tests for `BudgetForYear`, `CurrentMonthReading` (no Budget, draft, execution, App Day boundary 22:59:59 / 23:00:00 UTC on 31 December) and `MonthTiming` pass
 - Dashboard, Budget, Month Plan and Operations feature tests pass unchanged: `php artisan test --compact tests/Feature/DashboardTest.php tests/Feature/YearTurnTest.php tests/Feature/MonthPlanPageTest.php tests/Feature/BudgetTest.php tests/Feature/OperationsFilterTest.php tests/Feature/OperationsPaginationTest.php tests/Feature/OperationsRowRecipeTest.php`
-- `tests/Unit/AdrNumberingTest.php` passes with ADR-0108
+- `tests/Unit/AdrNumberingTest.php` passes with ADR-0110
 - `php artisan boost:index-rules` lists `.ai/rules/mcp.md`
 - Full gate on PostgreSQL in the worktree (`--entrypoint composer sail-8.5/app ci:check` with `DB_DATABASE=testing_mcp_read_only_server`) and `vendor/bin/sloppy ci` pass
 
@@ -474,7 +474,7 @@ MCP requests share the four FPM workers with the web UI. Tools return bounded re
 
 - [x] 1.1 Unit tests for BudgetForYear, CurrentMonthReading and MonthTiming pass — f52c80a5
 - [x] 1.2 Dashboard, Budget, Month Plan and Operations feature tests pass unchanged — f52c80a5
-- [x] 1.3 AdrNumberingTest passes with ADR-0108 — f52c80a5
+- [x] 1.3 AdrNumberingTest passes with ADR-0110 — f52c80a5
 - [x] 1.4 boost:index-rules lists .ai/rules/mcp.md — f52c80a5
 - [x] 1.5 Full gate on PostgreSQL and sloppy ci pass — f52c80a5
 

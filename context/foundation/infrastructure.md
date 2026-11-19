@@ -98,7 +98,7 @@ Pół roku później Mikrus aktualizuje hosta LXC i Docker przestaje startować 
 
 ## MCP endpoint
 
-The public MCP endpoint (ADR-0108) lets Claude on the web, Desktop and the phone read the budget through OAuth.
+The public MCP endpoint (ADR-0110) lets Claude on the web, Desktop and the phone read the budget through OAuth.
 
 - **Paths:** `/mcp` (Streamable HTTP), `/oauth/*` (authorize, token, register) and `/.well-known/oauth-*` (discovery). Everything else stays behind the normal session login.
 - **Caller:** the connector request comes from Anthropic's servers, not from the user's device. Their egress range is `160.79.104.0/21`; do not allow-list it, only make sure nothing blocks it.

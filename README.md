@@ -137,7 +137,7 @@ CI uruchamia dodatkowo [Sloppy](https://github.com/heyosseus/sloppy) (`vendor/bi
 
 ### Lokalny serwer MCP (odczyt)
 
-Serwer `treasurer` (stdio, ADR-0108) pozwala Claude Code i Claude Desktop pytać o budżet z lokalnej bazy: salda kont, „do wydania” w miesiącu, plan miesiąca i roku, ostatnie operacje, lista kategorii. Działa tylko w `APP_ENV=local` i czyta dane jednego użytkownika, którego wskazuje `MCP_LOCAL_USER` (e-mail albo ID) w `.env`:
+Serwer `treasurer` (stdio, ADR-0110) pozwala Claude Code i Claude Desktop pytać o budżet z lokalnej bazy: salda kont, „do wydania” w miesiącu, plan miesiąca i roku, ostatnie operacje, lista kategorii. Działa tylko w `APP_ENV=local` i czyta dane jednego użytkownika, którego wskazuje `MCP_LOCAL_USER` (e-mail albo ID) w `.env`:
 
 ```bash
 MCP_LOCAL_USER=ty@example.com
