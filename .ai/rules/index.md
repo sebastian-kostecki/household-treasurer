@@ -6,6 +6,7 @@ Before planning or editing, find the row whose globs match the file's path and r
 | --- | --- |
 | app/Actions/*Budget*.php, app/Actions/*Categor*.php, app/Models/Category*.php, app/Models/BudgetLine.php, app/Support/BudgetLineResolver.php, app/Support/CategoryList/**/*.php, app/Support/MonthPlanProposal.php, app/Support/Operations*.php, app/Support/CsvImport/ImportCategory*.php, app/Http/Requests/*Categor*.php, app/Http/Requests/IndexOperationsRequest.php, app/Http/Controllers/CategoryController.php, app/Http/Controllers/CategoryMergeController.php, app/Concerns/CategoryValidationRules.php | .ai/rules/categories.md |
 | resources/css/app.css | .ai/rules/css.md |
+| app/Actions/**/*.php, app/Http/Controllers/**/*.php, app/Http/Requests/**/*.php, app/Support/**/*.php | .ai/rules/errors.md |
 | resources/js/**/*.test.ts, vite.config.ts, package.json, tsconfig.json | .ai/rules/frontend-toolchain.md |
 | app/Http/Controllers/**/*.php, resources/js/pages/**/*.vue | .ai/rules/inertia-props.md |
 | resources/js/pages/auth/**, resources/js/layouts/auth/**, resources/js/layouts/AuthLayout.vue, resources/js/components/PasskeyVerify.vue, resources/js/components/PasswordInput.vue, resources/js/components/TextLink.vue, resources/js/lib/auth-*.ts | .ai/rules/js-auth.md |

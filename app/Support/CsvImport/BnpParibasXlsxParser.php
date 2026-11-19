@@ -2,7 +2,7 @@
 
 namespace App\Support\CsvImport;
 
-use InvalidArgumentException;
+use PhpOffice\PhpSpreadsheet\Exception as SpreadsheetException;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Shared\Date;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
@@ -34,7 +34,12 @@ class BnpParibasXlsxParser
      */
     public function parse(string $path): array
     {
-        $spreadsheet = IOFactory::load($path);
+        try {
+            $spreadsheet = IOFactory::load($path);
+        } catch (SpreadsheetException $exception) {
+            // A corrupt, encrypted or non-XLSX upload is the user's file to fix, not a server fault.
+            throw new ImportFileRejected(__('The uploaded file could not be read.'), previous: $exception);
+        }
         $sheet = $spreadsheet->getSheet(0);
         $columns = $this->resolveColumns($sheet);
         $rows = [];
@@ -59,7 +64,7 @@ class BnpParibasXlsxParser
             ];
 
             if (count($rows) > CsvImportParser::MAX_ROWS) {
-                throw new InvalidArgumentException(__('XLSX files can contain at most :max rows.', [
+                throw new ImportFileRejected(__('XLSX files can contain at most :max rows.', [
                     'max' => CsvImportParser::MAX_ROWS,
                 ]));
             }
@@ -93,7 +98,7 @@ class BnpParibasXlsxParser
         $recipientColumn = $headers[self::RECIPIENT_ONLY_HEADER] ?? null;
 
         if ($dateColumn === null || $amountColumn === null || $descriptionColumn === null) {
-            throw new InvalidArgumentException(__('The BNP Paribas export header was not found in the file.'));
+            throw new ImportFileRejected(__('The BNP Paribas export header was not found in the file.'));
         }
 
         if ($combinedSenderColumn !== null) {
@@ -116,7 +121,7 @@ class BnpParibasXlsxParser
             ];
         }
 
-        throw new InvalidArgumentException(__('The BNP Paribas export header was not found in the file.'));
+        throw new ImportFileRejected(__('The BNP Paribas export header was not found in the file.'));
     }
 
     /**
