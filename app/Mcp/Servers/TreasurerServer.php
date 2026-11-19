@@ -3,6 +3,7 @@
 namespace App\Mcp\Servers;
 
 use App\Mcp\Tools\AccountBalancesTool;
+use App\Mcp\Tools\AddCashOperationTool;
 use App\Mcp\Tools\ListCategoriesTool;
 use App\Mcp\Tools\MonthPlanTool;
 use App\Mcp\Tools\MonthToSpendTool;
@@ -29,5 +30,6 @@ class TreasurerServer extends Server
         YearPlanTool::class,
         RecentOperationsTool::class,
         ListCategoriesTool::class,
+        AddCashOperationTool::class,
     ];
 }
