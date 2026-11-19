@@ -141,15 +141,13 @@ class ManageCapitalMovement
 
     private function applyAccountBalanceChange(Account $account, int $deltaMinorUnits): void
     {
-        $account->update([
-            'current_balance_minor_units' => $account->current_balance_minor_units + $deltaMinorUnits,
-        ]);
+        // One SQL `balance = balance + delta`: a read-then-write of the loaded value would overwrite
+        // an expense, import or second transfer saved on the same Account in between.
+        $account->increment('current_balance_minor_units', $deltaMinorUnits);
     }
 
     private function applyTermDepositBalanceChange(TermDeposit $termDeposit, int $deltaMinorUnits): void
     {
-        $termDeposit->update([
-            'current_balance_minor_units' => $termDeposit->current_balance_minor_units + $deltaMinorUnits,
-        ]);
+        $termDeposit->increment('current_balance_minor_units', $deltaMinorUnits);
     }
 }
