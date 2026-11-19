@@ -194,6 +194,8 @@ export type ReportYearsData = {
     cut: { month: number; day: number } | null;
     /** Null without a Budget in execution in the current year. */
     same_day: ReportYearsMode | null;
+    /** The range the page opens on: `full` in January (ADR-0108), otherwise `same_day`. */
+    default_range: 'same_day' | 'full';
     full: ReportYearsMode;
 };
 
@@ -233,7 +235,7 @@ export type ReportCategoryPanelYears = {
     columns: number[];
     current_year: number | null;
     cut: { month: number; day: number } | null;
-    /** `same_day` for the current year, `full` for every other one. */
+    /** `same_day` for the current year (except in January, ADR-0108), `full` for every other one. */
     mode: 'same_day' | 'full';
 };
 

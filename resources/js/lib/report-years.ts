@@ -1,5 +1,7 @@
 /** Pure helpers of the Reports "Lata" view (ADR-0097); the server computes every number. */
 
+import type { ReportYearsData } from '../types/reports';
+
 export type ReportYearsCut = { month: number; day: number };
 
 /** "Do 14 listopada"; `template` is `t.reports.years_range_same_day`, `monthGenitive` e.g. "listopada". */
@@ -11,6 +13,15 @@ export function reportYearsCutLabel(
     return template
         .replace(':day', String(cut.day))
         .replace(':month', monthGenitive);
+}
+
+/** The range "Lata" opens on: the server's default (ADR-0108), `full` without a current year. */
+export function reportYearsInitialRange(
+    years: Pick<ReportYearsData, 'same_day' | 'default_range'>,
+): 'same-day' | 'full' {
+    return years.same_day !== null && years.default_range === 'same_day'
+        ? 'same-day'
+        : 'full';
 }
 
 /** "14.11", "29.02" */
