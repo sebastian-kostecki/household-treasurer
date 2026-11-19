@@ -312,6 +312,6 @@ None: no schema or stored data changes.
 
 #### Automated
 
-- [x] 3.1 Phase 3 tests pass on PostgreSQL
-- [x] 3.2 Full gate on PostgreSQL and Sloppy pass
-- [x] 3.3 No production code changed in this phase
+- [x] 3.1 Phase 3 tests pass on PostgreSQL — b125d7ea
+- [x] 3.2 Full gate on PostgreSQL and Sloppy pass — b125d7ea
+- [x] 3.3 No production code changed in this phase — b125d7ea
