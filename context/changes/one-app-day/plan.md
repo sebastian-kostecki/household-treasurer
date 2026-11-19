@@ -435,7 +435,7 @@ Bez migracji. Istniejące `archived_at` Kategorii z pierwszej godziny po półno
 
 #### Manual
 
-- [ ] 1.5 Użytkownik potwierdza granice polskiej północy w YearTurnTest i BudgetCollectedAtYearStartTest
+- [x] 1.5 Użytkownik potwierdza granice polskiej północy w YearTurnTest i BudgetCollectedAtYearStartTest — potwierdzone przez użytkownika
 
 ### Phase 2: „Nie później niż dziś” na serwerze i strażnik PHP
 
@@ -449,7 +449,7 @@ Bez migracji. Istniejące `archived_at` Kategorii z pierwszej godziny po półno
 
 #### Manual
 
-- [ ] 2.6 Dialog wydatku z datą jutrzejszą pokazuje „Data nie może być w przyszłości.”
+- [x] 2.6 Dialog wydatku z datą jutrzejszą pokazuje „Data nie może być w przyszłości.” — potwierdzone przez użytkownika
 
 ### Phase 3: `shell.today` i przeglądarka
 
@@ -464,7 +464,7 @@ Bez migracji. Istniejące `archived_at` Kategorii z pierwszej godziny po półno
 
 #### Manual
 
-- [ ] 3.7 Kitchen sinki dialogów, operacji i ekranów wejścia renderują się z dniem App Day
+- [x] 3.7 Kitchen sinki dialogów, operacji i ekranów wejścia renderują się z dniem App Day — potwierdzone przez użytkownika
 
 ### Phase 4: Dokumenty, reguły i próba na zegarze
 
@@ -477,7 +477,7 @@ Bez migracji. Istniejące `archived_at` Kategorii z pierwszej godziny po półno
 
 #### Manual
 
-- [ ] 4.5 Próba o 2026-12-31 23:30 UTC: jeden dzień 2027-01-01 w Dashboardzie, menu roku i dialogach
-- [ ] 4.6 Próba o 2026-12-31 22:30 UTC: wszędzie 31 grudnia, grudzień do zatwierdzenia
-- [ ] 4.7 Ekran logowania o 23:30 UTC pokazuje rok 2027
-- [ ] 4.8 Użytkownik czyta README „Przełom roku” i regułę app-day.md
+- [x] 4.5 Próba o 2026-12-31 23:30 UTC: jeden dzień 2027-01-01 w Dashboardzie, menu roku i dialogach — potwierdzone przez użytkownika
+- [x] 4.6 Próba o 2026-12-31 22:30 UTC: wszędzie 31 grudnia, grudzień do zatwierdzenia — potwierdzone przez użytkownika
+- [x] 4.7 Ekran logowania o 23:30 UTC pokazuje rok 2027 — potwierdzone przez użytkownika
+- [x] 4.8 Użytkownik czyta README „Przełom roku” i regułę app-day.md — potwierdzone przez użytkownika
