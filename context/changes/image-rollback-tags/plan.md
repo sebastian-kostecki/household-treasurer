@@ -308,8 +308,10 @@ Brak migracji bazy. Pierwsze wdrożenie po zmianie wymaga `git pull --ff-only or
 
 #### Manual
 
-- [x] 3.3 Na halina175 `scripts/deploy.sh` loguje tag `legacy-…`, tag SHA i sprzątanie, a `docker image ls` pokazuje `prod`, `<sha>` i `legacy-…`
-- [x] 3.4 `scripts/rollback.sh` wypisuje tagi z `← prod` przy bieżącym SHA
-- [x] 3.5 `scripts/rollback.sh legacy-<data>` przechodzi blokadę, a `/up` zwraca 200 na starym obrazie
-- [x] 3.6 `scripts/rollback.sh <sha>` wraca na nowy obraz, a `/up` zwraca 200
-- [x] 3.7 Kolejne wdrożenie zostawia najwyżej 3 tagi poza `prod`
+- [ ] 3.3 Na halina175 `scripts/deploy.sh` loguje tag `legacy-…`, tag SHA i sprzątanie, a `docker image ls` pokazuje `prod`, `<sha>` i `legacy-…`
+- [ ] 3.4 `scripts/rollback.sh` wypisuje tagi z `← prod` przy bieżącym SHA
+- [ ] 3.5 `scripts/rollback.sh legacy-<data>` przechodzi blokadę, a `/up` zwraca 200 na starym obrazie
+- [ ] 3.6 `scripts/rollback.sh <sha>` wraca na nowy obraz, a `/up` zwraca 200
+- [ ] 3.7 Kolejne wdrożenie zostawia najwyżej 3 tagi poza `prod`
+
+> 3.3–3.7 czekają na merge do `main` i pierwsze `scripts/deploy.sh` na halina175 (przegląd implementacji 2026-11-19, F1): gałąź nie była jeszcze na `origin`, więc próba na produkcji nie mogła się odbyć.

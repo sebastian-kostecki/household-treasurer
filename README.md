@@ -161,7 +161,7 @@ Decyzje: [ADR-0064](context/foundation/adr/0064-instance-backup-before-every-pro
 7. `migrate --force`.
 8. **Liczby kontrolne „po”** (`…-after.json`) z `--compare` na plik „przed”. Różnica kończy skrypt błędem, a aplikacja **zostaje w trybie serwisowym** (zob. „Migracja przerwana w trakcie” niżej).
 9. `artisan up`, potem cache konfiguracji, tras i widoków.
-10. **Sprzątanie obrazów** po udanym wdrożeniu: zostają 3 najnowsze tagi (według czasu wdrożenia, nie daty utworzenia obrazu) i obraz, który działał przed tym wdrożeniem, potem `docker image prune -f --filter label=maintainer=household-treasurer` (tylko wiszące obrazy tej aplikacji, serwer jest współdzielony). Cache budowania zostaje.
+10. **Sprzątanie obrazów** po udanym wdrożeniu: zostają 3 najnowsze tagi (według czasu wdrożenia, nie daty utworzenia obrazu) i obraz, który działał przed tym wdrożeniem, potem `docker image prune -f --filter label=maintainer=household-treasurer` (tylko wiszące obrazy tej aplikacji, serwer jest współdzielony). Cache budowania zostaje. Ponowne wdrożenie tego samego commita (np. po zmianie `.env.prod`) przenosi tag SHA na nowy build, a poprzedni build tego commita zostaje pod tagiem `<sha>-<RRRRMMDDGGMMSS czasu jego wdrożenia>` i liczy się do trzech najnowszych.
 
 Skrypt aktualizuje sam siebie w kroku 1, więc pierwsze wdrożenie po zmianie `deploy.sh` biegnie jeszcze starą wersją. Dlatego przed `scripts/deploy.sh` zawsze zrób na serwerze `git pull --ff-only origin main` (niżej: pierwsze wdrożenie S-18). Jeśli w logu brakuje „Snapshotting every user…” albo „Recording control numbers…”, wdrożenie poszło starym skryptem bez bramek.
 

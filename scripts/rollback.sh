@@ -22,20 +22,22 @@ REPO="${PRODUCTION_IMAGE_REPOSITORY}"
 # The way back to the previous image, set before the first change; read by the EXIT trap.
 WAY_BACK=""
 MAINTENANCE_STARTED=0
-LOCK_DIR=""
+# Set once :prod points at the target: only then is WAY_BACK the way back.
+PROD_SWITCHED=0
+WORK_DIR=""
 
 rollback_report_failure() {
     local status=$?
 
-    if [[ -n "${LOCK_DIR}" ]]; then
-        rm -rf "${LOCK_DIR}"
+    if [[ -n "${WORK_DIR}" ]]; then
+        rm -rf "${WORK_DIR}"
     fi
 
     if [[ ${status} -ne 0 && "${MAINTENANCE_STARTED:-0}" == "1" ]]; then
         echo "ERROR: Rollback failed. The application STAYS in maintenance mode." >&2
-        if [[ -n "${WAY_BACK}" && "${WAY_BACK}" != sha256:* ]]; then
+        if [[ "${PROD_SWITCHED}" == "1" && -n "${WAY_BACK}" && "${WAY_BACK}" != sha256:* ]]; then
             echo "Way back to the previous image: scripts/rollback.sh ${WAY_BACK}" >&2
-        elif [[ -n "${WAY_BACK}" ]]; then
+        elif [[ "${PROD_SWITCHED}" == "1" && -n "${WAY_BACK}" ]]; then
             echo "Way back to the previous image (it has no tag):" >&2
             echo "  docker tag ${WAY_BACK} ${REPO}:prod" >&2
             echo "  ${COMPOSE} up -d --no-build app" >&2
@@ -80,9 +82,9 @@ fi
 
 TARGET_IMAGE_ID="$(docker image inspect --format '{{.Id}}' "${REPO}:${TARGET_TAG}")"
 
-# The image the app container runs, not :prod: a previous attempt may have moved :prod
-# while `up -d` failed. Without a container, :prod is the reference.
-APP_CONTAINER="$($COMPOSE ps -q app)"
+# The image of the app container, also a stopped one, not :prod: a previous attempt may
+# have moved :prod while `up -d` failed. Without a container, :prod is the reference.
+APP_CONTAINER="$($COMPOSE ps --all --quiet app)"
 if [[ -n "${APP_CONTAINER}" ]]; then
     RUNNING_IMAGE_ID="$(docker inspect --format '{{.Image}}' "${APP_CONTAINER}")"
 else
@@ -105,15 +107,15 @@ if [[ -n "${RUNNING_IMAGE_ID}" ]]; then
     done <<< "${LISTING}"
 fi
 
-# Migration lock: nothing has changed yet when it refuses.
-LOCK_DIR="$(mktemp -d)"
+# Migration lock: nothing has changed yet when it refuses. WORK_DIR holds the two lists.
+WORK_DIR="$(mktemp -d)"
 
 echo "==> Comparing migrations of the database and of ${REPO}:${TARGET_TAG}..."
-production_database_migrations > "${LOCK_DIR}/database.txt"
-production_image_migrations "${TARGET_TAG}" > "${LOCK_DIR}/image.txt"
+production_database_migrations > "${WORK_DIR}/database.txt"
+production_image_migrations "${TARGET_TAG}" > "${WORK_DIR}/image.txt"
 
-UNKNOWN_MIGRATIONS="$(production_unknown_migrations "${LOCK_DIR}/database.txt" "${LOCK_DIR}/image.txt")"
-PENDING_MIGRATIONS="$(production_pending_migrations "${LOCK_DIR}/database.txt" "${LOCK_DIR}/image.txt")"
+UNKNOWN_MIGRATIONS="$(production_unknown_migrations "${WORK_DIR}/database.txt" "${WORK_DIR}/image.txt")"
+PENDING_MIGRATIONS="$(production_pending_migrations "${WORK_DIR}/database.txt" "${WORK_DIR}/image.txt")"
 
 if [[ -n "${UNKNOWN_MIGRATIONS}" ]]; then
     echo "ERROR: The database has migrations that ${REPO}:${TARGET_TAG} does not know:" >&2
@@ -140,6 +142,7 @@ fi
 
 echo "==> Switching ${REPO}:prod to ${TARGET_TAG}..."
 docker tag "${REPO}:${TARGET_TAG}" "${REPO}:prod"
+PROD_SWITCHED=1
 
 echo "==> Starting app on ${TARGET_TAG} (no build)..."
 $COMPOSE up -d --no-build app

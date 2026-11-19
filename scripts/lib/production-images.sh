@@ -7,12 +7,26 @@ PRODUCTION_IMAGE_REPOSITORY="household-treasurer-app"
 # ignored. The rest is sorted newest first by the first 19 characters of the time (to the
 # second: the `.Created` of a legacy image has a fractional part), the first <keep> stay,
 # and of the others the tags whose image id is not protected are printed, one per line.
+# A row without a time or an image id fails the call before anything is printed: it would
+# sort as the oldest and match no protected id.
 production_image_tags_to_remove() {
     local keep="$1"
     shift
-    local protected_ids="$*"
+    local protected_ids="$*" rows
 
-    awk -F '\t' '
+    rows="$(cat)"
+
+    if ! printf '%s\n' "${rows}" | awk -F '\t' '
+        $1 != "prod" && $1 != "<none>" && $1 != "" && ($2 == "" || $3 == "") {
+            print "ERROR: Image tag " $1 " has no deployment time or image id, so no tag is removed." > "/dev/stderr"
+            invalid = 1
+        }
+        END { exit invalid }
+    '; then
+        return 1
+    fi
+
+    printf '%s\n' "${rows}" | awk -F '\t' '
         $1 != "prod" && $1 != "<none>" && $1 != "" {
             print substr($2, 1, 19) "\t" $1 "\t" $3
         }
@@ -29,26 +43,50 @@ production_image_tags_to_remove() {
     '
 }
 
-# ID of the image tagged :prod, empty when there is none (first deployment).
+# Callers read the functions below through `$(...)`, where bash drops `set -e`, so every
+# docker call that can fail ends in `|| return 1`: a docker error stops the caller instead
+# of reading as "no image" or as an empty row.
+
+# ID of the image tagged :prod, empty when there is none (first deployment). Only an
+# absent tag reads as empty; a docker error fails the call.
 production_prod_image_id() {
-    if docker image inspect --format '{{.Id}}' "${PRODUCTION_IMAGE_REPOSITORY}:prod" 2>/dev/null; then
+    local listed
+
+    listed="$(docker image ls -q "${PRODUCTION_IMAGE_REPOSITORY}:prod")" || return 1
+    if [[ -z "${listed}" ]]; then
         return 0
     fi
+
+    docker image inspect --format '{{.Id}}' "${PRODUCTION_IMAGE_REPOSITORY}:prod"
 }
 
-# Rows "<tag>\t<deployed-at>\t<image-id>" for every tag of the repository. An image
-# without the deployed-at label (legacy) falls back to its creation time.
+# Deployment time of <tag>: the deployed-at label, or the creation time for an image
+# without it (legacy).
+production_image_deployed_at() {
+    local tag="$1" deployed_at
+
+    deployed_at="$(docker image inspect --format '{{index .Config.Labels "household-treasurer.deployed-at"}}' "${PRODUCTION_IMAGE_REPOSITORY}:${tag}")" || return 1
+    if [[ -z "${deployed_at}" ]]; then
+        deployed_at="$(docker image inspect --format '{{.Created}}' "${PRODUCTION_IMAGE_REPOSITORY}:${tag}")" || return 1
+    fi
+
+    printf '%s\n' "${deployed_at}"
+}
+
+# Rows "<tag>\t<deployed-at>\t<image-id>" for every tag of the repository.
 production_image_listing() {
-    local tag deployed_at image_id
+    local tags tag deployed_at image_id
+
+    tags="$(docker image ls --format '{{.Tag}}' "${PRODUCTION_IMAGE_REPOSITORY}")" || return 1
 
     while IFS= read -r tag; do
-        deployed_at="$(docker image inspect --format '{{index .Config.Labels "household-treasurer.deployed-at"}}' "${PRODUCTION_IMAGE_REPOSITORY}:${tag}")"
-        if [[ -z "${deployed_at}" ]]; then
-            deployed_at="$(docker image inspect --format '{{.Created}}' "${PRODUCTION_IMAGE_REPOSITORY}:${tag}")"
+        if [[ -z "${tag}" || "${tag}" == "<none>" ]]; then
+            continue
         fi
-        image_id="$(docker image inspect --format '{{.Id}}' "${PRODUCTION_IMAGE_REPOSITORY}:${tag}")"
+        deployed_at="$(production_image_deployed_at "${tag}")" || return 1
+        image_id="$(docker image inspect --format '{{.Id}}' "${PRODUCTION_IMAGE_REPOSITORY}:${tag}")" || return 1
         printf '%s\t%s\t%s\n' "${tag}" "${deployed_at}" "${image_id}"
-    done < <(docker image ls --format '{{.Tag}}' "${PRODUCTION_IMAGE_REPOSITORY}")
+    done <<< "${tags}"
 }
 
 # An image from before the tags (:prod without the revision label) gets `legacy-<date>`
@@ -73,8 +111,26 @@ production_tag_legacy_prod_image() {
     docker tag "${PRODUCTION_IMAGE_REPOSITORY}:prod" "${PRODUCTION_IMAGE_REPOSITORY}:${legacy_tag}"
 }
 
+# Tags the freshly built :prod with <revision>. When the same commit was deployed before,
+# its previous build keeps a tag `<revision>-<YYYYMMDDHHMMSS of its deployment>`: moving
+# the SHA tag alone would leave it untagged, and the prune at the end would remove it.
 production_tag_built_image() {
     local revision="$1"
+    local listed previous_id built_id previous_deployed_at kept_tag
+
+    listed="$(docker image ls -q "${PRODUCTION_IMAGE_REPOSITORY}:${revision}")"
+    if [[ -n "${listed}" ]]; then
+        previous_id="$(docker image inspect --format '{{.Id}}' "${PRODUCTION_IMAGE_REPOSITORY}:${revision}")"
+        built_id="$(docker image inspect --format '{{.Id}}' "${PRODUCTION_IMAGE_REPOSITORY}:prod")"
+
+        if [[ "${previous_id}" != "${built_id}" ]]; then
+            previous_deployed_at="$(production_image_deployed_at "${revision}")"
+            kept_tag="${revision}-$(printf '%s' "${previous_deployed_at}" | tr -d 'TZ:-' | cut -c1-14)"
+
+            echo "==> Keeping the previous build of ${revision} as ${PRODUCTION_IMAGE_REPOSITORY}:${kept_tag}..."
+            docker tag "${PRODUCTION_IMAGE_REPOSITORY}:${revision}" "${PRODUCTION_IMAGE_REPOSITORY}:${kept_tag}"
+        fi
+    fi
 
     echo "==> Tagging the built image as ${PRODUCTION_IMAGE_REPOSITORY}:${revision}..."
     docker tag "${PRODUCTION_IMAGE_REPOSITORY}:prod" "${PRODUCTION_IMAGE_REPOSITORY}:${revision}"
