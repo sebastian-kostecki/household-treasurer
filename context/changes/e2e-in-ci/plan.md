@@ -446,10 +446,10 @@ Brak migracji danych. Zmiana seedera dotyczy tylko nowych seedów i nie rusza is
 
 #### Automated
 
-- [x] 3.1 `import-approve.spec.ts` przechodzi lokalnie
-- [x] 3.2 Celowe zepsucie zatwierdzenia czerwieni spec, a po cofnięciu jest zielony
-- [x] 3.3 Po przebiegu w bazie nie ma operacji ze stampem przebiegu
-- [x] 3.4 `npx vp check` przechodzi dla nowego speca
+- [x] 3.1 `import-approve.spec.ts` przechodzi lokalnie — ac91b9e
+- [x] 3.2 Celowe zepsucie zatwierdzenia czerwieni spec, a po cofnięciu jest zielony — ac91b9e
+- [x] 3.3 Po przebiegu w bazie nie ma operacji ze stampem przebiegu — ac91b9e
+- [x] 3.4 `npx vp check` przechodzi dla nowego speca — ac91b9e
 
 #### Manual
 
@@ -459,12 +459,12 @@ Brak migracji danych. Zmiana seedera dotyczy tylko nowych seedów i nie rusza is
 
 #### Automated
 
-- [ ] 4.1 `--list --project=gate` pokazuje `setup` i dokładnie pięć bramek
-- [ ] 4.2 `--list` pokazuje każdy spec dokładnie raz
-- [ ] 4.3 Próba w trybie CI: `setup` zielony, potem 20 rund bramek (100 przebiegów) bez porażki
-- [ ] 4.4 Wymuszona porażka w trybie CI zostawia trace i raport
-- [ ] 4.5 `npx vp check` i `npm run types:check` przechodzą
-- [ ] 4.6 Smoke `e2e-server-ci.sh` w obrazie Sail: `/login` i asset 200, `public/hot` daje błąd
+- [x] 4.1 `--list --project=gate` pokazuje `setup` i dokładnie pięć bramek
+- [x] 4.2 `--list` pokazuje każdy spec dokładnie raz
+- [x] 4.3 Próba w trybie CI: `setup` zielony, potem 20 rund bramek (100 przebiegów) bez porażki
+- [x] 4.4 Wymuszona porażka w trybie CI zostawia trace i raport
+- [x] 4.5 `npx vp check` i `npm run types:check` przechodzą
+- [x] 4.6 Smoke `e2e-server-ci.sh` w obrazie Sail: `/login` i asset 200, `public/hot` daje błąd
 
 ### Phase 5: Job `e2e` w CI i dokumenty
 

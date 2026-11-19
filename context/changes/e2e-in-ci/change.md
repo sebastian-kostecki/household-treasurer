@@ -25,3 +25,11 @@ Worktree: .claude/worktrees/e2e-in-ci (gałąź worktree-e2e-in-ci, przestawiona
 ### Faza 3 — celowe zepsucie (cofnięte przed commitem)
 
 - `import-approve`: `rows[${row.index}][category_id]` → `[category_idx]` w `ImportPreviewRow.vue` — serwer nie dostaje kategorii, brak przekierowania na `/operations`, spec czerwony (`toHaveURL`). Po cofnięciu zielony, w bazie 0 operacji ze stampem.
+
+### Faza 4 — próba w trybie CI
+
+- Próba 1 (świeża baza `e2e_ci_e2e_in_ci`, `CI=1`, `setup` osobno, potem `--project=gate --no-deps --repeat-each=20`): 99/100. Porażka: `irregular-collected` (limit testu 30 s; spec trwa 27–43 s).
+- Poprawka 1: `timeout: 90_000` w projekcie `gate`. Próba 2: 99/100, porażka `month-plan-groups`: dialog „Dodaj wydatek” w stanie `closed` został w DOM >5 s (animacja wyjścia pod obciążeniem; aplikacja nie respektuje `prefers-reduced-motion`).
+- Poprawka 2: `expect: { timeout: 10_000 }` w configu (asercje bez zmian). Próba 3: 100/100, 36 min.
+- Wymuszona porażka w trybie CI (zła kwota w `seed`): adnotacja `::error` reportera `github`, `trace.zip` w `test-results/`, raport w `playwright-report/`.
+- Smoke `scripts/e2e-server-ci.sh` w obrazie Sail: `/login` 200, asset z manifestu 200, przy `public/hot` kod 1 i komunikat.
