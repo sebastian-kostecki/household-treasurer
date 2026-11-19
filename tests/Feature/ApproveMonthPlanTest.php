@@ -7,7 +7,6 @@ use App\Models\Budget;
 use App\Models\BudgetLine;
 use App\Models\Category;
 use App\Models\MonthPlan;
-use App\Models\MonthPlanItem;
 use App\Models\User;
 use App\Support\CategoryRhythms;
 use App\Support\IrregularCollected;
@@ -266,9 +265,10 @@ class ApproveMonthPlanTest extends TestCase
         Exceptions::fake();
         $budget = Budget::factory()->for(User::factory())->execution()->create(['year' => 2026]);
         $food = BudgetLine::factory()->for($budget)->expense()->create(['planned_amount_minor_units' => 100_001]);
-        MonthPlanItem::creating(fn () => throw new UniqueConstraintViolationException(
+        // No parallel plan exists after the rollback, so this is not the double-submit race.
+        MonthPlan::creating(fn () => throw new UniqueConstraintViolationException(
             'testing',
-            'insert into month_plan_items',
+            'insert into month_plans',
             [],
             new RuntimeException('duplicate key value violates unique constraint'),
         ));
