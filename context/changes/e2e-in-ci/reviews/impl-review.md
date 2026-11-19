@@ -54,7 +54,7 @@
   - Tradeoff: If the image lacks a library, the job fails at Chromium launch. That needs a separate run on GitHub (a step like 5.4).
   - Confidence: LOW — I have not checked that the image has every Chromium dependency.
   - Blind spot: Future changes to the runner image.
-- **Decision**: FIXED (Fix A): both measurements are recorded in plan.md (Progress 5.6 and the Addendum) and in change.md; the job is unchanged
+- **Decision**: FIXED (Fix A): both measurements are recorded in plan.md (Progress 5.6 and the Addendum) and in change.md; the job is unchanged. UPDATE after the fixes: on `335b205` the first attempt of e2e went red with no code involved (`503` from `security.ubuntu.com` in `--with-deps`, exit 100); after a re-run of the job it was green (114 s). Fix B (no apt) or a retry of the install step is now a strong candidate for a follow-up
 
 ### F2 — Sprzątanie w `finally` może przykryć pierwotny błąd speca
 

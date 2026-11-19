@@ -42,3 +42,4 @@ Tymczasowa gałąź z błędną kwotą w `seed.spec.ts` (draft PR #276, zamknię
 
 - Czas joba `e2e` na HEAD `4e7a7fb`: 397 s przy `ci` 249 s; krok „Install Playwright browser” 288 s, z czego `apt-get` 3 min 39 s (147 kB/s). Przebieg na `aa246c4`: ten krok 46 s.
 - Issue #277: dialogi ignorują `prefers-reduced-motion`; po poprawce zdjąć `expect.timeout` z `playwright.config.ts`.
+- Przebieg PR #275 na `335b205` (poprawki z przeglądu), próba 1: `e2e` czerwony bez udziału kodu — `npx playwright install --with-deps` dostał `503 Service Unavailable` z `security.ubuntu.com` przy paczkach fontów (exit 100), bramka `skipped`. Próba 2 (ponowienie joba): `e2e` zielony w 114 s, `6 passed (42.7s)`. Mirror apt to już nie tylko czas joba, ale fałszywa czerwień bramki.
