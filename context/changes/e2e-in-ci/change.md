@@ -33,3 +33,7 @@ Worktree: .claude/worktrees/e2e-in-ci (gałąź worktree-e2e-in-ci, przestawiona
 - Poprawka 2: `expect: { timeout: 10_000 }` w configu (asercje bez zmian). Próba 3: 100/100, 36 min.
 - Wymuszona porażka w trybie CI (zła kwota w `seed`): adnotacja `::error` reportera `github`, `trace.zip` w `test-results/`, raport w `playwright-report/`.
 - Smoke `scripts/e2e-server-ci.sh` w obrazie Sail: `/login` 200, asset z manifestu 200, przy `public/hot` kod 1 i komunikat.
+
+### Krok 5.5 — zepsucie na GitHubie
+
+Tymczasowa gałąź z błędną kwotą w `seed.spec.ts` (draft PR #276, zamknięty, gałąź usunięta): job `e2e` czerwony (`Expected substring: "−99,99"`), `ci` zielony, artefakt `playwright-report` (raport HTML i `test-results/` z `trace.zip`, 14 dni). Przebieg bazowy PR #275: `e2e` 166 s, `ci` 215 s.

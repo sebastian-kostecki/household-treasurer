@@ -477,5 +477,5 @@ Brak migracji danych. Zmiana seedera dotyczy tylko nowych seedów i nie rusza is
 #### Manual
 
 - [x] 5.4 Po pushu `development` job `e2e` zielony na GitHubie obok `ci` — PR #275: e2e success (166 s), 6 passed (setup + 5 bramek)
-- [ ] 5.5 Gałąź z celowym zepsuciem (draft PR do `development`) czerwieni job `e2e` i zostawia artefakt
+- [x] 5.5 Gałąź z celowym zepsuciem (draft PR do `development`) czerwieni job `e2e` i zostawia artefakt — PR #276 (zamknięty, gałąź usunięta): e2e failure, adnotacja i artefakt playwright-report z trace
 - [x] 5.6 Czas joba `e2e` ok. 5 min, nie wydłuża wyniku o więcej niż 2 min ponad `ci` — e2e 166 s przy ci 215 s, więc nie wydłuża wyniku
