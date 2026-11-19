@@ -18,7 +18,8 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
-import { useTranslations } from '@/composables/useTranslations';
+import { useShell, useTranslations } from '@/composables/useTranslations';
+import { appDayMonthRange } from '@/lib/app-day';
 import {
     termDepositPickerOptions,
     type AccountBank,
@@ -72,6 +73,7 @@ const props = defineProps<{
 
 const SEARCH_DEBOUNCE_MS = 500;
 
+const shell = useShell();
 const t = useTranslations();
 const search = ref(props.filters.q ?? '');
 const visiting = ref(false);
@@ -177,19 +179,7 @@ watch(search, (value) => {
 });
 
 function monthRange(offset: number): { from: string; to: string } {
-    const now = new Date();
-    const from = new Date(now.getFullYear(), now.getMonth() + offset, 1);
-    const to = new Date(now.getFullYear(), now.getMonth() + offset + 1, 0);
-
-    return { from: toIsoDate(from), to: toIsoDate(to) };
-}
-
-function toIsoDate(date: Date): string {
-    const year = String(date.getFullYear());
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-
-    return `${year}-${month}-${day}`;
+    return appDayMonthRange(shell.value.today, offset);
 }
 
 function currentSearch(): string | null {

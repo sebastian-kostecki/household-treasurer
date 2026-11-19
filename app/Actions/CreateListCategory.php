@@ -6,6 +6,7 @@ use App\Enums\CategoryType;
 use App\Enums\Rhythm;
 use App\Models\Category;
 use App\Models\User;
+use App\Support\AppDay;
 use App\Support\CategoryList\CategoryListSequence;
 use App\Support\CategoryList\CategoryNameGuard;
 use App\Support\CategoryList\CategoryNameKey;
@@ -58,7 +59,7 @@ class CreateListCategory
                     $this->changeCategoryRhythm->handle(
                         $category,
                         isset($attributes['rhythm']) ? Rhythm::from($attributes['rhythm']) : Rhythm::Running,
-                        $today ?? CarbonImmutable::today('UTC'),
+                        $today ?? AppDay::today(),
                         $attributes['opening_collected_minor_units'] ?? null,
                     );
                 }

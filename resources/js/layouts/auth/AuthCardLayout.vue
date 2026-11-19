@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { Link, usePage } from '@inertiajs/vue3';
 import { Check } from '@lucide/vue';
+import { computed } from 'vue';
 import type { Component } from 'vue';
 import BrandMark from '@/components/BrandMark.vue';
-import { useTranslations } from '@/composables/useTranslations';
+import { useShell, useTranslations } from '@/composables/useTranslations';
 import { authYearProgress } from '@/lib/auth-year-progress';
 import { home } from '@/routes';
 
@@ -15,7 +16,8 @@ defineProps<{
 
 const t = useTranslations();
 const name = usePage().props.name;
-const yearProgress = authYearProgress(new Date());
+const shell = useShell();
+const yearProgress = computed(() => authYearProgress(shell.value.today));
 const points = [
     t.auth.aside.point_plan,
     t.auth.aside.point_operations,

@@ -5,6 +5,7 @@ namespace App\Support\CsvImport;
 use App\Models\Account;
 use App\Models\TermDeposit;
 use App\Models\User;
+use App\Support\AppDay;
 use Illuminate\Support\Facades\Validator;
 
 class CapitalMovementImportValidator
@@ -22,7 +23,7 @@ class CapitalMovementImportValidator
     public function validate(User $user, array $data): array
     {
         $validator = Validator::make($data, [
-            'movement_date' => ['required', 'date', 'before_or_equal:today'],
+            'movement_date' => ['required', 'date', 'before_or_equal:'.AppDay::today()->toDateString()],
             'amount_minor_units' => ['required', 'integer', 'min:1'],
             'description' => ['required', 'string', 'max:255'],
             'account_id' => ['required', 'integer'],

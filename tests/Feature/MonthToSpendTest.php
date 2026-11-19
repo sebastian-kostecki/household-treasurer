@@ -10,6 +10,7 @@ use App\Models\FinancialOperation;
 use App\Models\MonthPlan;
 use App\Models\MonthPlanItem;
 use App\Models\User;
+use App\Support\AppDay;
 use App\Support\MonthToSpend;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -27,7 +28,7 @@ class MonthToSpendTest extends TestCase
         parent::setUp();
 
         $this->travelTo('2026-06-15');
-        $this->today = CarbonImmutable::today('UTC');
+        $this->today = AppDay::today();
     }
 
     public function test_current_month_proposal_summary_has_the_canonical_number(): void

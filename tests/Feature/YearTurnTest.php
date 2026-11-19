@@ -17,12 +17,12 @@ use App\Models\MonthPlan;
 use App\Models\OwnTransfer;
 use App\Models\TermDeposit;
 use App\Models\User;
+use App\Support\AppDay;
 use App\Support\CategoryRhythms;
 use App\Support\IrregularCollected;
 use App\Support\MonthPlanProposal;
 use App\Support\PastMonthPlanRefused;
 use App\Support\ReportYearsRange;
-use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Exceptions;
 use Illuminate\Testing\TestResponse;
@@ -32,7 +32,7 @@ use Tests\TestCase;
 
 /**
  * The turn of 2026 into 2027 as one scenario, read together with the README section "Przełom roku".
- * Nothing happens by itself at midnight: the year changes by the UTC clock, and two gates are
+ * Nothing happens by itself at midnight: the year changes at midnight in Poland (ADR-0103), and two gates are
  * opened by hand (approving the Month Plan, starting the Budget execution).
  */
 class YearTurnTest extends TestCase
@@ -84,7 +84,7 @@ class YearTurnTest extends TestCase
 
         $this->assertSame($before, $this->readLines($this->budget2026));
         $this->assertSame(BudgetPhase::Execution, $this->budget2027->refresh()->phase);
-        $this->assertSame([2026], ReportYearsRange::resolve($this->user, CarbonImmutable::today('UTC'))->columns());
+        $this->assertSame([2026], ReportYearsRange::resolve($this->user, AppDay::today())->columns());
         $this->actingAs($this->user)
             ->get(route('dashboard'))
             ->assertOk()
@@ -95,7 +95,7 @@ class YearTurnTest extends TestCase
             );
 
         $this->travelTo('2027-01-01 00:00:01');
-        $january = MonthPlanProposal::forBudget($this->budget2027, CarbonImmutable::today('UTC'))->reading(1);
+        $january = MonthPlanProposal::forBudget($this->budget2027, AppDay::today())->reading(1);
 
         $this->assertSame('proposal', $january->state);
         $this->assertSame(12_345, $january->amounts[$this->groceries2027->id]);
@@ -125,11 +125,11 @@ class YearTurnTest extends TestCase
         $this->assertSame('2027-01-01', $operation->operation_date->toDateString());
     }
 
-    public function test_december_can_be_approved_up_to_the_last_second_of_utc(): void
+    public function test_december_can_be_approved_up_to_the_last_second_of_polish_time(): void
     {
         $this->givenTwoBudgets();
 
-        $this->travelTo('2026-12-31 23:59:59');
+        $this->travelTo('2026-12-31 22:59:59');
 
         $plan = $this->approve($this->budget2026, 12);
 
@@ -137,16 +137,16 @@ class YearTurnTest extends TestCase
         $this->assertDatabaseCount('month_plans', 1);
     }
 
-    public function test_december_cannot_be_approved_from_midnight_utc_and_january_takes_the_annual_share(): void
+    public function test_december_cannot_be_approved_from_polish_midnight_and_january_takes_the_annual_share(): void
     {
         $this->givenTwoBudgets();
 
         $this->travelTo('2026-12-30 10:00:00');
         app(StartBudgetExecution::class)->handle($this->budget2027);
 
-        $this->travelTo('2027-01-01 00:00:00');
+        $this->travelTo('2026-12-31 23:00:00');
         Exceptions::fake();
-        $proposal = MonthPlanProposal::forBudget($this->budget2026, CarbonImmutable::today('UTC'));
+        $proposal = MonthPlanProposal::forBudget($this->budget2026, AppDay::today());
 
         $this->assertSame('none', $proposal->reading(12)->state);
 
@@ -167,7 +167,7 @@ class YearTurnTest extends TestCase
 
         $this->assertDatabaseCount('month_plans', 0);
 
-        $january = MonthPlanProposal::forBudget($this->budget2027, CarbonImmutable::today('UTC'))->reading(1);
+        $january = MonthPlanProposal::forBudget($this->budget2027, AppDay::today())->reading(1);
 
         $this->assertSame(15_000, $january->amounts[$this->groceries2027->id]);
         $this->assertSame(110_000, $january->amounts[$this->salary2027->id]);
@@ -192,7 +192,7 @@ class YearTurnTest extends TestCase
         $this->assertNotNull($plan->approved_at);
         $this->assertSame(
             'proposal',
-            MonthPlanProposal::forBudget($this->budget2026, CarbonImmutable::today('UTC'))->reading(12)->state,
+            MonthPlanProposal::forBudget($this->budget2026, AppDay::today())->reading(12)->state,
         );
         $this->assertSame(
             15_000,
@@ -347,7 +347,7 @@ class YearTurnTest extends TestCase
      */
     private function approve(Budget $budget, int $month, array $overrides = []): MonthPlan
     {
-        $today = CarbonImmutable::today('UTC');
+        $today = AppDay::today();
         $reading = MonthPlanProposal::forBudget($budget, $today)->reading($month);
         $categoryOfLine = $budget->budgetLines()->pluck('category_id', 'id');
         $amounts = [];

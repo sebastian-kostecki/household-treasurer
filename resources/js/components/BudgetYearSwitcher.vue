@@ -29,14 +29,13 @@ import type { BudgetYearEntry } from '@/types/shell';
 type Props = {
     budgetYears: BudgetYearEntry[];
     budgetYear: number | null;
-    /** Kitchen sink only: pins the calendar year the "bieżący" mark follows. */
-    currentYear?: number;
+    /** The year of the App Day (`shell.today`), the one the "bieżący" mark follows. */
+    currentYear: number;
     /** Kitchen sink only: renders the menu open and non-modal. */
     previewOpen?: boolean;
 };
 
 const props = withDefaults(defineProps<Props>(), {
-    currentYear: undefined,
     previewOpen: false,
 });
 
@@ -76,11 +75,7 @@ const destination = computed(() => {
 defineExpose({ pending });
 
 const menu = computed(() =>
-    budgetYearMenu(
-        props.budgetYears,
-        props.budgetYear,
-        props.currentYear ?? new Date().getFullYear(),
-    ),
+    budgetYearMenu(props.budgetYears, props.budgetYear, props.currentYear),
 );
 
 /** The headings appear only when there are older years to set apart. */

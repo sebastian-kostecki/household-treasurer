@@ -18,7 +18,7 @@ import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
 import { useBalanceReconciliationPreview } from '@/composables/useBalanceReconciliationPreview';
 import type { ReconciliationPreviewState } from '@/composables/useBalanceReconciliationPreview';
-import { useTranslations } from '@/composables/useTranslations';
+import { useShell, useTranslations } from '@/composables/useTranslations';
 import { reconciliationDayIsAllowed } from '@/lib/balance-reconciliation';
 import { parseMoneyInputToMinorUnits } from '@/lib/format';
 
@@ -39,13 +39,14 @@ const emit = defineEmits<{
     'update:open': [value: boolean];
 }>();
 
+const shell = useShell();
 const t = useTranslations();
 
 const day = ref('');
 const bankBalanceInput = ref('');
 const busy = ref(false);
 
-const today = computed(() => new Date().toISOString().slice(0, 10));
+const today = computed(() => shell.value.today);
 
 const dayAllowed = computed(
     () =>

@@ -169,11 +169,11 @@ test('the Budget of the new year in execution keeps the reading without the fore
 test('the forecast mark ends exactly at 1 January of the Budget year', function () {
     [$user, , , , $nextLine] = yearStartElectricity();
 
-    $this->travelTo('2026-12-31 23:59:59');
+    $this->travelTo('2026-12-31 22:59:59');
     expect(yearStartRow(yearStartProps($user, 2027), $nextLine->category_id)['collected_at_year_start'])
         ->toBe(['minor_units' => 60_000, 'is_forecast' => true]);
 
-    $this->travelTo('2027-01-01 00:00:00');
+    $this->travelTo('2026-12-31 23:00:00');
     expect(yearStartRow(yearStartProps($user, 2027), $nextLine->category_id)['collected_at_year_start'])
         ->toBe(['minor_units' => 60_000, 'is_forecast' => false]);
 });

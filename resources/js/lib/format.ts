@@ -1,3 +1,5 @@
+import { appDayYear } from './app-day';
+
 /**
  * Format minor units as a Polish amount without the unit, e.g. 123456 -> "1 234,56"
  * (table cells; the unit goes in the panel footer, ADR-0037).
@@ -132,51 +134,6 @@ export function formatDate(date: Date | string): string {
 }
 
 /**
- * Format a date relative to today using Polish locale.
- */
-export function formatRelativeDate(date: Date | string): string {
-    const value =
-        typeof date === 'string' ? new Date(`${date}T12:00:00`) : date;
-    const today = new Date();
-    const startOfToday = new Date(
-        today.getFullYear(),
-        today.getMonth(),
-        today.getDate(),
-    );
-    const startOfValue = new Date(
-        value.getFullYear(),
-        value.getMonth(),
-        value.getDate(),
-    );
-    const diffDays = Math.round(
-        (startOfValue.getTime() - startOfToday.getTime()) /
-            (1000 * 60 * 60 * 24),
-    );
-
-    const formatter = new Intl.RelativeTimeFormat('pl', { numeric: 'auto' });
-
-    const divisions: Array<{
-        amount: number;
-        unit: Intl.RelativeTimeFormatUnit;
-    }> = [
-        { amount: 365, unit: 'year' },
-        { amount: 30, unit: 'month' },
-        { amount: 7, unit: 'week' },
-        { amount: 1, unit: 'day' },
-    ];
-
-    for (const division of divisions) {
-        if (Math.abs(diffDays) >= division.amount || division.unit === 'day') {
-            const relativeValue = Math.trunc(diffDays / division.amount);
-
-            return formatter.format(relativeValue, division.unit);
-        }
-    }
-
-    return formatter.format(0, 'day');
-}
-
-/**
  * Format a date as a full Polish date with weekday and year,
  * e.g. "czwartek, 5 listopada 2026".
  */
@@ -194,12 +151,9 @@ export function formatLongDate(date: Date | string): string {
 
 /**
  * Format a date as a Polish day label, e.g. "środa, 4 listopada"; the year is
- * added when it differs from the year of `today`.
+ * added when it differs from the year of `today` (the App Day, 'YYYY-MM-DD').
  */
-export function formatDayLabel(
-    date: Date | string,
-    today: Date = new Date(),
-): string {
+export function formatDayLabel(date: Date | string, today: string): string {
     const value =
         typeof date === 'string' ? new Date(`${date}T12:00:00`) : date;
     const options: Intl.DateTimeFormatOptions = {
@@ -208,7 +162,7 @@ export function formatDayLabel(
         month: 'long',
     };
 
-    if (value.getFullYear() !== today.getFullYear()) {
+    if (value.getFullYear() !== appDayYear(today)) {
         options.year = 'numeric';
     }
 

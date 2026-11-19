@@ -74,6 +74,19 @@ class DashboardTest extends TestCase
             );
     }
 
+    public function test_dashboard_year_changes_at_polish_midnight(): void
+    {
+        $user = User::factory()->create();
+
+        $this->travelTo('2026-12-31 22:59:59');
+        $this->actingAs($user)->get(route('dashboard'))
+            ->assertInertia(fn (Assert $page) => $page->where('budget_year', 2026));
+
+        $this->travelTo('2026-12-31 23:30:00');
+        $this->actingAs($user)->get(route('dashboard'))
+            ->assertInertia(fn (Assert $page) => $page->where('budget_year', 2027));
+    }
+
     public function test_dashboard_shows_account_balances_and_liquidity_headlines(): void
     {
         $user = User::factory()->create();

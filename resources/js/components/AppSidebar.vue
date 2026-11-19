@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
 import { Search } from '@lucide/vue';
-import { onMounted, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import AppLogo from '@/components/AppLogo.vue';
 import BudgetYearSwitcher from '@/components/BudgetYearSwitcher.vue';
 import NavMain from '@/components/NavMain.vue';
@@ -18,7 +18,8 @@ import {
 } from '@/components/ui/sidebar';
 import { openCommandPalette } from '@/composables/useCommandPalette';
 import { useAppViews } from '@/composables/useAppViews';
-import { useTranslations } from '@/composables/useTranslations';
+import { useShell, useTranslations } from '@/composables/useTranslations';
+import { appDayYear } from '@/lib/app-day';
 import { paletteShortcutLabel } from '@/lib/command-palette-items';
 import { dashboard } from '@/routes';
 import type { BudgetYearEntry } from '@/types/shell';
@@ -30,6 +31,8 @@ type Props = {
 
 defineProps<Props>();
 
+const shell = useShell();
+const currentYear = computed(() => appDayYear(shell.value.today));
 const t = useTranslations();
 const views = useAppViews();
 
@@ -73,6 +76,7 @@ const shortcutsHint = t.shell.shortcuts_hint.replace(
             <BudgetYearSwitcher
                 :budget-years="budgetYears"
                 :budget-year="budgetYear"
+                :current-year="currentYear"
             />
         </SidebarHeader>
 

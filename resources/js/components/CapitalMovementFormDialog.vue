@@ -18,7 +18,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
-import { useTranslations } from '@/composables/useTranslations';
+import { useShell, useTranslations } from '@/composables/useTranslations';
 import { OPERATIONS_RETURN_QUERY } from '@/lib/operations-list-query';
 import { useOperationAmountInput } from '@/composables/useOperationAmountInput';
 import {
@@ -76,6 +76,7 @@ const emit = defineEmits<{
     'update:open': [value: boolean];
 }>();
 
+const shell = useShell();
 const t = useTranslations();
 
 const movementDate = ref('');
@@ -219,7 +220,7 @@ watch(
             return;
         }
 
-        movementDate.value = new Date().toISOString().slice(0, 10);
+        movementDate.value = shell.value.today;
         description.value = '';
         direction.value = 'to_term_deposit';
         accountId.value = props.accounts[0]?.id ?? '';
