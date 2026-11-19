@@ -8,7 +8,6 @@ use App\Models\Category;
 use App\Models\CategoryGroup;
 use App\Models\User;
 use App\Support\CategoryList\CategoryTypeChange;
-use Carbon\CarbonImmutable;
 
 /**
  * The User's Category list for the „Kategorie” view (ADR-0063, ADR-0069):
@@ -50,7 +49,7 @@ class CategoryListReading
 
         $categoryIds = array_values($categories->map(fn (Category $category): int => $category->id)->all());
         $lockedIds = array_flip(CategoryTypeChange::lockedIds($categoryIds));
-        $today = CarbonImmutable::today('UTC');
+        $today = AppDay::today();
         $rhythms = CategoryRhythms::forCategoryIds($categoryIds);
 
         $categories = $categories
@@ -72,7 +71,7 @@ class CategoryListReading
                     'budget_years' => $yearsByCategory[$category->id] ?? [],
                     'can_change_type' => ! isset($lockedIds[$category->id]),
                     'can_delete' => ! isset($lockedIds[$category->id]),
-                    'archived_at' => $category->archived_at?->toDateString(),
+                    'archived_at' => $category->archived_at === null ? null : AppDay::of($category->archived_at)->toDateString(),
                 ];
             });
 

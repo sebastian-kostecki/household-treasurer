@@ -84,6 +84,12 @@ class SelectedBudgetYearTest extends TestCase
         $this->assertSame(2026, $this->resolveFor([2026, 2027], '2027-01-05', 2026));
     }
 
+    public function test_the_default_year_changes_at_polish_midnight(): void
+    {
+        $this->assertSame(2026, $this->resolveFor([2026, 2027], '2026-12-31 22:59:59'));
+        $this->assertSame(2027, $this->resolveFor([2026, 2027], '2026-12-31 23:00:00'));
+    }
+
     public function test_no_budgets_gives_null(): void
     {
         $this->assertNull($this->resolveFor([], '2026-06-15'));

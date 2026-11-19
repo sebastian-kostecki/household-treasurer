@@ -5,8 +5,8 @@ namespace App\Http\Controllers;
 use App\Actions\MergeCategories;
 use App\Http\Requests\MergeCategoryRequest;
 use App\Models\Category;
+use App\Support\AppDay;
 use App\Support\CategoryList\CategoryMergeReading;
-use Carbon\CarbonImmutable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
@@ -20,13 +20,13 @@ class CategoryMergeController extends Controller
     public function show(MergeCategoryRequest $request, Category $category): JsonResponse
     {
         return response()->json(
-            CategoryMergeReading::for($category, $request->targetCategory(), CarbonImmutable::today('UTC'))->toArray(),
+            CategoryMergeReading::for($category, $request->targetCategory(), AppDay::today())->toArray(),
         );
     }
 
     public function store(MergeCategoryRequest $request, Category $category, MergeCategories $mergeCategories): RedirectResponse
     {
-        $mergeCategories->handle($category, $request->targetCategory(), CarbonImmutable::today('UTC'));
+        $mergeCategories->handle($category, $request->targetCategory(), AppDay::today());
 
         Inertia::flash('toast', [
             'type' => 'success',

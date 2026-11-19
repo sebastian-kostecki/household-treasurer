@@ -6,9 +6,9 @@ use App\Models\Account;
 use App\Models\Budget;
 use App\Models\FinancialOperation;
 use App\Models\User;
+use App\Support\AppDay;
 use App\Support\PeriodReport;
 use App\Support\ReportComparisonPeriod;
-use Carbon\CarbonImmutable;
 use Database\Seeders\DemoHouseholdSeeder;
 use Database\Seeders\PreviousYearMockSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -145,7 +145,7 @@ class SeedPreviousYearCommandTest extends TestCase
     {
         $this->seedMock();
 
-        $today = CarbonImmutable::today('UTC');
+        $today = AppDay::today();
         $comparison = ReportComparisonPeriod::resolve($this->source->fresh(), null, $today);
         $report = PeriodReport::forYear($this->source->fresh(), $comparison)->toArray();
 

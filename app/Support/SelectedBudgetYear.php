@@ -4,7 +4,6 @@ namespace App\Support;
 
 use App\Enums\BudgetPhase;
 use App\Models\User;
-use Carbon\CarbonImmutable;
 use Illuminate\Http\Request;
 
 class SelectedBudgetYear
@@ -33,7 +32,7 @@ class SelectedBudgetYear
             }
         }
 
-        return self::defaultYear($years, (int) CarbonImmutable::today('UTC')->year);
+        return self::defaultYear($years, (int) AppDay::today()->year);
     }
 
     /**

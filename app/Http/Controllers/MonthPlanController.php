@@ -11,6 +11,7 @@ use App\Models\Budget;
 use App\Models\BudgetLine;
 use App\Models\CategoryGroup;
 use App\Models\User;
+use App\Support\AppDay;
 use App\Support\BudgetViewedMonth;
 use App\Support\MonthPace;
 use App\Support\MonthPlanItemRow;
@@ -53,7 +54,7 @@ class MonthPlanController extends Controller
 
         $this->authorize('view', $budget);
 
-        $today = CarbonImmutable::today('UTC');
+        $today = AppDay::today();
         $viewedMonth = BudgetViewedMonth::resolve(
             $request->query('month'),
             $budget->year,
@@ -92,7 +93,7 @@ class MonthPlanController extends Controller
             $month,
             $amounts,
             (int) $request->validated('set_aside_minor_units'),
-            CarbonImmutable::today('UTC'),
+            AppDay::today(),
         );
 
         Inertia::flash('toast', [
@@ -119,7 +120,7 @@ class MonthPlanController extends Controller
             $budget,
             $month,
             $amounts,
-            CarbonImmutable::today('UTC'),
+            AppDay::today(),
             $request->has('set_aside_minor_units') ? (int) $request->validated('set_aside_minor_units') : null,
         );
 
