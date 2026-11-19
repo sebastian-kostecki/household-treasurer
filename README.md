@@ -148,11 +148,11 @@ Własny Docker Compose na VPS (aplikacja + PostgreSQL + Traefik jako reverse pro
 
 ### Wdrożenie i przywracanie
 
-Decyzja: [ADR-0064](context/foundation/adr/0064-instance-backup-before-every-production-migration.md) (uzupełnia ADR-0013).
+Decyzje: [ADR-0064](context/foundation/adr/0064-instance-backup-before-every-production-migration.md) (uzupełnia ADR-0013) i [ADR-0107](context/foundation/adr/0107-image-tags-and-rollback-without-build.md) (tagi obrazu i wycofanie bez budowania).
 
 #### Kroki `scripts/deploy.sh`
 
-1. `git pull --ff-only origin main` i budowa obrazu `app`.
+1. `git pull --ff-only origin main` i budowa obrazu `app` z etykietami rewizji (`org.opencontainers.image.revision`) i czasu wdrożenia (`household-treasurer.deployed-at`). Przed budową obraz sprzed tagów (`:prod` bez etykiety rewizji) dostaje tag `legacy-<RRRRMMDD>`, po niej nowy obraz dostaje tag z SHA commita obok wskaźnika `:prod`.
 2. Przygotowanie katalogu kopii `BACKUP_HOST_DIR` (wartość z powłoki, inaczej z `.env.prod`, inaczej `/storage/household-treasurer-backups`).
 3. **Tryb serwisowy i snapshot każdego użytkownika w starym kontenerze**, jeszcze przed `up -d`: lista id z tabeli `users` (z `psql`), `artisan down`, potem `user:backup` dla każdego id (log: „Snapshotted N user(s).”). Plik trybu serwisowego leży w `storage` (bind-mount), więc przetrwa `up -d`, a nowy kod nie obsłuży żądania na starym schemacie. Błąd `psql` albo `docker compose` przerywa wdrożenie. Krok pomija tylko pierwsze wdrożenie, gdy kontenera `app` w ogóle nie ma (wtedy `artisan down` idzie zaraz po `up -d`). Kontener zatrzymany zatrzymuje skrypt: uruchom go (`docker compose --env-file .env.prod -f docker-compose.prod.yml start app`) i powtórz; gdy nie da się go uruchomić, `DEPLOY_WITHOUT_USER_SNAPSHOTS=1 scripts/deploy.sh` wdraża bez snapshotów, z samą kopią instancji z kroku 6.
 4. `up -d` i naprawa uprawnień `storage`.
@@ -161,8 +161,21 @@ Decyzja: [ADR-0064](context/foundation/adr/0064-instance-backup-before-every-pro
 7. `migrate --force`.
 8. **Liczby kontrolne „po”** (`…-after.json`) z `--compare` na plik „przed”. Różnica kończy skrypt błędem, a aplikacja **zostaje w trybie serwisowym** (zob. „Migracja przerwana w trakcie” niżej).
 9. `artisan up`, potem cache konfiguracji, tras i widoków.
+10. **Sprzątanie obrazów** po udanym wdrożeniu: zostają 3 najnowsze tagi (według czasu wdrożenia, nie daty utworzenia obrazu) i obraz, który działał przed tym wdrożeniem, potem `docker image prune -f --filter label=maintainer=household-treasurer` (tylko wiszące obrazy tej aplikacji, serwer jest współdzielony). Cache budowania zostaje. Ponowne wdrożenie tego samego commita (np. po zmianie `.env.prod`) przenosi tag SHA na nowy build, a poprzedni build tego commita zostaje pod tagiem `<sha>-<RRRRMMDDGGMMSS czasu jego wdrożenia>` i liczy się do trzech najnowszych.
 
 Skrypt aktualizuje sam siebie w kroku 1, więc pierwsze wdrożenie po zmianie `deploy.sh` biegnie jeszcze starą wersją. Dlatego przed `scripts/deploy.sh` zawsze zrób na serwerze `git pull --ff-only origin main` (niżej: pierwsze wdrożenie S-18). Jeśli w logu brakuje „Snapshotting every user…” albo „Recording control numbers…”, wdrożenie poszło starym skryptem bez bramek.
+
+#### Wycofanie obrazu (bez budowania)
+
+Decyzja: [ADR-0107](context/foundation/adr/0107-image-tags-and-rollback-without-build.md). Wystarcza, gdy wdrożenie nie miało migracji albo gdy migracje cofnięto już przez `scripts/artisan.sh migrate:rollback --force` nowym kodem. Wtedy zamiast `git revert` i przebudowy (minuty na współdzielonym CPU, z aplikacją w trybie serwisowym) wystarczą sekundy:
+
+- `scripts/rollback.sh` bez argumentu wypisuje tagi z czasem wdrożenia i rewizją; obraz, który teraz działa jako `:prod`, ma znacznik `← prod`.
+- `scripts/rollback.sh <tag>` (np. SHA poprzedniego wdrożenia) wchodzi w tryb serwisowy, przestawia `:prod` na ten obraz, robi `up -d --no-build`, naprawia uprawnienia, odbudowuje cache i wychodzi z trybu serwisowego. Pierwsze wdrożenie po wprowadzeniu tagów zostawia dawny obraz jako `legacy-<RRRRMMDD>`, więc od razu jest do czego wrócić.
+- **Blokada migracji działa w obie strony i przerywa przed jakąkolwiek zmianą** (aplikacja zostaje nietknięta, bez pytania o potwierdzenie). Gdy tabela `migrations` ma migracje, których obraz docelowy nie zna, skrypt wypisuje je i każe najpierw zrobić `scripts/artisan.sh migrate:rollback --force` (kod, który te migracje ma, jeszcze działa). Gdy obraz docelowy ma migracje, których baza nie wykonała, skrypt odsyła do `scripts/deploy.sh`: powrót na nowszy kod idzie tylko przez wdrożenie (tryb serwisowy, kopie, liczby kontrolne), bo `rollback.sh` nigdy nie migruje.
+- `rollback.sh` nie robi `user:backup`, kopii instancji ani liczb kontrolnych: przełączenie obrazu nie zmienia danych, a blokada gwarantuje zgodny schemat.
+- Git na serwerze zostaje na złym commicie, więc następny `scripts/deploy.sh` zbudowałby go z powrotem. Dokończ: lokalnie `git revert` złej zmiany i `git push origin main`, na serwerze `git pull --ff-only origin main`, potem `scripts/deploy.sh`. Przebudowa trafia w cache warstw, bo treść plików jest taka jak przed złym commitem.
+
+Gdy skrypt nie dokończy się, aplikacja zostaje w trybie serwisowym, a komunikat podaje drogę powrotną do poprzedniego obrazu.
 
 #### Pierwsze wdrożenie S-18 (lista kategorii i pozycje budżetu)
 
@@ -204,6 +217,8 @@ Dla dni pracy na nowym schemacie przywrócenie kopii nie wchodzi w grę (traci w
 4. Lokalnie na `main`: `git revert` zmian S-18 i `git push origin main`.
 5. Na serwerze: `git pull --ff-only origin main`, dopiero potem `scripts/deploy.sh` (jak przy pierwszym wdrożeniu, bo skrypt aktualizuje się sam).
 6. `scripts/artisan.sh up`, sprawdź `/up`.
+
+Po kroku 2 można od razu przełączyć obraz: `scripts/rollback.sh <poprzedni tag>` (zob. „Wycofanie obrazu (bez budowania)”). Kroki 4–5 (`git revert` i `deploy.sh`) przestają wtedy blokować powrót aplikacji.
 
 Kolejność jest istotna. Cofnięcie kodu przed `migrate:rollback` usuwa pliki migracji, a właśnie ich `down()` jest potrzebny. Pominięcie `git pull` przed skryptem uruchamia jeszcze `deploy.sh` z S-18: jego `user:backup` w kontenerze S-18 nie znajdzie `budget_lines`, a `app:control-numbers` nie ma w cofniętym kodzie, więc `set -e` przerwie wdrożenie.
 
