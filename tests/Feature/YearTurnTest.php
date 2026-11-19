@@ -125,6 +125,34 @@ class YearTurnTest extends TestCase
         $this->assertSame('2027-01-01', $operation->operation_date->toDateString());
     }
 
+    public function test_the_year_chosen_in_the_menu_in_december_gives_way_to_the_new_year_after_polish_midnight(): void
+    {
+        $this->givenTwoBudgets();
+
+        $this->travelTo('2026-12-31 22:59:59');
+        $this->actingAs($this->user)
+            ->post(route('budget.select-year'), ['year' => 2026])
+            ->assertSessionHasNoErrors();
+        $this->actingAs($this->user)
+            ->get(route('budget'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page->where('shell.budgetYear', 2026));
+
+        $this->travelTo('2026-12-31 23:00:00');
+        $this->actingAs($this->user)
+            ->get(route('budget'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page->where('shell.budgetYear', 2027));
+
+        $this->actingAs($this->user)
+            ->post(route('budget.select-year'), ['year' => 2026])
+            ->assertSessionHasNoErrors();
+        $this->actingAs($this->user)
+            ->get(route('budget'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page->where('shell.budgetYear', 2026));
+    }
+
     public function test_december_can_be_approved_up_to_the_last_second_of_polish_time(): void
     {
         $this->givenTwoBudgets();

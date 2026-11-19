@@ -18,7 +18,7 @@ class SelectedBudgetYearTest extends TestCase
     /**
      * @param  list<int>  $years
      */
-    private function resolveFor(array $years, string $today, ?int $sessionYear = null): ?int
+    private function resolveFor(array $years, string $today, ?int $sessionYear = null, int|string|null $chosenIn = null): ?int
     {
         $this->travelTo($today);
         $user = User::factory()->create();
@@ -33,6 +33,10 @@ class SelectedBudgetYearTest extends TestCase
 
         if ($sessionYear !== null) {
             $session->put('budget_year', $sessionYear);
+        }
+
+        if ($chosenIn !== null) {
+            $session->put('budget_year_chosen_in', $chosenIn);
         }
 
         $request->setLaravelSession($session);
@@ -76,12 +80,57 @@ class SelectedBudgetYearTest extends TestCase
     }
 
     /**
-     * A known gap (rehearsal.md, luka 3, ADR-0075): the session year wins, so a session that
-     * still holds 2026 keeps showing 2026 in January. The phase of 2027 is not read.
+     * ADR-0111: the year that was current when chosen gives way to the new current year once the
+     * App Day year turns. The phase of 2027 is not read.
      */
-    public function test_session_year_of_the_old_year_stays_selected_in_january_known_gap(): void
+    public function test_the_current_year_chosen_in_the_session_gives_way_to_the_new_year_in_january(): void
+    {
+        $this->assertSame(2027, $this->resolveFor([2026, 2027], '2027-01-05', 2026, 2026));
+    }
+
+    public function test_the_current_year_chosen_in_the_session_changes_at_polish_midnight(): void
+    {
+        $this->assertSame(2026, $this->resolveFor([2026, 2027], '2026-12-31 22:59:59', 2026, 2026));
+        $this->assertSame(2027, $this->resolveFor([2026, 2027], '2026-12-31 23:00:00', 2026, 2026));
+    }
+
+    public function test_a_past_year_chosen_for_browsing_stays_after_the_year_turn(): void
+    {
+        $this->assertSame(2023, $this->resolveFor([2023, 2026, 2027], '2027-01-05', 2023, 2026));
+    }
+
+    public function test_the_next_year_chosen_in_december_stays_in_january(): void
+    {
+        $this->assertSame(2027, $this->resolveFor([2026, 2027], '2027-01-05', 2027, 2026));
+    }
+
+    public function test_the_old_year_chosen_again_in_january_stays(): void
+    {
+        $this->assertSame(2026, $this->resolveFor([2026, 2027], '2027-01-05', 2026, 2027));
+    }
+
+    public function test_a_session_year_without_the_choice_year_stays_selected(): void
     {
         $this->assertSame(2026, $this->resolveFor([2026, 2027], '2027-01-05', 2026));
+    }
+
+    /**
+     * ADR-0111: only an App Day year later than the choice year turns it over. A clock moved back
+     * after a rehearsal (`app:rehearsal-clock --off`) keeps the year chosen in the later year.
+     */
+    public function test_a_year_chosen_in_a_later_app_day_year_stays_when_the_clock_goes_back(): void
+    {
+        $this->assertSame(2027, $this->resolveFor([2026, 2027], '2026-11-10', 2027, 2027));
+    }
+
+    public function test_a_choice_year_stored_as_a_digit_string_still_counts(): void
+    {
+        $this->assertSame(2027, $this->resolveFor([2026, 2027], '2027-01-05', 2026, '2026'));
+    }
+
+    public function test_a_malformed_choice_year_keeps_the_session_year(): void
+    {
+        $this->assertSame(2026, $this->resolveFor([2026, 2027], '2027-01-05', 2026, '2026x'));
     }
 
     public function test_the_default_year_changes_at_polish_midnight(): void
