@@ -57,7 +57,7 @@ Cztery kamienie milowe powstały w dwa tygodnie, a aplikacja nie przeszła jeszc
 | S-39 | one-app-day                     | użytkownik widzi ten sam dzień i rok w menu roku, na Dashboardzie i w domyślnej dacie dialogów wokół północy   | F-08          | MS-01    | proposed |
 | S-40 | session-year-follows-year-turn  | użytkownik po przełomie otwiera aplikację w nowym roku bez ręcznej zmiany roku                                 | F-08          | MS-02    | proposed |
 | S-41 | year-turn-notices               | użytkownik widzi przed przełomem, co czeka: plan grudnia, Budżet następnego roku i Import przy szkicu          | F-08          | MS-03    | proposed |
-| S-42 | import-across-draft-year        | użytkownik importuje wyciąg z przełomu przy szkicu nowego roku i wie, co zrobić z wierszami nowego roku        | —             | MS-04    | ready    |
+| S-42 | import-across-draft-year        | użytkownik importuje wyciąg z przełomu przy szkicu nowego roku i wie, co zrobić z wierszami nowego roku        | —             | MS-04    | done     |
 | S-43 | years-report-in-early-january   | użytkownik widzi w „Latach” i w roku do roku sensowny odczyt w pierwszych dniach stycznia                     | F-08          | MS-05    | proposed |
 | S-44 | e2e-in-ci                       | użytkownik (właściciel repo) widzi czerwone CI, gdy zmiana psuje przepływ w przeglądarce                       | F-09          | MS-07    | proposed |
 | S-45 | production-error-tracking       | użytkownik (właściciel) dostaje zgłoszenie wyjątku z produkcji ze stosem wywołań i kontekstem żądania          | —             | MS-08    | blocked  |
@@ -166,7 +166,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Unknowns:**
   - Zapis częściowy (wiersze starego roku przechodzą, nowego czekają) czy tylko lepszy komunikat z odznaczeniem wierszy stycznia? — Owner: user. Block: no.
 - **Risk:** Zapis częściowy podważa zasadę z fazy 1 planu testów („Import nie zostawia połowicznych zestawów”), więc wybór musi zapaść z nią w ręku, a nie przy kodzie.
-- **Status:** ready
+- **Status:** done
 
 ### S-43: „Lata” i rok do roku w pierwszych dniach stycznia
 
@@ -302,3 +302,4 @@ This table is the clean handoff to Jira/Linear or any MCP-backed backlog. Includ
 - **S-36: użytkownik może kliknąć kategorię w tabeli „Lata” i zobaczyć w panelu kategorii Raportu zakładkę „Lata” z jej latami 2020–2026** — Archived 2026-11-14 → `context/archive/2026-11-14-report-panel-years-tab/`. Lesson: —.
 - **S-46: użytkownik i agent czytają słownik i ADR bez pułapek: dwa ADR 0008 mają osobne numery z poprawionymi odnośnikami, a Year Close, Reserve, Earmark, Agenda i Cash Expectation są w słowniku oznaczone jako „nie w kodzie” albo usunięte** — Archived 2026-11-19 → `context/archive/2026-11-19-docs-match-code/`. Lesson: —.
 - **F-09: (foundation) `test-plan.md` odpowiada stanowi repo: faza 1 zamknięta z odnośnikiem do archiwum, fazy 2–5 bez odwołań do porzuconego M-2, z miejscem na testy przełomu roku i z listą przepływów E2E, które są bramką CI.** — Archived 2026-11-19 → `context/archive/2026-11-19-test-plan-refresh/`. Lesson: —.
+- **S-42: użytkownik importuje wyciąg z 29.12–02.01, gdy 2027 jest szkicem, zapisuje wiersze grudnia, a przy wierszach stycznia widzi, że trzeba rozpocząć realizację Budżetu 2027; test `_known_gap` z `CsvImportTest` przechodzi jako zwykły test** — Archived 2026-11-19 → `context/archive/2026-11-18-import-across-draft-year/`. Lesson: —.
