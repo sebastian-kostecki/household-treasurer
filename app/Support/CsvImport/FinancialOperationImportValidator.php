@@ -6,6 +6,7 @@ use App\Enums\CategoryType;
 use App\Enums\ImportBudgetYearState;
 use App\Models\Account;
 use App\Models\User;
+use App\Support\AppDay;
 use App\Support\CategoryList\OperationCategoryChoice;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Validator;
@@ -117,7 +118,7 @@ class FinancialOperationImportValidator
     private function incomeRules(User $user): array
     {
         return [
-            'operation_date' => ['required', 'date', 'before_or_equal:today'],
+            'operation_date' => ['required', 'date', 'before_or_equal:'.AppDay::today()->toDateString()],
             'amount_minor_units' => ['required', 'integer'],
             'description' => ['required', 'string', 'max:255'],
             'account_id' => [
@@ -143,7 +144,7 @@ class FinancialOperationImportValidator
     private function expenseRules(User $user): array
     {
         return [
-            'operation_date' => ['required', 'date', 'before_or_equal:today'],
+            'operation_date' => ['required', 'date', 'before_or_equal:'.AppDay::today()->toDateString()],
             'amount_minor_units' => ['required', 'integer', Rule::notIn([0])],
             'description' => ['required', 'string', 'max:255'],
             'account_id' => [

@@ -3,6 +3,7 @@
 namespace App\Support\CsvImport;
 
 use App\Models\Account;
+use App\Support\AppDay;
 use Carbon\CarbonImmutable;
 
 class CsvImportPreviewValidator
@@ -18,7 +19,7 @@ class CsvImportPreviewValidator
      */
     public function validate(array $row, Account $account, ?CarbonImmutable $today = null): array
     {
-        $today ??= CarbonImmutable::today();
+        $today ??= AppDay::today();
 
         if ($row['operation_date'] === null) {
             return $this->invalid(ImportRowInvalidReason::MissingDate);

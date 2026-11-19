@@ -3,6 +3,7 @@
 namespace App\Concerns;
 
 use App\Models\Account;
+use App\Support\AppDay;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Contracts\Validation\Validator;
 
@@ -14,7 +15,7 @@ trait OwnTransferValidationRules
     protected function ownTransferRules(): array
     {
         return [
-            'transfer_date' => ['required', 'date', 'before_or_equal:today'],
+            'transfer_date' => ['required', 'date', 'before_or_equal:'.AppDay::today()->toDateString()],
             'amount_minor_units' => ['required', 'integer', 'min:1'],
             'description' => ['required', 'string', 'max:255'],
             'raw_statement_description' => ['prohibited'],

@@ -5,6 +5,7 @@ namespace App\Concerns;
 use App\Enums\CapitalMovementDirection;
 use App\Models\Account;
 use App\Models\TermDeposit;
+use App\Support\AppDay;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Validation\Rule;
@@ -17,7 +18,7 @@ trait CapitalMovementValidationRules
     protected function capitalMovementRules(): array
     {
         return [
-            'movement_date' => ['required', 'date', 'before_or_equal:today'],
+            'movement_date' => ['required', 'date', 'before_or_equal:'.AppDay::today()->toDateString()],
             'amount_minor_units' => ['required', 'integer', 'min:1'],
             'description' => ['required', 'string', 'max:255'],
             'direction' => ['required', Rule::enum(CapitalMovementDirection::class)],

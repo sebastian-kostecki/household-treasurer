@@ -428,10 +428,10 @@ Bez migracji. Istniejące `archived_at` Kategorii z pierwszej godziny po półno
 
 #### Automated
 
-- [ ] 1.1 Nowe i zmienione testy przechodzą na PostgreSQL (AppDayTest, YearTurnTest, BudgetCollectedAtYearStartTest, SelectedBudgetYearTest, archiwizacja)
-- [ ] 1.2 Brak `today('UTC')` w `app` i `tests`
-- [ ] 1.3 Brak `now()->year|month` w `app`
-- [ ] 1.4 Pełny gate przechodzi (ci:check, Sloppy, Pint)
+- [x] 1.1 Nowe i zmienione testy przechodzą na PostgreSQL (AppDayTest, YearTurnTest, BudgetCollectedAtYearStartTest, SelectedBudgetYearTest, archiwizacja) — 6ad3c98
+- [x] 1.2 Brak `today('UTC')` w `app` i `tests` — 6ad3c98
+- [x] 1.3 Brak `now()->year|month` w `app` — 6ad3c98
+- [x] 1.4 Pełny gate przechodzi (ci:check, Sloppy, Pint) — 6ad3c98
 
 #### Manual
 
