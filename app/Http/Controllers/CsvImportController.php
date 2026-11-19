@@ -17,6 +17,7 @@ use App\Support\CsvImport\CsvImportSession;
 use App\Support\CsvImport\ImportCategoryOptions;
 use App\Support\CsvImport\ImportCategorySuggester;
 use App\Support\CsvImport\ImportDuplicateDetector;
+use App\Support\CsvImport\ImportFileRejected;
 use App\Support\CsvImport\ImportMonthRemainingContext;
 use App\Support\CsvImport\ImportPairCandidateDetector;
 use App\Support\CsvImport\ImportRowFields;
@@ -27,7 +28,6 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
-use InvalidArgumentException;
 
 class CsvImportController extends Controller
 {
@@ -64,7 +64,7 @@ class CsvImportController extends Controller
                 $path = $request->file('file')?->getRealPath();
 
                 if (! is_string($path)) {
-                    throw new InvalidArgumentException(__('The uploaded file could not be read.'));
+                    throw new ImportFileRejected(__('The uploaded file could not be read.'));
                 }
 
                 $parsedRows = $bnpParibasXlsxParser->parse($path);
@@ -72,7 +72,7 @@ class CsvImportController extends Controller
                 $import = $request->parsedImport();
                 $parsedRows = $parser->parse($import['contents'], $import['mapping']);
             }
-        } catch (InvalidArgumentException $exception) {
+        } catch (ImportFileRejected $exception) {
             throw ValidationException::withMessages([
                 'file' => $exception->getMessage(),
             ]);

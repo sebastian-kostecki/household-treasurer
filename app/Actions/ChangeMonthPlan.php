@@ -83,7 +83,11 @@ class ChangeMonthPlan
 
                 return $plan;
             });
-        } catch (UniqueConstraintViolationException) {
+        } catch (UniqueConstraintViolationException $exception) {
+            // The plan row is locked above, so no parallel change can collide: a violation here
+            // means the items and the database disagree, which is a bug to report, not user input.
+            report($exception);
+
             throw $this->invalid(__('The month plan items are invalid.'));
         }
     }

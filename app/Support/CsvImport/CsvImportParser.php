@@ -2,8 +2,6 @@
 
 namespace App\Support\CsvImport;
 
-use InvalidArgumentException;
-
 /**
  * @phpstan-type CsvImportMapping array{
  *     date_column: int,
@@ -80,7 +78,7 @@ class CsvImportParser
             ];
 
             if (count($rows) > self::MAX_ROWS) {
-                throw new InvalidArgumentException(__('CSV files can contain at most :max rows.', [
+                throw new ImportFileRejected(__('CSV files can contain at most :max rows.', [
                     'max' => self::MAX_ROWS,
                 ]));
             }

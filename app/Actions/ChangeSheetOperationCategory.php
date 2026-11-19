@@ -6,7 +6,7 @@ use App\Models\BudgetLine;
 use App\Models\Category;
 use App\Models\FinancialOperation;
 use App\Support\BudgetLineResolver;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
+use App\Support\InvariantViolation;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -63,12 +63,20 @@ class ChangeSheetOperationCategory
         $line = $this->resolver->forBudget($operation->budget, $categoryId);
 
         if ($line === null) {
-            $category = Category::query()->where('user_id', $operation->user_id)->findOrFail($categoryId);
+            $category = Category::query()->where('user_id', $operation->user_id)->find($categoryId)
+                ?? throw new InvariantViolation('A sheet operation category change passed validation for a Category the user does not have.', [
+                    'financial_operation_id' => $operation->id,
+                    'category_id' => $categoryId,
+                ]);
             $line = $this->joinBudgetAtFirstUse->handle($operation->budget, $category);
         }
 
         if ($line->id !== $operation->budget_line_id && ($line->isArchived() || $line->category->isArchived())) {
-            throw (new ModelNotFoundException)->setModel(BudgetLine::class, [$categoryId]);
+            throw new InvariantViolation('A sheet operation category change passed validation for an archived Budget Line or Category.', [
+                'financial_operation_id' => $operation->id,
+                'category_id' => $categoryId,
+                'budget_line_id' => $line->id,
+            ]);
         }
 
         return $line;

@@ -86,8 +86,16 @@ class ApproveMonthPlan
 
                 return $plan;
             });
-        } catch (UniqueConstraintViolationException) {
-            throw $this->invalid(__('This month plan is already approved.'));
+        } catch (UniqueConstraintViolationException $exception) {
+            // A parallel approval of the same month wins on unique(budget_id, month): that is a
+            // double submit, not a fault. Any other violation (items, joined lines) is a bug.
+            if (MonthPlan::query()->where('budget_id', $budget->id)->where('month', $month)->exists()) {
+                throw $this->invalid(__('This month plan is already approved.'));
+            }
+
+            report($exception);
+
+            throw $this->invalid(__('The month plan items are invalid.'));
         }
     }
 
