@@ -276,19 +276,19 @@ Brak migracji i zmian danych. Podgląd zapisany w sesji przed wdrożeniem dalej 
 
 #### Automated
 
-- [x] 1.1 Testy Importu przechodzą na PostgreSQL (CsvImportTest, ImportIntegrityTest, YearTurnTest, SheetAccountTest)
-- [x] 1.2 W tests/ nie ma już nazwy testu _known_gap Importu
-- [x] 1.3 Pint bez zmian po formatowaniu
-- [x] 1.4 npm run build i npm run types:check przechodzą
-- [x] 1.5 vendor/bin/sloppy ci bez nowych znalezisk
+- [x] 1.1 Testy Importu przechodzą na PostgreSQL (CsvImportTest, ImportIntegrityTest, YearTurnTest, SheetAccountTest) — a42dc86
+- [x] 1.2 W tests/ nie ma już nazwy testu _known_gap Importu — a42dc86
+- [x] 1.3 Pint bez zmian po formatowaniu — a42dc86
+- [x] 1.4 npm run build i npm run types:check przechodzą — a42dc86
+- [x] 1.5 vendor/bin/sloppy ci bez nowych znalezisk — a42dc86
 
 ### Phase 2: Klient — logika blokady zależna od typu
 
 #### Automated
 
-- [ ] 2.1 Nowe testy Vitest najpierw padają, potem przechodzą
-- [ ] 2.2 Cały zestaw Vitest przechodzi
-- [ ] 2.3 npm run types:check i npm run check przechodzą
+- [x] 2.1 Nowe testy Vitest najpierw padają, potem przechodzą
+- [x] 2.2 Cały zestaw Vitest przechodzi
+- [x] 2.3 npm run types:check i npm run check przechodzą
 
 ### Phase 3: Klient — notatka wiersza, teksty i kitchen sink
 

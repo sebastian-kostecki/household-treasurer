@@ -1,7 +1,11 @@
 import { describe, expect, it } from 'vite-plus/test';
 import {
     importRowHasNotes,
+    emptySelection,
     initialSelection,
+    rowBudgetYearNotice,
+    rowBudgetYearState,
+    rowNeedsBudgetInExecution,
     showsCategorySuggestion,
     suggestedCategoryId,
     type CategoryRow,
@@ -218,5 +222,102 @@ describe('showsCategorySuggestion', () => {
 
         selection.category_id = 11;
         expect(shows()).toBe(true);
+    });
+});
+
+describe('budget year note of a row', () => {
+    const draft2027 = { '2027': 'draft' } as const;
+    const row2027 = suggestionRow({ operation_date: '2027-01-02' });
+    const pick = (overrides: Partial<ReturnType<typeof emptySelection>>) => ({
+        ...emptySelection(row2027),
+        selected: true,
+        ...overrides,
+    });
+
+    it('reads the state from the map and tolerates no date, no key and []', () => {
+        expect(rowBudgetYearState(row2027, draft2027)).toBe('draft');
+        expect(rowBudgetYearState(row2027, {})).toBeNull();
+        expect(
+            rowBudgetYearState(row2027, [] as unknown as Record<string, never>),
+        ).toBeNull();
+        expect(
+            rowBudgetYearState(
+                suggestionRow({ operation_date: null }),
+                draft2027,
+            ),
+        ).toBeNull();
+    });
+
+    it('shows the note for income, expense, refund and a not yet chosen type', () => {
+        for (const type of [
+            'income',
+            'expense',
+            'refund',
+            undefined,
+        ] as const) {
+            expect(
+                rowBudgetYearNotice(
+                    row2027,
+                    pick({ type } as never),
+                    draft2027,
+                ),
+            ).toEqual({ state: 'draft', year: 2027 });
+        }
+    });
+
+    it('has no note for an own transfer or a capital movement without interest', () => {
+        expect(
+            rowBudgetYearNotice(
+                row2027,
+                pick({ type: 'own_transfer' }),
+                draft2027,
+            ),
+        ).toBeNull();
+        expect(
+            rowBudgetYearNotice(
+                row2027,
+                pick({ type: 'capital_movement' }),
+                draft2027,
+            ),
+        ).toBeNull();
+    });
+
+    it('has a note for a capital movement with interest', () => {
+        expect(
+            rowBudgetYearNotice(
+                row2027,
+                pick({
+                    type: 'capital_movement',
+                    interest_amount_input: '12,50',
+                }),
+                { '2027': 'missing' },
+            ),
+        ).toEqual({ state: 'missing', year: 2027 });
+    });
+
+    it('has no note for an execution year', () => {
+        expect(
+            rowBudgetYearNotice(row2027, pick({}), { '2027': 'execution' }),
+        ).toBeNull();
+    });
+
+    it('needs the budget only when selected and the type is chosen', () => {
+        expect(rowNeedsBudgetInExecution(row2027, pick({}), draft2027)).toBe(
+            true,
+        );
+        expect(
+            rowNeedsBudgetInExecution(
+                row2027,
+                pick({ selected: false }),
+                draft2027,
+            ),
+        ).toBe(false);
+        expect(
+            rowNeedsBudgetInExecution(
+                row2027,
+                pick({ type: undefined } as never),
+                draft2027,
+            ),
+        ).toBe(false);
     });
 });

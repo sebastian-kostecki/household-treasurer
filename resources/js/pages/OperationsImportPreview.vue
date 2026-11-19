@@ -130,6 +130,7 @@ const blockReason = computed(() => {
         selections.value,
         termDeposits,
         duplicateWarningAcknowledged.value,
+        budgetYearStates,
     );
 
     if (reason === null) {

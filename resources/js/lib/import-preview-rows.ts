@@ -228,6 +228,59 @@ export function parsedInterestAmountMinorUnits(
     return parseMoneyInputToMinorUnits(selection.interest_amount_input);
 }
 
+export function rowBudgetYearState(
+    row: ImportRow,
+    states: ImportBudgetYearStates,
+): ImportBudgetYearState | null {
+    if (row.operation_date === null) {
+        return null;
+    }
+
+    const year = row.operation_date.slice(0, 4);
+
+    return (Array.isArray(states) ? undefined : states[year]) ?? null;
+}
+
+export function rowBudgetYearNotice(
+    row: ImportRow,
+    selection: RowSelection,
+    states: ImportBudgetYearStates,
+): { state: 'draft' | 'missing'; year: number } | null {
+    const state = rowBudgetYearState(row, states);
+
+    if (state === null || state === 'execution') {
+        return null;
+    }
+
+    if (selection.type === 'own_transfer') {
+        return null;
+    }
+
+    if (
+        selection.type === 'capital_movement' &&
+        parsedInterestAmountMinorUnits(selection) === null
+    ) {
+        return null;
+    }
+
+    return {
+        state,
+        year: Number((row.operation_date as string).slice(0, 4)),
+    };
+}
+
+export function rowNeedsBudgetInExecution(
+    row: ImportRow,
+    selection: RowSelection,
+    states: ImportBudgetYearStates,
+): boolean {
+    return (
+        selection.selected &&
+        rowBudgetYearNotice(row, selection, states) !== null &&
+        selection.type !== undefined
+    );
+}
+
 export function interestSplitValid(
     row: ImportRow,
     selection: RowSelection,
