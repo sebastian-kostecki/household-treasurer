@@ -303,8 +303,8 @@ Brak migracji bazy. Pierwsze wdrożenie po zmianie wymaga `git pull --ff-only or
 
 #### Automated
 
-- [x] 3.1 Numeracja ADR przechodzi: `php artisan test --compact tests/Unit/AdrNumberingTest.php`
-- [x] 3.2 Pełna bramka przechodzi na PostgreSQL w worktree: `composer ci:check` oraz `vendor/bin/sloppy ci`
+- [x] 3.1 Numeracja ADR przechodzi: `php artisan test --compact tests/Unit/AdrNumberingTest.php` — 8977d39
+- [x] 3.2 Pełna bramka przechodzi na PostgreSQL w worktree: `composer ci:check` oraz `vendor/bin/sloppy ci` — 8977d39
 
 #### Manual
 
