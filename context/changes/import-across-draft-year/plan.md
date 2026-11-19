@@ -301,8 +301,8 @@ Brak migracji i zmian danych. Podgląd zapisany w sesji przed wdrożeniem dalej 
 
 #### Manual
 
-- [ ] 3.5 Kitchen sink: notatki i powód blokady zgodne z Atramentem w obu motywach i szerokościach
-- [ ] 3.6 Podgląd worktree: notatki stycznia, blokada wydatku, przelew własny nie blokuje
-- [ ] 3.7 Odnośnik do Budżetu 2027 otwiera Budżet i nie wysyła Importu
-- [ ] 3.8 Przycisk „Utwórz Budżet 2025” otwiera dialog z rokiem 2025 i nie wysyła Importu
-- [ ] 3.9 Grudzień zapisuje się po odznaczeniu stycznia; po starcie 2027 styczeń importuje się ponownym wgraniem
+- [x] 3.5 Kitchen sink: notatki i powód blokady zgodne z Atramentem w obu motywach i szerokościach
+- [x] 3.6 Podgląd worktree: notatki stycznia, blokada wydatku, przelew własny nie blokuje
+- [x] 3.7 Odnośnik do Budżetu 2027 otwiera Budżet i nie wysyła Importu
+- [x] 3.8 Przycisk „Utwórz Budżet 2025” otwiera dialog z rokiem 2025 i nie wysyła Importu
+- [x] 3.9 Grudzień zapisuje się po odznaczeniu stycznia; po starcie 2027 styczeń importuje się ponownym wgraniem
