@@ -69,7 +69,7 @@ Kolejność to rekomendacja agenta. Wiersze 1–6 to terminy i zabezpieczenia; z
 | 2   | Odświeżenie planu testów                         | plan z 6 listopada nie odpowiada stanowi repo                                              | mały             | otwarte |
 | 3   | E2E w CI                                         | testy istnieją, CI ich nie uruchamia                                                       | mały             | otwarte |
 | 4   | Śledzenie błędów na produkcji                    | dziś tylko log plikowy                                                                     | mały do średniego | otwarte |
-| 5   | Porządek w dokumentach                           | terminy bez kodu w słowniku, zdublowany numer ADR 0008                                     | mały             | otwarte |
+| 5   | Porządek w dokumentach                           | terminy bez kodu w słowniku, zdublowany numer ADR 0008                                     | mały             | zrobione (docs-match-code): ADR-0103, ADR-0104 |
 | 6   | Lista tarć                                       | użytkownik zapisuje przez grudzień i styczeń, co go spowalnia; podstawa wyboru etapu       | zerowy           | otwarte |
 | 7   | Plan roczny 2027 z historii                      | propozycja kwot ze średniej i trendu lat 2019–2026, „co jeśli”; przydaje się tylko przy układaniu roku | średni           | otwarte |
 | 8   | „Zapłacone / czeka” dla stałych opłat            | lista rachunków miesiąca z sumą „czeka” obok salda; bez nowych pól                          | mały             | otwarte |
@@ -92,7 +92,7 @@ Komendy startowe: wiersz 1 `/10x-new-research year-turn-rehearsal`, wiersz 2 `/1
 | 1. Majątek z walutą     | konta, lokaty, waluta po kursie, ręczne aktywa i zobowiązania, historia miesiąc po miesiącu; budżet zostaje w PLN         | jedyny brak oparty na fakcie                                                              | średni            | otwarte |
 | 2. Szybsze wprowadzanie | klawiatura w Operacjach i Planie miesiąca, reguły kontrahenta, auto-akceptacja pewnych podpowiedzi Importu                | najczęstsza czynność; auto-akceptacja wymaga najpierw pomiaru trafności                    | średni            | otwarte |
 | 3. Płynność w czasie    | najniższy punkt salda przed wypłatą dla sumy wszystkich kont (decyzje użytkownika wyżej)                                 | najpierw sprawdzić na liście tarć, czy to realny problem                                   | średni do dużego  | otwarte |
-| 4. Analityka            | podsumowanie roku z decyzją o Year Close, zmiany cen skorygowane o inflację, wykres przepływu, wykrywanie podwyżek        | korzysta z danych 2019–2026, nic nie blokuje                                              | mały do średniego na element | otwarte |
+| 4. Analityka            | podsumowanie roku (odczyt; Year Close odpada, ADR-0104), zmiany cen skorygowane o inflację, wykres przepływu, wykrywanie podwyżek        | korzysta z danych 2019–2026, nic nie blokuje                                              | mały do średniego na element | otwarte |
 | 5. Do rozważenia        | dostęp dla drugiej osoby, liczniki mediów, serwer MCP do odczytu, aplikacja na telefon (PWA), majątek w czasie jako raport | każde wymaga potwierdzenia potrzeby                                                       | różny             | otwarte |
 
 ## Odradzane i odrzucone

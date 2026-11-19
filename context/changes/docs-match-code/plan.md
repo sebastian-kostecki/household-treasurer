@@ -105,7 +105,7 @@ Test, który nie przechodzi, dopóki istnieją dwa pliki 0008. Potem zmiana nume
 - Przed zmianą numeru test nie przechodzi i wymienia oba pliki 0008: `docker run --rm -u 1000:1000 -e HOME=/tmp -v "$PWD":/var/www/html -w /var/www/html --entrypoint php sail-8.5/app artisan test --compact tests/Unit/AdrNumberingTest.php`
 - Po zmianie numeru ten sam test przechodzi
 - Pint bez uwag dla pliku testu: `docker run --rm -u 1000:1000 -e HOME=/tmp -v "$PWD":/var/www/html -w /var/www/html --entrypoint php sail-8.5/app vendor/bin/pint --format agent tests/Unit/AdrNumberingTest.php`
-- `grep -rnw "0008" context/foundation/adr AGENTS.md .ai app resources/js tests` zwraca tylko `adr/0013…:5` i nazwę pliku snapshotów
+- `grep -rnw "0008" context/foundation/adr AGENTS.md .ai app resources/js tests` zwraca tylko `adr/0013…:5` i notę o zmianie numeru w `adr/0103…:5`
 
 #### Manual Verification:
 
@@ -298,7 +298,7 @@ Słownik zostaje oczyszczony według ADR-0104. Dokumenty, które powołują się
 
 ## Migration Notes
 
-Brak migracji. Po scaleniu do `development` w głównym checkoucie zmień S-46 w `roadmap.md` z `ready` na `planning` (dalej `/10x-implement`). M-5 jest tam niezacommitowany, więc worktree tej zmiany go nie ma.
+Brak migracji. Po scaleniu do `development` w głównym checkoucie zmień S-46 w `roadmap.md` z `ready` na `planning` (dalej `/10x-implement`), a w tym samym przejściu przepisz `roadmap.md:184` („Year Close i Reserve — Why parked: niezaimplementowane na `main` (AGENTS.md)”) na „usunięte ze słownika (ADR-0104)” (impl-review F2). M-5 jest tam niezacommitowany, więc worktree tej zmiany go nie ma.
 
 ## References
 

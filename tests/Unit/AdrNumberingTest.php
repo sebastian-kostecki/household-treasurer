@@ -13,6 +13,8 @@ function adrFileNames(): array
 }
 
 test('every ADR file name starts with a four digit number', function () {
+    expect(adrFileNames())->not->toBeEmpty();
+
     $invalid = array_values(array_filter(
         adrFileNames(),
         fn (string $name): bool => preg_match('/^\d{4}-[a-z0-9-]+\.md$/', $name) !== 1,
@@ -35,5 +37,5 @@ test('no two ADR files share a number', function () {
         $duplicates,
     );
 
-    expect($report)->toBe([]);
+    expect($report)->toBe([], "ADR numbers must be unique; take the next free number:\n".implode("\n", $report));
 });
