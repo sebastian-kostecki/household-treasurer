@@ -391,10 +391,10 @@ Brak. Orkiestrator `/10x-test-plan` czyta §3 tymi samymi literałami statusów.
 
 #### Automated
 
-- [x] 2.1 §3 ma 6 wierszy etapów z dozwolonymi statusami
-- [x] 2.2 §3–§5 bez slice'ów M-2 i nieaktualnych wpisów e2e
-- [x] 2.3 §5 wymienia cztery istniejące specy-bramki i retries: 0
-- [x] 2.4 §7 bez zmian
+- [x] 2.1 §3 ma 6 wierszy etapów z dozwolonymi statusami — 73ebf8f
+- [x] 2.2 §3–§5 bez slice'ów M-2 i nieaktualnych wpisów e2e — 73ebf8f
+- [x] 2.3 §5 wymienia cztery istniejące specy-bramki i retries: 0 — 73ebf8f
+- [x] 2.4 §7 bez zmian — 73ebf8f
 
 #### Manual
 
@@ -404,12 +404,12 @@ Brak. Orkiestrator `/10x-test-plan` czyta §3 tymi samymi literałami statusów.
 
 #### Automated
 
-- [ ] 3.1 Wiersz 1 §3 complete z istniejącym folderem archiwum
-- [ ] 3.2 §6 bez nieaktualnych numerów etapów, 6 podsekcji
-- [ ] 3.3 §6.3 ma wzorzec e2e, §6.2 blok przełomu roku
-- [ ] 3.4 Daty §8 i nagłówka równe dniu implementacji
-- [ ] 3.5 Cały plik bez slice'ów M-2 poza §7
-- [ ] 3.6 §7 bez zmian
+- [x] 3.1 Wiersz 1 §3 complete z istniejącym folderem archiwum
+- [x] 3.2 §6 bez nieaktualnych numerów etapów, 6 podsekcji
+- [x] 3.3 §6.3 ma wzorzec e2e, §6.2 blok przełomu roku
+- [x] 3.4 Daty §8 i nagłówka równe dniu implementacji
+- [x] 3.5 Cały plik bez slice'ów M-2 poza §7
+- [x] 3.6 §7 bez zmian
 
 #### Manual
 

@@ -6,7 +6,7 @@
 >
 > Refresh: re-run `/10x-test-plan --refresh` when stale (see §8).
 >
-> Last updated: 2026-11-17
+> Last updated: 2026-11-19
 
 Plan jest po polsku jak pozostałe dokumenty w `context/foundation/`; wartości Status w §3 zostają po angielsku, bo czyta je orkiestrator. Terminy domenowe według `context/foundation/glossary.md`.
 
@@ -143,7 +143,8 @@ the relevant rollout phase ships; before that, the sub-section reads
 - **PHP**: `tests/Unit/`, `php artisan make:test --pest --unit <Name>Test`. Reference test: `tests/Unit/ToSpendCalculatorTest.php`.
 - **TS**: `*.test.ts` obok modułu w `resources/js/lib/`. Reference test: `resources/js/lib/to-spend-calculator.test.ts`.
 - **Run locally**: `php artisan test --compact <path>` (Sail), `npm test`.
-- Parzystość PHP↔TS na wspólnym fixture: TBD — see §3 Phase 2 (wzorzec ochrony przed rozjazdem kopii kalkulatora).
+- Parzystość PHP↔TS na wspólnym fixture: TBD — see §3 Phase 5 (wzorzec ochrony przed rozjazdem kopii kalkulatora).
+- **Dzień „dziś” w Vitest**: logika przyjmuje „dziś” jako argument `YYYY-MM-DD`, test podaje go jawnie. Bez `new Date()` i bez fake timerów (żaden test Vitest nie zamraża czasu). Reference: `resources/js/lib/budget-year-menu.test.ts`, `resources/js/lib/format.test.ts`.
 
 ### 6.2 Adding an integration test
 
@@ -155,25 +156,38 @@ the relevant rollout phase ships; before that, the sub-section reads
   - Fixture pochodzi z prawdziwego pliku, edytowanego ręcznie (anonimizacja, nakładka, układ) w `tests/Fixtures/import/`, nigdy wygenerowanego parserem. Obecne: mbank-overlap, no-preamble, long-preamble, reordered-columns, renamed-amount. Warianty BNP (xlsx) test buduje w locie przez PhpSpreadsheet.
   - Atomowość: wiersz, który pada po wierszu już zapisanym, musi wycofać cały zestaw (stan bazy jak przed).
   - Nowy wariant banku: weź prawdziwy plik, zanonimizuj ręcznie, policz wiersze ręcznie, dodaj plik do `tests/Fixtures/import/` i przypadek do `ImportIntegrityTest.php` z oczekiwanymi krotkami zapisanymi w teście.
+  - Krotki po zapisie (wierność zapisanej operacji wobec pliku): TBD — see §3 Phase 3.
   - Świeże eksporty użytkownika (wrzesień i październik 2026, mBank i BNP) są zanonimizowane razem z kwotami i leżą poza gitem w `storage/app/private/import-fixtures/` ze skryptami `tools/anonymize.php` i `tools/verify.php`. Ich testy w `ImportIntegrityTest.php` są pomijane z komunikatem, gdy plików brak, więc w CI się nie uruchamiają. Przy nowym eksporcie: oryginał do `storage/app/private/statements/`, potem `anonymize.php`, `verify.php` i nowe liczby w teście.
 - **Benchmark trafności podpowiedzi kategorii**: `tests/Feature/ImportSuggestionAccuracyBenchmarkTest.php` (około 10 s na PostgreSQL) porównuje trafność ze stałym zestawem `tests/Fixtures/suggestions/reference-2026.json` (1031 wierszy, pseudonimy tokenów posortowane w wierszu, kategorie „Kategoria N” w kolejności niezależnej od id, bez kwot i bez tekstu z banku) i poziomem bazowym `tests/Fixtures/suggestions/reference-2026-baseline.json`.
   - Regeneracja zestawu: `php artisan import:suggestion-reference {snapshot} --year=2026` na snapshocie `user:backup` w wersji co najmniej 10. Generator wymusza równość rankingu przed i po pseudonimizacji.
   - Świadome podniesienie bazy: uruchom test z `SUGGESTION_BASELINE_WRITE=1` (odmawia przy ustawionym `CI`), a nowy poziom bazowy trafia do commita razem z uzasadnieniem.
   - Spadek poniżej poziomu bazowego czerwieni test i wypisuje listę wierszy, które przestały trafiać. Nie obniżaj progu, żeby test przeszedł.
-- Niezmiennik raportu z ręcznie policzoną wyrocznią: TBD — see §3 Phase 2.
+- Niezmiennik raportu z ręcznie policzoną wyrocznią: TBD — see §3 Phase 5.
+- **Przełom roku i północ w Polsce** (ryzyko #9; reguła w ADR-0103, `context/foundation/adr/0103-one-app-day-in-europe-warsaw.md`):
+  - Czas zamrażasz przez `travelTo` na granicach polskiej północy: 31.12 o 22:59:59 UTC i 23:00:00 UTC (zimą polska północ to 23:00 UTC), a latem o 21:59:59 UTC i 22:00:00 UTC. Nigdy sama północ UTC.
+  - Asercja przez `assertInertia` na „dziś” powłoki, roku Dashboardu i roku budżetu. Przeglądarka bierze dzień tylko z propsów serwera, więc fake timerów w Vitest nie potrzeba.
+  - Testy `_known_gap` (`tests/Feature/SelectedBudgetYearTest.php`, `tests/Feature/CsvImportTest.php`) zmieniają nazwę i zielenieją z S-40 i S-42 bez zmiany asercji wymagań.
+  - Testy przypięte do północy UTC (`tests/Feature/YearTurnTest.php`, `tests/Feature/BudgetCollectedAtYearStartTest.php`) zmieniają się w S-39 jako zmiana wymagania (ADR-0103), nie jako dostrojenie asercji.
+  - Strażnik statyczny przeciw `new Date()`, `getFullYear()` i `toISOString().slice(0, 10)` w domenowym JS powstaje w S-39; precedens: `tests/Unit/MonthPlanHardcodedUiTest.php`.
+  - Zegar próby (`app:rehearsal-clock`) służy tylko do sprawdzenia wizualnego w przeglądarce, nie jest dowodem.
 
 ### 6.3 Adding an e2e test
 
-- TBD — see §3 Phase 4 (krytyczny przepływ w przeglądarce bez błędów JS, ze skutkiem widocznym na stronie).
+- **Location**: `tests/e2e/*.spec.ts`. Reference spec: `tests/e2e/seed.spec.ts` (sprząta po sobie, sprawdza skutek na stronie i brak `pageerror`).
+- Nazwy danych unikalne w każdym przebiegu; bieżący rok budżetu przez `tests/e2e/support/budget-year.ts`; jeden worker.
+- **Run**: według `context/foundation/test-stack.md`.
+- Nowy spec-bramka: celowe zepsucie przepływu musi go zaczerwienić. Bez `waitForTimeout` i bez `test.skip` przy braku danych.
+- Lista speców-bramek: §5.
+- Spec zatwierdzenia Importu: TBD — see §3 Phase 2.
 
 ### 6.4 Adding a test for a new route or Inertia page
 
 - **Pattern now**: test Feature z `actingAs` i `assertInertia` dla każdego propsa (`AGENTS.md`).
-- Kontrola własności dla drugiego użytkownika: TBD — see §3 Phase 5 (wzorzec odmowy dostępu do cudzych danych).
+- Kontrola własności dla drugiego użytkownika: TBD — see §3 Phase 6 (wzorzec odmowy dostępu do cudzych danych).
 
 ### 6.5 Adding data covered by backup and restore
 
-- TBD — see §3 Phase 3 (wzorzec round-tripu, strażnika kompletności i zamrożonego snapshotu dla każdej wersji).
+- TBD — see §3 Phase 4 (wzorzec round-tripu, strażnika kompletności i zamrożonego snapshotu dla każdej wersji).
 
 ### 6.6 Per-rollout-phase notes
 
@@ -194,9 +208,9 @@ contributors should respect these unless the underlying assumption changes.
 
 ## 8. Freshness Ledger
 
-- Strategy (§1–§5) last reviewed: 2026-11-06
-- Stack versions last verified: 2026-11-06
-- AI-native tool references last verified: 2026-11-06
+- Strategy (§1–§5) last reviewed: 2026-11-19
+- Stack versions last verified: 2026-11-19
+- AI-native tool references last verified: 2026-11-19
 
 Refresh (`/10x-test-plan --refresh`) when:
 
