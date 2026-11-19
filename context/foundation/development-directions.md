@@ -81,6 +81,7 @@ Kolejność to rekomendacja agenta. Wiersze 1–6 to terminy i zabezpieczenia; z
 | 13  | Oprocentowanie lokat                             | stopa na lokacie, prognoza odsetek, kalendarz zapadalności                                 | mały             | otwarte |
 | 14  | Kreator końca miesiąca                           | uzgodnij salda → Import → podsumowanie → plan następnego; klocki istnieją, brakuje ścieżki  | mały             | otwarte |
 | 15  | Tygodniowy e-mail                                | „do wydania”, tempo, rachunki czekające                                                    | mały             | otwarte |
+| 16  | Approving January while it is still December     | `StartBudgetExecution` has no date guard, so January of the new year can be approved on 30–31 December and reads incomplete fixed charges; today only the README „Przełom roku” warns (candidate from year-turn-notices, ADR-0108) | mały             | otwarte |
 
 Luki potwierdzone w próbie przełomu (kandydaci na osobne zmiany, szczegóły w `context/archive/2026-11-18-year-turn-rehearsal/rehearsal.md`): menu roku i domyślne daty dialogów używają czasu przeglądarki (1 stycznia 00:00–01:00 PL), rok w sesji zostaje 2026 po przełomie, Raport „Lata” liczy 1 stycznia tylko jeden dzień poprzednich lat, Import przy szkicu roku nie mówi, że trzeba uruchomić jego Budżet. Status: w roadmapie (M-5, F-08 i S-39…S-43).
 

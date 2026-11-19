@@ -1,5 +1,7 @@
 # Dashboard notice labels, the "Budżet <year>" block layout and the Year Elapsed Switch state
 
+Amended by ADR-0108: `month_plan_not_approved` now has a value, the deadline „zatwierdź do DD.MM, 23:59”, and the new kind `budget_not_in_execution` adds a row to the label table below.
+
 ADR-0045 moved the Dashboard back to the `PageDashboard` page of the "C · Atrament i morski" design system (artifact https://claude.ai/artifact/9gJSdtfpFgUAa8oEMgR4HA) and left several values to the implementing change. This ADR records them, and the places where the implementation deliberately departs from the card.
 
 Notice labels. A notice card shows the kind label on top, the identity under it in `font-medium` (not the 600 of the card) and the value on the right in the severity colour. The kinds, severities, order, links and the six-card limit of ADR-0032 do not change.
@@ -10,9 +12,10 @@ Notice labels. A notice card shows the kind label on top, the identity under it 
 | `month_to_spend_negative` | Do wydania poniżej zera | month | amount with sign |
 | `month_item_over_plan` | Ponad plan | `category_name` | amount with sign |
 | `one_off_over_limit` | Ponad limit | `category_name` | amount with sign |
-| `month_plan_not_approved` | Plan niezatwierdzony | month | none (empty slot) |
+| `month_plan_not_approved` | Plan niezatwierdzony | month | „zatwierdź do DD.MM, 23:59” |
 | `month_pace_ahead` | Tempo przed upływem dni | month | "31% · upływ dni 17%" |
 | `collected_not_covered` | Zebrane bez pokrycia | month | "brakuje 100,00 zł · zebrane 600,00 zł" |
+| `budget_not_in_execution` | Budżet w szkicu / Brak budżetu | „Budżet :year” | „Import nie przyjmie wierszy z :year” |
 
 An amount is formatted by `formatMoney` and keeps its sign. The identity of `month_item_over_plan` and `one_off_over_limit` is `category_name`, the Category the user has to open, not the name of the item. `month_pace_ahead` maps the payload to `percent` and `monthElapsedPercent(elapsed_day, days_in_month)`. `month_plan_not_approved` has no value in the payload, so its right slot stays empty; we do not invent a state word for it. The label, the identity and the value come from one presentation function in `@/lib/dashboard-notice-presentation`, and a new kind adds its label there, not new markup. The "Blisko limitu" kind from `Notice/preview.html` does not enter: the glossary has no such threshold and ADR-0037 keeps the Budget free of "near the limit" states.
 
