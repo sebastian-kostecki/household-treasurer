@@ -512,12 +512,12 @@ MCP requests share the four FPM workers with the web UI. Tools return bounded re
 
 #### Automated
 
-- [ ] 4.1 Protected-resource metadata returns the production /mcp resource
-- [ ] 4.2 POST /mcp without a token returns 401
+- [x] 4.1 Protected-resource metadata returns the production /mcp resource — verified with curl against production 2026-11-19
+- [x] 4.2 POST /mcp without a token returns 401 — verified with curl against production 2026-11-19
 
 #### Manual
 
-- [ ] 4.3 Cloudflare rules in place without challenges for Claude
+- [x] 4.3 Cloudflare rules in place without challenges for Claude — no rules needed: the claude.ai connector connected without a challenge (user, 2026-11-19); see infrastructure.md "MCP endpoint"
 - [ ] 4.4 claude.ai connector answers To Spend equal to the Dashboard
 - [ ] 4.5 Connector works on Claude Desktop and the mobile app
 - [ ] 4.6 mcp log has one line per call without amounts or descriptions
