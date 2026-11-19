@@ -235,6 +235,45 @@ class ReportsPageTest extends TestCase
                     ->etc()));
     }
 
+    public function test_the_year_over_year_comparison_turns_over_at_polish_midnight_on_new_year(): void
+    {
+        $user = User::factory()->create();
+        $this->bookExpense($user, 2025, 'Żywność', '2025-12-31', 4000);
+        $this->bookExpense($user, 2026, 'Żywność', '2026-01-01', 300);
+        $this->bookExpense($user, 2026, 'Żywność', '2026-01-02', 7000, false);
+        $this->bookExpense($user, 2027, 'Żywność', '2027-01-01', 500);
+
+        $this->travelTo('2026-12-31 22:59:59');
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('reports'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('report.comparison.year', 2025)
+                ->where('report.comparison.from', '2025-01-01')
+                ->where('report.comparison.through', '2025-12-31')
+                ->where('report.comparison.is_partial', false)
+                ->where('report.comparison.expense_minor_units', 4000));
+
+        $this->travelTo('2026-12-31 23:00:00');
+
+        foreach ([[], ['month' => 1]] as $query) {
+            $this->actingAs($user)
+                ->withSession(['budget_year' => 2027])
+                ->get(route('reports', $query))
+                ->assertOk()
+                ->assertInertia(fn (Assert $page) => $page
+                    ->where('budgetYear', 2027)
+                    ->where('period.is_in_progress', true)
+                    ->where('report.comparison.year', 2026)
+                    ->where('report.comparison.from', '2026-01-01')
+                    ->where('report.comparison.through', '2026-01-01')
+                    ->where('report.comparison.is_partial', true)
+                    ->where('report.comparison.expense_minor_units', 300)
+                    ->where('report.comparison.expense_difference_minor_units', 200));
+        }
+    }
+
     public function test_it_passes_the_comparison_for_a_month_and_a_row_that_exists_only_a_year_earlier(): void
     {
         $this->travelTo('2026-11-11');

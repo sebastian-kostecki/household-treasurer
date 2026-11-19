@@ -471,6 +471,25 @@ test('a period in progress is compared up to the same day a year earlier', funct
         ->and($month['expense'][0]['difference_minor_units'])->toBe(100 - 320);
 });
 
+test('on 1 January the year and January are compared with 1 January of the year before and not with 2 January', function () {
+    [$user, $account, $budget] = reportFixture(2027);
+    $previous = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+    $food = reportLine($user, $budget, 'expense', 'Żywność');
+    $previousFood = reportLineOfCategory($previous, $food);
+    reportOperation($user, $account, $food, '2027-01-01', 500);
+    reportOperation($user, $account, $previousFood, '2026-01-01', 300);
+    reportOperation($user, $account, $previousFood, '2026-01-02', 7_000);
+    reportOperation($user, $account, $previousFood, '2026-12-31', 90_000);
+
+    $year = PeriodReport::forYear($budget, reportComparison($budget, null, '2027-01-01'))->toArray();
+    $month = PeriodReport::forMonth($budget, 1, reportComparison($budget, 1, '2027-01-01'))->toArray();
+
+    expect($year['comparison'])->toMatchArray(['year' => 2026, 'from' => '2026-01-01', 'through' => '2026-01-01', 'is_partial' => true, 'expense_minor_units' => 300, 'expense_difference_minor_units' => 200])
+        ->and($year['expense'][0]['previous_minor_units'])->toBe(300)
+        ->and($month['comparison'])->toMatchArray(['year' => 2026, 'from' => '2026-01-01', 'through' => '2026-01-01', 'is_partial' => true, 'expense_minor_units' => 300, 'expense_difference_minor_units' => 200])
+        ->and($month['expense'][0]['previous_minor_units'])->toBe(300);
+});
+
 test('rows come from both ranges, a missing side is absent and differences are current minus previous', function () {
     [$user, $account, $budget] = reportFixture(2026);
     $previous = Budget::factory()->for($user)->execution()->create(['year' => 2025]);

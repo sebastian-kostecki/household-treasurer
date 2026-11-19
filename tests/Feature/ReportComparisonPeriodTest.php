@@ -72,6 +72,8 @@ test('a period in progress is cut on today a year earlier', function (?int $mont
     'last day of the year' => [null, '2026-12-31', '2025-01-01', '2025-12-31', false],
     'last day of the month' => [11, '2026-11-30', '2025-11-01', '2025-11-30', false],
     'first day of the year' => [null, '2026-01-01', '2025-01-01', '2025-01-01', true],
+    'first day of January month' => [1, '2026-01-01', '2025-01-01', '2025-01-01', true],
+    'last day of January month' => [1, '2026-01-31', '2025-01-01', '2025-01-31', false],
 ]);
 
 test('29 February is cut on 28 February of the year before', function () {

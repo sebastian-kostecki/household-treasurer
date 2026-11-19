@@ -11,8 +11,12 @@ use App\Models\BudgetLine;
 use App\Models\Category;
 use App\Models\TermDeposit;
 use App\Models\User;
+use App\Support\AppDay;
 use App\Support\BudgetMonthResult;
 use App\Support\PeriodReport;
+use App\Support\ReportComparisonPeriod;
+use App\Support\ReportYears;
+use App\Support\ReportYearsRange;
 use App\Support\SheetLoad\SheetMapping;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
@@ -230,6 +234,51 @@ test('every reading of the same operations gives the hand-counted figure, bounda
         ->and(PeriodReport::forMonth($budget2025, 12)->toArray()['expense_minor_units'])->toBe(100_000)
         ->and(BudgetMonthResult::forViewedMonth($budget2025, 12)['expense_execution_minor_units'])->toBe(100_000)
         ->and(PeriodReport::forMonth($budget2026, 1)->toArray()['expense_minor_units'])->toBe(135_000);
+});
+
+test('on 1 January every year-over-year and Years reading gives the hand-counted figure', function () {
+    $this->travelTo('2026-12-31 23:00:00');
+
+    $user = User::factory()->create();
+    $account = Account::factory()->for($user)->create([
+        'opening_date' => '2020-01-01',
+        'opening_balance_minor_units' => 1_000_000_000,
+        'current_balance_minor_units' => 1_000_000_000,
+    ]);
+    $budget2026 = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+    $budget2027 = Budget::factory()->for($user)->execution()->create(['year' => 2027]);
+    $food = Category::factory()->for($user)->expense()->create(['name' => 'Jedzenie']);
+    BudgetLine::factory()->for($budget2026)->create(['category_id' => $food->id]);
+    BudgetLine::factory()->for($budget2027)->create(['category_id' => $food->id]);
+
+    // Amounts are in groszy: 10 zł = 1 000. It is 1 January 2027 in Poland (23:00 UTC on 31 December).
+    reportInvariantBook($user, $account, $food, '2026-01-01', 1_000);
+    reportInvariantBook($user, $account, $food, '2026-01-02', 20_000);
+    reportInvariantBook($user, $account, $food, '2026-01-31', 500_000);
+    reportInvariantBook($user, $account, $food, '2026-03-15', 3_000_000);
+    reportInvariantBook($user, $account, $food, '2027-01-01', 7_000);
+
+    // Year 2026: 10 + 200 + 5 000 + 30 000 = 35 210 zł = 3 521 000 groszy.
+    // Up to 1 January of 2026 and of 2027 (the Same-day Cut of the App Day): 10 zł and 70 zł.
+    $today = AppDay::today();
+    $yearComparison = PeriodReport::forYear($budget2027, ReportComparisonPeriod::resolve($budget2027, null, $today))->toArray();
+    $januaryComparison = PeriodReport::forMonth($budget2027, 1, ReportComparisonPeriod::resolve($budget2027, 1, $today))->toArray();
+    $years = ReportYears::for(ReportYearsRange::resolve($user, $today))->toArray();
+
+    expect($today->toDateString())->toBe('2027-01-01')
+        // The Year 2027 report compares with 1 January 2026 only: 10 zł, not 10 + 200 zł.
+        ->and($yearComparison['expense_minor_units'])->toBe(7_000)
+        ->and($yearComparison['comparison']['expense_minor_units'])->toBe(1_000)
+        ->and($yearComparison['comparison']['expense_difference_minor_units'])->toBe(6_000)
+        // January 2027 compares with 1 January 2026 as well: 10 zł, not the 5 210 zł of the whole January.
+        ->and($januaryComparison['expense_minor_units'])->toBe(7_000)
+        ->and($januaryComparison['comparison']['expense_minor_units'])->toBe(1_000)
+        // Years: "Razem" of the Same-day Cut and of Full Years, columns 2026 and 2027.
+        ->and($years['columns'])->toBe([2026, 2027])
+        ->and($years['same_day']['expense']['total']['cells'])->toBe([1_000, 7_000])
+        ->and($years['full']['expense']['total']['cells'][0])->toBe(3_521_000)
+        // The Year 2026 report is the same 35 210 zł.
+        ->and(PeriodReport::forYear($budget2026)->toArray()['expense_minor_units'])->toBe(3_521_000);
 });
 
 test('a year loaded from the sheet keeps the hand-counted amounts in every reading', function () {

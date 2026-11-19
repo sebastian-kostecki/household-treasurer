@@ -295,12 +295,12 @@ None: no schema or stored data changes.
 
 #### Automated
 
-- [x] 2.1 Phase 2 Feature tests pass on PostgreSQL
-- [x] 2.2 Vitest passes
-- [x] 2.3 Build and types pass
-- [x] 2.4 UI guards pass
-- [x] 2.5 Full gate on PostgreSQL and Sloppy pass
-- [x] 2.6 Formatting applied
+- [x] 2.1 Phase 2 Feature tests pass on PostgreSQL — 502b70f
+- [x] 2.2 Vitest passes — 502b70f
+- [x] 2.3 Build and types pass — 502b70f
+- [x] 2.4 UI guards pass — 502b70f
+- [x] 2.5 Full gate on PostgreSQL and Sloppy pass — 502b70f
+- [x] 2.6 Formatting applied — 502b70f
 
 #### Manual
 
@@ -312,6 +312,6 @@ None: no schema or stored data changes.
 
 #### Automated
 
-- [ ] 3.1 Phase 3 tests pass on PostgreSQL
-- [ ] 3.2 Full gate on PostgreSQL and Sloppy pass
-- [ ] 3.3 No production code changed in this phase
+- [x] 3.1 Phase 3 tests pass on PostgreSQL
+- [x] 3.2 Full gate on PostgreSQL and Sloppy pass
+- [x] 3.3 No production code changed in this phase
