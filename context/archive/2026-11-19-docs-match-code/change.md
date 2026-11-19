@@ -1,7 +1,8 @@
 ---
 change_id: docs-match-code
 title: Docs match code
-status: impl_reviewed
+status: archived
+archived_at: 2026-11-19T06:16:21Z
 created: 2026-11-19
 updated: 2026-11-19
 ---
