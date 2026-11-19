@@ -294,10 +294,10 @@ Brak migracji i zmian danych. Podgląd zapisany w sesji przed wdrożeniem dalej 
 
 #### Automated
 
-- [x] 3.1 npm run check:ui przechodzi
-- [x] 3.2 ImportPreviewHardcodedUiTest przechodzi
-- [x] 3.3 npm run build, types:check, check i cały Vitest przechodzą
-- [x] 3.4 Pełna bramka composer ci:check na testing_import_across_draft_year i sloppy ci
+- [x] 3.1 npm run check:ui przechodzi — a25e130
+- [x] 3.2 ImportPreviewHardcodedUiTest przechodzi — a25e130
+- [x] 3.3 npm run build, types:check, check i cały Vitest przechodzą — a25e130
+- [x] 3.4 Pełna bramka composer ci:check na testing_import_across_draft_year i sloppy ci — a25e130
 
 #### Manual
 
