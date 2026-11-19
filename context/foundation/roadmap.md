@@ -63,6 +63,7 @@ Cztery kamienie milowe powstały w dwa tygodnie, a aplikacja nie przeszła jeszc
 | S-45 | production-error-tracking       | użytkownik (właściciel) dostaje zgłoszenie wyjątku z produkcji ze stosem wywołań i kontekstem żądania          | —             | MS-08    | blocked  |
 | S-46 | docs-match-code                 | użytkownik i agent czytają słownik i ADR bez zdublowanych numerów i terminów, których nie ma w kodzie          | —             | MS-09    | done     |
 | S-47 | mcp-read-only-server            | użytkownik pyta Claude'a o stan budżetu i dopisuje gotówkę z telefonu                                          | F-08          | —        | in-progress |
+| S-48 | production-smoke-tests          | użytkownik (właściciel) sprawdza na produkcji, że wdrożone zmiany M-5 działają na jego prawdziwych danych      | S-47          | —        | proposed |
 
 ## Streams
 
@@ -73,7 +74,7 @@ Navigation aid — groups items that share a Prerequisites chain. Canonical orde
 | A      | Przełom roku          | `F-08` → `S-39` → `S-40` · `S-41` · `S-43`; `S-42`       | Przy celu „jakość” najpierw decyzja o dniu; `S-40`, `S-41`, `S-43` idą równolegle po `S-39`, który wprowadza `AppDay` (ADR-0103); `S-42` nie czeka na nic. |
 | B      | Siatka testów         | `F-09` → `S-44`                                         | Odświeżony plan wybiera przepływy-bramki; E2E w CI chroni wdrożenia poprawek strumienia A.                                    |
 | C      | Porządek produkcji    | `S-45` · `S-46`                                         | Dwa samodzielne wycinki; `S-45` czeka na wybór dostawcy, `S-46` może iść od razu.                                             |
-| D      | Claude i budżet       | `F-08` → `S-47`                                         | Serwer MCP (ADR-0110); po fazie 1 (wspólne czytniki) idzie równolegle z `S-40` i `S-41`; na produkcję przed ok. 15 grudnia 2026. |
+| D      | Claude i budżet       | `F-08` → `S-47` → `S-48`                                | Serwer MCP (ADR-0110); po fazie 1 (wspólne czytniki) idzie równolegle z `S-40` i `S-41`; na produkcję przed ok. 15 grudnia 2026; `S-48` zamyka milestone testami na produkcji. |
 
 ## Baseline
 
@@ -232,6 +233,18 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Unknowns:** —
 - **Risk:** Publiczny `/mcp` z OAuth to nowa powierzchnia ataku na produkcji (Cloudflare, klucze Passport w `.env.prod`); faza 1 dotyka `DashboardController` i `BudgetController`, które mogą zmieniać S-40 i S-41; narzędzie zapisu wdrażane osobno od zmian w `ManageFinancialOperation`.
 - **Status:** planning
+
+### S-48: Testy na produkcji
+
+- **Outcome:** użytkownik (właściciel) po wdrożeniu zmian M-5 przechodzi na produkcji, na własnych danych, listę sprawdzeń: konektor MCP z telefonu i z claude.ai (To Spend równy Dashboardowi, wpis gotówki, przełącznik `MCP_WRITE_ENABLED`) oraz zmiany przełomu roku (S-40, S-41, S-43), i zapisuje wynik
+- **Change ID:** production-smoke-tests
+- **PRD refs:** —
+- **Prerequisites:** S-47 wdrożone na produkcję
+- **Parallel with:** —
+- **Blockers:** wdrożenie S-47 (klucze Passport w `.env.prod`, reguły Cloudflare, `scripts/deploy.sh`)
+- **Unknowns:** dokładny zakres listy sprawdzeń poza S-47 (które z S-40, S-41, S-43 sprawdzać na produkcji i czy na kopii danych, czy na żywych)
+- **Risk:** testy na żywych danych zostawiają ślad w budżecie (wpis gotówkowy z `request_id`); sprawdzenia wykonuje człowiek, bo produkcji dotyka tylko on (`infrastructure.md`, „Approval”)
+- **Status:** proposed
 
 ## Backlog Handoff
 
