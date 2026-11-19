@@ -19,6 +19,7 @@ Serwer:
 - Znacznik czasu jako dzień: `MonthPlanProposal.php:184` i `IrregularCollected.php:168` porównują `archived_at` z pierwszym dniem miesiąca w UTC, `CategoryListReading.php:75` pokazuje `archived_at->toDateString()` (wyświetlane w `CategoryListRow.vue:56`).
 - 15 × `before_or_equal:today`: `Concerns/IncomeValidationRules.php:21,58`, `ExpenseValidationRules.php:21,58`, `OwnTransferValidationRules.php:17`, `CapitalMovementValidationRules.php:20`, `OperationRebuildValidationRules.php:30,69,112,150,188`, `CsvImport/FinancialOperationImportValidator.php:120,146`, `OwnTransferImportValidator.php:25`, `CapitalMovementImportValidator.php:25`. Laravel rozwiązuje tekst `today` w strefie aplikacji (UTC), a komunikat błędu jest domyślnym angielskim tekstem Laravela („…before or equal to today.”); `lang/pl/validation.php` ma tylko dwa wpisy.
 - Pozostałe `now()` w `app/` to znaczniki czasu (`created_at`, `approved_at`, `archived_at` kont i lokat, nazwy plików kopii, `LegacyCategoryConversion` `$migratedAt`) i zostają w UTC.
+- Świadomy wyjątek: `Backup/HealthyBackupWasFoundNotification.php:23` (`CarbonImmutable::now('Europe/Warsaw')->isMonday()`) to harmonogram kopii z ADR-0013, nie decyzja domeny; zostaje bez zmian, a strażnik PHP nie łapie `now('…')` ze strefą.
 
 Przeglądarka:
 
@@ -123,7 +124,7 @@ Jedno źródło dnia w `app/Support`, wszystkie odczyty „dziś” dla domeny i
 
 **Intent**: Dzień archiwizacji Kategorii to jej data w Polsce (ADR-0103, „The day of an instant”): archiwizacja 1.02.2027 00:30 w Polsce (31.01 23:30 UTC) to archiwizacja w lutym, więc Kategoria jest jeszcze w Propozycji lutego i jej pozycja zbiera w lutym, a lista Kategorii pokazuje 2027-02-01.
 
-**Contract**: Porównanie `AppDay::of($archivedAt)->lessThan($firstDay)` zamiast `$archivedAt->lessThan($firstDay)`; prop `archived_at` w liście Kategorii to `AppDay::of(...)->toDateString()` (bez zmiany typu, `string|null`).
+**Contract**: Porównanie `AppDay::of($archivedAt)->lessThan($firstDay)` zamiast `$archivedAt->lessThan($firstDay)`; w `MonthPlanProposal.php:184` to `categories.archived_at`, w `IrregularCollected.php:168` to `budget_lines.archived_at` pozycji (ładowane w `:232-236`), stemplowane przez `ArchiveCategory` tą samą chwilą. Prop `archived_at` w liście Kategorii to `AppDay::of(...)->toDateString()` (bez zmiany typu, `string|null`).
 
 #### 5. Testy
 
@@ -137,7 +138,7 @@ Jedno źródło dnia w `app/Support`, wszystkie odczyty „dziś” dla domeny i
 - `YearTurnTest`: grudzień da się zatwierdzić o 2026-12-31 22:59:59 UTC, a od 23:00:00 UTC nie da się, a styczeń bierze roczny udział; nazwy testów mówią o czasie polskim (np. `…_up_to_the_last_second_of_polish_time`, `…_from_polish_midnight_…`), docblock klasy mówi o zmianie roku o północy w Polsce, `today('UTC')` → `AppDay::today()`.
 - `BudgetCollectedAtYearStartTest`: znacznik prognozy kończy się między 22:59:59 a 23:00:00 UTC 31 grudnia.
 - `SelectedBudgetYearTest`: rok domyślny bez roku w sesji to 2026 o 2026-12-31 22:59:59 UTC i 2027 o 23:00:00 UTC; test `_known_gap` bez zmian.
-- Archiwizacja o 2027-01-31 23:30 UTC: Kategoria jest w Propozycji lutego i jej pozycja zbiera w lutym; lista Kategorii pokazuje `archived_at` `2027-02-01`; `ArchiveCategory` o 2026-12-31 23:30 UTC archiwizuje pozycję w Budżecie 2027 w wykonaniu, a pozycja 2026 zostaje.
+- Archiwizacja o 2027-01-31 23:30 UTC (przez `ArchiveCategory`, żeby `archived_at` dostały i Kategoria, i jej pozycja, a nie przez stan fabryki Kategorii): Kategoria jest w Propozycji lutego i jej pozycja zbiera w lutym; lista Kategorii pokazuje `archived_at` `2027-02-01`; `ArchiveCategory` o 2026-12-31 23:30 UTC archiwizuje pozycję w Budżecie 2027 w wykonaniu, a pozycja 2026 zostaje.
 - Dashboard o 2026-12-31 23:30 UTC: rok Dashboardu 2027 (`assertInertia`).
 - Pozostałe pliki z `today('UTC')` do wyliczenia oczekiwań biorą `AppDay::today()`.
 
@@ -147,7 +148,7 @@ Jedno źródło dnia w `app/Support`, wszystkie odczyty „dziś” dla domeny i
 
 - Nowe i zmienione testy przechodzą na PostgreSQL: `AppDayTest`, `YearTurnTest`, `BudgetCollectedAtYearStartTest`, `SelectedBudgetYearTest`, `MonthPlanProposalTest`, `IrregularCollectedTest`, `CategoriesPageTest`, `ArchiveCategoryTest`, `DashboardTest` (komenda worktree z AGENTS.md, baza `testing_one_app_day`)
 - `grep -rn "today('UTC')" app tests` nic nie wypisuje
-- `grep -rnE "now\(\)->(year|month|toDateString)" app` nic nie wypisuje
+- `grep -rnE "now\(\)->(year|month)" app` nic nie wypisuje (`now()->toDateString()` w `PreviewBalanceReconciliationRequest.php:47` przechodzi w fazie 2)
 - Pełny gate przechodzi: `composer ci:check` na `testing_one_app_day` (obraz `sail-8.5/app`), `vendor/bin/sloppy ci`, `vendor/bin/pint --dirty --format agent` bez zmian
 
 #### Manual Verification:
@@ -196,7 +197,14 @@ Każda reguła „data nie później niż dziś” (wpis ręczny, Import, uzgodn
 
 **Intent**: `composer ci:check` czerwieni się, gdy kod w `app/` czyta zegar do decyzji domeny poza `AppDay` (ADR-0103, „Server”), wzorem `tests/Unit/MonthPlanHardcodedUiTest.php`.
 
-**Contract**: Skanuje `app/**/*.php` i zgłasza plik i linię dla wzorców: `today('UTC')`, `today()` (funkcja i `::today()`), `now()->year`, `now()->month`, `now()->toDateString()`, `before_or_equal:today`. Wyjątki (lista, która może tylko maleć): `app/Support/AppDay.php`, `app/Support/RehearsalClock.php`, `app/Console/Commands/RehearsalClockCommand.php`. `now()` jako znacznik czasu jest dozwolone.
+**Contract**: Skanuje `app/**/*.php` i zgłasza plik i linię dla wzorców (regex wprost, żeby `AppDay::today()` w kontrolerach, czytnikach i akcjach nie był trafieniem):
+
+- `::today(` poprzedzone czymkolwiek innym niż `AppDay` (`/(?<!AppDay)::today\(/`), czyli `CarbonImmutable::today(…)`, `Carbon::today(…)`, `Date::today(…)` ze strefą i bez;
+- helper `today(…)` (`/(?<![\w:>$])today\(/`);
+- `now()->year`, `now()->month`, `now()->toDateString()` (`/now\(\)->(?:year|month|toDateString)\b/`);
+- `before_or_equal:today`.
+
+Wyjątki (lista, która może tylko maleć): `app/Support/AppDay.php`, `app/Support/RehearsalClock.php`, `app/Console/Commands/RehearsalClockCommand.php`. `now()` jako znacznik czasu i `now('Europe/Warsaw')` w `HealthyBackupWasFoundNotification` są dozwolone.
 
 #### 5. Testy
 
@@ -211,9 +219,9 @@ Każda reguła „data nie później niż dziś” (wpis ręczny, Import, uzgodn
 #### Automated Verification:
 
 - Testy walidacji przechodzą na PostgreSQL: `AppDayValidationTest`
-- Strażnik PHP przechodzi: `php artisan test --compact tests/Unit/AppDayClockGuardTest.php`
+- Strażnik PHP przechodzi na kodzie z wywołaniami `AppDay::today()` po fazie 1: `php artisan test --compact tests/Unit/AppDayClockGuardTest.php`
 - Celowe zepsucie czerwieni strażnik: dopisanie `CarbonImmutable::today('UTC')` do dowolnego kontrolera daje czerwony test z nazwą pliku i linią (zmiana cofnięta przed commitem)
-- `grep -rn "before_or_equal:today" app` nic nie wypisuje
+- `grep -rnE "before_or_equal:today|now\(\)->toDateString" app` nic nie wypisuje
 - Pełny gate przechodzi: `composer ci:check` na `testing_one_app_day`, `vendor/bin/sloppy ci`, Pint bez zmian
 
 #### Manual Verification:
@@ -258,11 +266,11 @@ Serwer wysyła App Day w `shell.today`, a cały kod przeglądarki (dialogi, menu
 
 #### 4. Menu roku, paleta, nowy Budżet
 
-**File**: `resources/js/components/AppSidebar.vue`, `BudgetYearSwitcher.vue`, `resources/js/composables/useCommandPalette.ts`, `resources/js/components/CreateBudgetDialog.vue`
+**File**: `resources/js/components/AppSidebar.vue`, `BudgetYearSwitcher.vue`, `resources/js/pages/dev/SidebarKitchenSink.vue`, `resources/js/composables/useCommandPalette.ts`, `resources/js/components/CreateBudgetDialog.vue`
 
 **Intent**: „Bieżący” i `createYear` w menu roku, rok w palecie i rok domyślny w dialogu nowego Budżetu to rok App Day (ADR-0098 zastąpione w części przez ADR-0103).
 
-**Contract**: `AppSidebar` podaje `current-year` z `useShell()`; `BudgetYearSwitcher` nie ma już zapasowego `new Date().getFullYear()`; `useCommandPalette` czyta `page.props.shell.today` w chwili wywołania (jak dziś `budgetYears`); `CreateBudgetDialog` liczy rok w `computed` z `useShell()` (komponent stale zamontowany, `.ai/rules/js-sidebar.md`).
+**Contract**: `AppSidebar` podaje `current-year` z `useShell()`; `BudgetYearSwitcher` ma `currentYear: number` jako prop wymagany i nie ma już zapasowego `new Date().getFullYear()`; wszystkie trzy wywołania podają rok: `AppSidebar.vue:73-76`, `dev/SidebarKitchenSink.vue:379-383` (już podaje `frame.currentYear`) i `dev/SidebarKitchenSink.vue:503-506` (dopisać `:current-year="2026"`, zgodnie z `:budget-year="2026"`); `useCommandPalette` czyta `page.props.shell.today` w chwili wywołania (jak dziś `budgetYears`); `CreateBudgetDialog` liczy rok w `computed` z `useShell()` (komponent stale zamontowany, `.ai/rules/js-sidebar.md`).
 
 #### 5. Filtry, etykiety dni i martwy kod
 
@@ -329,7 +337,7 @@ README, reguły dla agentów i plan testów opisują działające zachowanie, a 
 
 **Intent**: Procedura opisuje zmianę roku o 00:00 czasu polskiego i twardy termin grudnia 31.12 23:59:59 czasu polskiego (ADR-0103, „Year turn”), zamiast 01:00 i 23:59:59 UTC.
 
-**Contract**: Zdanie wstępne i krok 1; reszta procedury bez zmian.
+**Contract**: Zdanie wstępne i krok 1; w akapicie „Próba przed przełomem” (`README.md:318`) usunięte zdanie „Zegar przeglądarki ustaw osobno (`playwright-cli run-code … page.clock.setFixedTime …`)”, bo przeglądarka bierze dzień z `shell.today` (ADR-0103, „Rehearsal clock”); reszta procedury bez zmian.
 
 #### 2. Reguła App Day dla agentów
 
@@ -360,7 +368,7 @@ README, reguły dla agentów i plan testów opisują działające zachowanie, a 
 #### Automated Verification:
 
 - Indeks reguł zawiera nową regułę: `grep -c 'app-day.md' .ai/rules/index.md` zwraca `1`
-- README nie mówi o UTC przy przełomie: `grep -n '23:59:59 UTC\|01:00 czasu warszawskiego' README.md` nic nie wypisuje
+- README nie mówi o UTC przy przełomie ani o zegarze przeglądarki: `grep -n '23:59:59 UTC\|01:00 czasu warszawskiego\|page.clock' README.md` nic nie wypisuje
 - `js-auth.md` nie mówi już „not from an Inertia prop”: `grep -c 'not from an Inertia prop' .ai/rules/js-auth.md` zwraca `0`
 - Pełny gate przechodzi na gałęzi po rebase na bieżący `development`: `npm run build`, `composer ci:check` na `testing_one_app_day`, `vendor/bin/sloppy ci`
 
@@ -422,7 +430,7 @@ Bez migracji. Istniejące `archived_at` Kategorii z pierwszej godziny po półno
 
 - [ ] 1.1 Nowe i zmienione testy przechodzą na PostgreSQL (AppDayTest, YearTurnTest, BudgetCollectedAtYearStartTest, SelectedBudgetYearTest, archiwizacja)
 - [ ] 1.2 Brak `today('UTC')` w `app` i `tests`
-- [ ] 1.3 Brak `now()->year|month|toDateString` w `app`
+- [ ] 1.3 Brak `now()->year|month` w `app`
 - [ ] 1.4 Pełny gate przechodzi (ci:check, Sloppy, Pint)
 
 #### Manual
@@ -436,7 +444,7 @@ Bez migracji. Istniejące `archived_at` Kategorii z pierwszej godziny po półno
 - [ ] 2.1 Testy walidacji przechodzą na PostgreSQL
 - [ ] 2.2 Strażnik PHP przechodzi
 - [ ] 2.3 Celowe zepsucie czerwieni strażnik PHP
-- [ ] 2.4 Brak `before_or_equal:today` w `app`
+- [ ] 2.4 Brak `before_or_equal:today` i `now()->toDateString` w `app`
 - [ ] 2.5 Pełny gate przechodzi (ci:check, Sloppy, Pint)
 
 #### Manual
@@ -463,7 +471,7 @@ Bez migracji. Istniejące `archived_at` Kategorii z pierwszej godziny po półno
 #### Automated
 
 - [ ] 4.1 Indeks reguł zawiera app-day.md
-- [ ] 4.2 README nie mówi o UTC przy przełomie
+- [ ] 4.2 README nie mówi o UTC przy przełomie ani o page.clock
 - [ ] 4.3 js-auth.md nie mówi „not from an Inertia prop”
 - [ ] 4.4 Pełny gate przechodzi na gałęzi po rebase
 

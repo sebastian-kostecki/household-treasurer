@@ -1,7 +1,7 @@
 ---
 change_id: one-app-day
 title: Ten sam dzień w menu, na Dashboardzie i w dialogach (AppDay i shell.today)
-status: planned
+status: plan_reviewed
 created: 2026-11-19
 updated: 2026-11-19
 ---
