@@ -26,5 +26,5 @@
 - bramki: `seed`, `import-other-format-without-header`, `month-plan-groups`, `irregular-collected`, `import-approve`
 - serwer na runnerze: `scripts/e2e-server-ci.sh` (wybierany po `GITHUB_ACTIONS`); build, migrację i seed robi job, skrypt odmawia startu przy `public/hot` lub bez `public/build/manifest.json`
 - konto: `e2e@example.test`, hasło `password` jawnie w `env` joba; `php artisan demo:seed-household e2e@example.test` na świeżej bazie joba (nie sekret, baza żyje tylko w trakcie joba)
-- `retries: 0`, `trace: 'retain-on-failure'`, projekt `gate` z `timeout: 90_000`, `expect.timeout: 10_000`; przy porażce artefakt `playwright-report` (raport HTML i `test-results/` z trace, 14 dni)
+- `retries: 0`, `trace: 'retain-on-failure'`, projekt `gate` z `timeout: 90_000`, `expect.timeout: 10_000`; przy porażce lub anulowaniu artefakt `playwright-report` (raport HTML, `test-results/` z trace i `storage/logs/`, 14 dni); `expect.timeout` to obejście animacji dialogu bez `prefers-reduced-motion` (issue #277)
 - próba stabilności lokalnie: `CI=1` na świeżej bazie, `--project=setup`, potem `--project=gate --no-deps --repeat-each=20`

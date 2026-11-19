@@ -15,6 +15,7 @@ import {
     newestExecutionBudgetYear,
     selectBudgetYear,
 } from './support/budget-year';
+import { withCleanup } from './support/cleanup';
 
 async function addExpense(
     page: Page,
@@ -98,58 +99,63 @@ test(
         await dialog.getByRole('button', { name: 'Zapisz' }).click();
         await expect(dialog).toHaveCount(0);
 
-        try {
-            // A bill of 400,00 is covered by the collected amount: 100,00 is left.
-            await addExpense(page, category, '400,00', firstBill);
-            created.push(firstBill);
+        await withCleanup(
+            async () => {
+                // A bill of 400,00 is covered by the collected amount: 100,00 is left.
+                await addExpense(page, category, '400,00', firstBill);
+                created.push(firstBill);
 
-            await openCurrentMonthPlan(page);
-            const row = planRow(page, category);
-            await expect(row).toContainText('Nieregularna');
-            await expect(row.locator('[data-collected]')).toContainText(
-                'zebrane 100,00',
-            );
-            await expect(row).not.toContainText('ponad plan');
+                await openCurrentMonthPlan(page);
+                const row = planRow(page, category);
+                await expect(row).toContainText('Nieregularna');
+                await expect(row.locator('[data-collected]')).toContainText(
+                    'zebrane 100,00',
+                );
+                await expect(row).not.toContainText('ponad plan');
 
-            // A bill of 300,00 more is 200,00 over the collected amount.
-            await addExpense(page, category, '300,00', secondBill);
-            created.push(secondBill);
+                // A bill of 300,00 more is 200,00 over the collected amount.
+                await addExpense(page, category, '300,00', secondBill);
+                created.push(secondBill);
 
-            await page.goto('/month-plan');
-            await expect(row.locator('[data-collected]')).toContainText(
-                'zebrane 0,00',
-            );
-            await expect(row).toContainText('ponad plan');
-            await expect(
-                row.locator('.month-plan-cell-deviation'),
-            ).toContainText('200,00');
-        } finally {
-            for (const description of created) {
-                await deleteExpense(page, description);
-            }
+                await page.goto('/month-plan');
+                await expect(row.locator('[data-collected]')).toContainText(
+                    'zebrane 0,00',
+                );
+                await expect(row).toContainText('ponad plan');
+                await expect(
+                    row.locator('.month-plan-cell-deviation'),
+                ).toContainText('200,00');
+            },
+            async () => {
+                for (const description of created) {
+                    await deleteExpense(page, description);
+                }
 
-            // The first bill joined the Category to a Budget in execution, so the
-            // list no longer allows deleting it; archiving takes it off the lists.
-            await page.goto('/categories');
-            await page
-                .locator('[data-category-row]')
-                .filter({ has: page.getByText(category, { exact: true }) })
-                .getByRole('button', {
-                    name: `Więcej działań kategorii ${category}`,
-                })
-                .click();
-            await page.getByRole('menuitem', { name: 'Archiwizuj' }).click();
-            await page
-                .getByRole('dialog')
-                .getByRole('button', { name: 'Archiwizuj' })
-                .click();
-            await expect(page.getByRole('dialog')).toHaveCount(0);
-            await expect(
-                page
-                    .locator('[data-tab="expense"]')
-                    .getByText(category, { exact: true }),
-            ).toHaveCount(0);
-        }
+                // The first bill joined the Category to a Budget in execution, so the
+                // list no longer allows deleting it; archiving takes it off the lists.
+                await page.goto('/categories');
+                await page
+                    .locator('[data-category-row]')
+                    .filter({ has: page.getByText(category, { exact: true }) })
+                    .getByRole('button', {
+                        name: `Więcej działań kategorii ${category}`,
+                    })
+                    .click();
+                await page
+                    .getByRole('menuitem', { name: 'Archiwizuj' })
+                    .click();
+                await page
+                    .getByRole('dialog')
+                    .getByRole('button', { name: 'Archiwizuj' })
+                    .click();
+                await expect(page.getByRole('dialog')).toHaveCount(0);
+                await expect(
+                    page
+                        .locator('[data-tab="expense"]')
+                        .getByText(category, { exact: true }),
+                ).toHaveCount(0);
+            },
+        );
 
         expect(pageErrors).toEqual([]);
     },

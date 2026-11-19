@@ -36,8 +36,9 @@ test(
         });
 
         // The page preselects the first account, which can be a temporary "E2E …"
-        // account of a spec running in parallel and deleted before the preview.
-        // Pick a demo account by hand instead.
+        // account another spec creates and deletes (one worker runs the specs in
+        // turn, but a failed cleanup can leave one behind). Pick a demo account
+        // by hand instead.
         await page.getByRole('combobox', { name: 'Konto' }).click();
         await page
             .getByRole('option')

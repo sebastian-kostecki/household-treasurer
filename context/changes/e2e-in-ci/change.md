@@ -1,7 +1,7 @@
 ---
 change_id: e2e-in-ci
 title: E2E w CI — bramka ze stabilnych speców Playwright na pushu i PR
-status: implemented
+status: impl_reviewed
 created: 2026-11-19
 updated: 2026-11-19
 archived_at: null
@@ -37,3 +37,8 @@ Worktree: .claude/worktrees/e2e-in-ci (gałąź worktree-e2e-in-ci, przestawiona
 ### Krok 5.5 — zepsucie na GitHubie
 
 Tymczasowa gałąź z błędną kwotą w `seed.spec.ts` (draft PR #276, zamknięty, gałąź usunięta): job `e2e` czerwony (`Expected substring: "−99,99"`), `ci` zielony, artefakt `playwright-report` (raport HTML i `test-results/` z `trace.zip`, 14 dni). Przebieg bazowy PR #275: `e2e` 166 s, `ci` 215 s.
+
+### Przegląd implementacji (2026-11-19)
+
+- Czas joba `e2e` na HEAD `4e7a7fb`: 397 s przy `ci` 249 s; krok „Install Playwright browser” 288 s, z czego `apt-get` 3 min 39 s (147 kB/s). Przebieg na `aa246c4`: ten krok 46 s.
+- Issue #277: dialogi ignorują `prefers-reduced-motion`; po poprawce zdjąć `expect.timeout` z `playwright.config.ts`.

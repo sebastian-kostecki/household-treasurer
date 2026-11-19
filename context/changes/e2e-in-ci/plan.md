@@ -419,6 +419,15 @@ Brak migracji danych. Zmiana seedera dotyczy tylko nowych seedów i nie rusza is
 - Wzorzec speca: `tests/e2e/seed.spec.ts`
 - Środowisko równoległe: `context/foundation/agents/parallel-changes.md`
 
+## Addendum (przegląd implementacji 2026-11-19)
+
+Zmiany względem planu, przyjęte po przeglądzie (`reviews/impl-review.md`):
+
+- **Faza 4, limity czasu.** Po próbach stabilności config dostał `timeout: 90_000` w projekcie `gate` (`irregular-collected` trwa 27–43 s; `month-plan-groups` ma własne `test.setTimeout(120_000)`) i globalne `expect: { timeout: 10_000 }`. Drugie to obejście animacji wyjścia dialogu, która ignoruje `prefers-reduced-motion` (issue #277); po jego poprawce `expect.timeout` znika.
+- **Faza 5, dowód na GitHubie.** Gałąź została wypchnięta, a PR #275 do `development` dał przebieg 5.4 (wbrew decyzji 4 i „What We're NOT Doing”). Push `development` z jobem `e2e` nastąpi dopiero po merge'u; wtedy warto zerknąć na pierwszy przebieg.
+- **Faza 5, czas joba.** 5.6 ma dwa pomiary: 166 s przy `ci` 215 s (`aa246c4`) i 397 s przy `ci` 249 s (`4e7a7fb`). Różnica to `apt-get` w `npx playwright install --with-deps` (32 MB przy 147 kB/s, 3 min 39 s); pobranie Chromium ~8 s w obu, więc cache `~/.cache/ms-playwright` by nie pomógł. Na razie bez zmian w jobie; wracamy, jeśli wolny mirror apt się powtarza.
+- **Po przeglądzie.** Bramki sprzątają przez `withCleanup` (`tests/e2e/support/cleanup.ts`), więc błąd sprzątania nie przykrywa błędu przepływu; `import-approve` czeka na nagłówek przed liczeniem wierszy do usunięcia; artefakt porażki zawiera `storage/logs/` i powstaje też przy anulowaniu joba.
+
 ## Progress
 
 > Convention: `- [ ]` pending, `- [x]` done. Append ` — <commit sha>` when a step lands. Do not rename step titles. See `references/progress-format.md`.
@@ -476,6 +485,6 @@ Brak migracji danych. Zmiana seedera dotyczy tylko nowych seedów i nie rusza is
 
 #### Manual
 
-- [x] 5.4 Po pushu `development` job `e2e` zielony na GitHubie obok `ci` — PR #275: e2e success (166 s), 6 passed (setup + 5 bramek)
+- [x] 5.4 Po pushu `development` job `e2e` zielony na GitHubie obok `ci` — PR #275: e2e success (166 s), 6 passed (setup + 5 bramek); dowód z przebiegu `pull_request`, nie z pushu `development` (Addendum)
 - [x] 5.5 Gałąź z celowym zepsuciem (draft PR do `development`) czerwieni job `e2e` i zostawia artefakt — PR #276 (zamknięty, gałąź usunięta): e2e failure, adnotacja i artefakt playwright-report z trace
-- [x] 5.6 Czas joba `e2e` ok. 5 min, nie wydłuża wyniku o więcej niż 2 min ponad `ci` — e2e 166 s przy ci 215 s, więc nie wydłuża wyniku
+- [x] 5.6 Czas joba `e2e` ok. 5 min, nie wydłuża wyniku o więcej niż 2 min ponad `ci` — e2e 166 s przy ci 215 s, więc nie wydłuża wyniku; drugi przebieg (`4e7a7fb`) 397 s przy ci 249 s (+148 s, wolny mirror apt, Addendum)

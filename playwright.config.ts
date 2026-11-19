@@ -29,7 +29,8 @@ export default defineConfig({
     workers: 1,
     // A closed dialog stays in the DOM until its exit animation ends, which on
     // a loaded runner can take longer than the default 5 s. The assertions
-    // stay the same; only the wait for them is longer.
+    // stay the same; only the wait for them is longer. A workaround: the app
+    // ignores prefers-reduced-motion (issue #277); drop it once that is fixed.
     expect: { timeout: 10_000 },
     reporter: process.env.CI
         ? [['list'], ['github'], ['html', { open: 'never' }]]
@@ -53,9 +54,10 @@ export default defineConfig({
         },
         {
             name: 'gate',
-            // The month plan and irregular-category flows are long (setup, two
-            // bills, plan view, cleanup) and take 27-43 s, so the default 30 s
-            // fails them on timing alone. Assertions keep their own timeout.
+            // The irregular-category flow is long (setup, two bills, plan view,
+            // cleanup) and takes 27-43 s, so the default 30 s fails it on timing
+            // alone. month-plan-groups sets its own 120 s with test.setTimeout.
+            // Assertions keep their own timeout.
             timeout: 90_000,
             use: {
                 ...devices['Desktop Chrome'],
