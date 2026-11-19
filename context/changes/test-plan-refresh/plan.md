@@ -404,12 +404,12 @@ Brak. Orkiestrator `/10x-test-plan` czyta §3 tymi samymi literałami statusów.
 
 #### Automated
 
-- [x] 3.1 Wiersz 1 §3 complete z istniejącym folderem archiwum
-- [x] 3.2 §6 bez nieaktualnych numerów etapów, 6 podsekcji
-- [x] 3.3 §6.3 ma wzorzec e2e, §6.2 blok przełomu roku
-- [x] 3.4 Daty §8 i nagłówka równe dniu implementacji
-- [x] 3.5 Cały plik bez slice'ów M-2 poza §7
-- [x] 3.6 §7 bez zmian
+- [x] 3.1 Wiersz 1 §3 complete z istniejącym folderem archiwum — ce8012e
+- [x] 3.2 §6 bez nieaktualnych numerów etapów, 6 podsekcji — ce8012e
+- [x] 3.3 §6.3 ma wzorzec e2e, §6.2 blok przełomu roku — ce8012e
+- [x] 3.4 Daty §8 i nagłówka równe dniu implementacji — ce8012e
+- [x] 3.5 Cały plik bez slice'ów M-2 poza §7 — ce8012e
+- [x] 3.6 §7 bez zmian — ce8012e
 
 #### Manual
 
