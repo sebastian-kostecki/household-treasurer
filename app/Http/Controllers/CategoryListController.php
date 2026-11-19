@@ -8,7 +8,7 @@ use App\Actions\UpdateListCategory;
 use App\Http\Requests\StoreListCategoryRequest;
 use App\Http\Requests\UpdateListCategoryRequest;
 use App\Models\Category;
-use Carbon\CarbonImmutable;
+use App\Support\AppDay;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
@@ -25,7 +25,7 @@ class CategoryListController extends Controller
     {
         /** @var array{name: string, icon: string, color: string, type: string, description?: string|null, rhythm?: string|null, opening_collected_minor_units?: int|null} $attributes */
         $attributes = $request->validated();
-        $createListCategory->handle($request->user(), $attributes, CarbonImmutable::today('UTC'));
+        $createListCategory->handle($request->user(), $attributes, AppDay::today());
 
         Inertia::flash('toast', [
             'type' => 'success',
@@ -39,7 +39,7 @@ class CategoryListController extends Controller
     {
         /** @var array{name: string, icon: string, color: string, type: string, description?: string|null, rhythm?: string|null, opening_collected_minor_units?: int|null} $attributes */
         $attributes = $request->validated();
-        $updateListCategory->handle($category, $attributes, CarbonImmutable::today('UTC'));
+        $updateListCategory->handle($category, $attributes, AppDay::today());
 
         Inertia::flash('toast', [
             'type' => 'success',

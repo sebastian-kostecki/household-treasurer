@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Models\Account;
+use App\Support\AppDay;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Validator;
@@ -44,7 +45,7 @@ class PreviewBalanceReconciliationRequest extends FormRequest
                 /** @var Account $account */
                 $account = $this->route('account');
 
-                if ($day > now()->toDateString()) {
+                if ($day > AppDay::today()->toDateString()) {
                     $validator->errors()->add('reconciled_on', __('The reconciliation date cannot be in the future.'));
                 } elseif ($day < $account->opening_date->toDateString()) {
                     $validator->errors()->add('reconciled_on', __('The reconciliation date cannot be earlier than the account opening date.'));

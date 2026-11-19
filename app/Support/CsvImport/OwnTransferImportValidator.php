@@ -4,6 +4,7 @@ namespace App\Support\CsvImport;
 
 use App\Models\Account;
 use App\Models\User;
+use App\Support\AppDay;
 use Illuminate\Support\Facades\Validator;
 
 class OwnTransferImportValidator
@@ -22,7 +23,7 @@ class OwnTransferImportValidator
     public function validate(User $user, array $data, array $allowedArchivedAccountIds = []): array
     {
         $validator = Validator::make($data, [
-            'transfer_date' => ['required', 'date', 'before_or_equal:today'],
+            'transfer_date' => ['required', 'date', 'before_or_equal:'.AppDay::today()->toDateString()],
             'amount_minor_units' => ['required', 'integer', 'min:1'],
             'description' => ['required', 'string', 'max:255'],
             'source_account_id' => ['required', 'integer', 'different:destination_account_id'],

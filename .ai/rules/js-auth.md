@@ -13,7 +13,7 @@ paths:
 
 ## The layout is .auth-shell
 
-Every entry screen sits in `AuthCardLayout` (through `AuthLayout`): `.auth-shell` with the dark panel `.auth-aside` (the `--sidebar-*` tokens) and the card `.auth-card`, widths from `--auth-aside-width` and `--auth-card-width`, switching at `lg`, not at a literal 860 px (ADR-0056). The card has a `page-title` `h1`, a `meta` description and an optional `.auth-card-icon`; no shadcn `Card`, no `rounded-xl`. The product mark is `BrandMark` with the name. The year block comes from `authYearProgress` in `resources/js/lib/auth-year-progress.ts`, not from an Inertia prop.
+Every entry screen sits in `AuthCardLayout` (through `AuthLayout`): `.auth-shell` with the dark panel `.auth-aside` (the `--sidebar-*` tokens) and the card `.auth-card`, widths from `--auth-aside-width` and `--auth-card-width`, switching at `lg`, not at a literal 860 px (ADR-0056). The card has a `page-title` `h1`, a `meta` description and an optional `.auth-card-icon`; no shadcn `Card`, no `rounded-xl`. The product mark is `BrandMark` with the name. The year block comes from `authYearProgress` in `resources/js/lib/auth-year-progress.ts`, which takes the year and the day from `shell.today` (ADR-0103), never from the browser clock.
 
 ## A confirmation is Alert ok, never text-success
 

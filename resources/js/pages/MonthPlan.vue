@@ -664,10 +664,9 @@ const toSpendLabel = computed<'live' | 'final' | 'default'>(() => {
                     </Button>
                 </template>
             </MonthPlanTitleRow>
-            <InputError
-                v-if="monthPlan.state === 'proposal'"
-                :message="errors.items"
-            />
+            <!-- Every state except change mode (its edit bar shows the error): a refusal can
+                 re-render the month in another state, e.g. December read as past after midnight. -->
+            <InputError v-if="!isChanging" :message="errors.items" />
 
             <BudgetMonthPicker
                 :budget-year="budget.year"

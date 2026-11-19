@@ -6,6 +6,8 @@ cd "${ROOT}"
 
 # shellcheck source=lib/production-deploy.sh
 source "$(dirname "$0")/lib/production-deploy.sh"
+# shellcheck source=lib/production-images.sh
+source "$(dirname "$0")/lib/production-images.sh"
 
 COMPOSE="docker compose --env-file .env.prod -f docker-compose.prod.yml"
 
@@ -17,8 +19,20 @@ fi
 
 production_pull_latest
 
+# Each assignment from a command substitution stands on its own line, so a failure stops
+# the deployment (set -e). PREVIOUS_PROD_IMAGE_ID is empty on the first deployment.
+GIT_REVISION="$(git rev-parse --short HEAD)"
+PREVIOUS_PROD_IMAGE_ID="$(production_prod_image_id)"
+DEPLOYED_AT="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+export GIT_REVISION
+export DEPLOYED_AT
+
+# Before the build: afterwards the old image loses its :prod tag.
+production_tag_legacy_prod_image
+
 echo "==> Building app image..."
 $COMPOSE build app
+production_tag_built_image "$GIT_REVISION"
 
 # Same precedence as Compose: shell, then .env.prod, then the default.
 if [[ -z "${BACKUP_HOST_DIR:-}" ]]; then
@@ -70,5 +84,7 @@ $COMPOSE exec -T app php artisan package:discover --ansi
 $COMPOSE exec -T app php artisan config:cache
 $COMPOSE exec -T app php artisan route:cache
 $COMPOSE exec -T app php artisan view:cache
+
+production_remove_old_image_tags 3 "$PREVIOUS_PROD_IMAGE_ID"
 
 echo "==> Done. Check https://budget.kostecki.dev/up"

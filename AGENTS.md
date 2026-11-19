@@ -7,7 +7,7 @@ Single-user household budget and liquidity tracker: Laravel 13, Inertia 3, Vue 3
 - Money is `int` in minor units (`*_minor_units` `bigint` columns), parsed with `App\Support\MinorUnits`; `float` stays out of money code.
 - `phpunit.xml` defaults to SQLite, CI and production run PostgreSQL: a green SQLite run proves nothing for migrations, raw SQL, date or JSON functions and constraints. Run those tests on PostgreSQL (Commands).
 - A change to a glossary rule (`context/foundation/glossary.md`) or to a term marked _Avoid_ starts with the glossary entry and a new ADR in `context/foundation/adr` (next free number), then code.
-- Docs describe more than the code: Agenda, Cash Expectation, Reserve and Year Close are not on `main`. Confirm a term exists in code before building on it.
+- The glossary describes only what the code has. ADRs marked "Superseded by ADR-0104" (0017–0022, 0029, 0030: Agenda, Cash Expectation, Settlement candidate, Year Close, Reserve, Earmark) are designs that were never built; building in that area starts with a new glossary entry and ADR. Confirm a term exists in code before building on it.
 - UI follows the Atrament design system in `context/foundation/design-system.md`: values only as tokens from `resources/css/app.css` (no hex or Tailwind palette colours), `components/ui/*` never edited for a single screen, every view state in its `/dev/...` kitchen sink, `npm run check:ui` guarding the views. A new token or colour meaning lands on that page and, when it changes a decision, in an ADR. The claude.ai artifact linked there is a preview, not a source of values.
 - An Inertia prop changes on both sides (PHP array, `defineProps<>` type) in one commit, with an `assertInertia` test.
 - A chart library is a plan decision plus an ADR (`.ai/rules/reports.md`).
@@ -26,7 +26,7 @@ Setup and everyday commands: `README.md` ("Uruchomienie", "Testy i jakość"). R
 
 - `app/Actions` writes; `app/Support` readings and calculations; `app/Http/Requests`; `app/Policies`.
 - `resources/js/pages`; `components` (domain); `components/ui` (shadcn-vue); `lib` (pure logic, `*.test.ts` next to it).
-- `context/foundation/` cross-change docs: `glossary.md`; `adr/` decisions; `design-system.md`; `prd-mvp.md` and `mvp.md` product requirements, `prd.md` and `prd-vN.md` change PRDs from `/10x-prd`; `tech-stack.md`; `roadmap.md`, `test-plan.md`; `agents/` procedures.
+- `context/foundation/` cross-change docs: `glossary.md`; `adr/` decisions; `design-system.md`; `prd-mvp.md` and `mvp.md` product requirements, `prd.md` and `prd-vN.md` change PRDs from `/10x-prd`; `tech-stack.md`; `roadmap.md`, `test-plan.md`; `development-directions.md` candidate directions not yet on the roadmap (read it before proposing what to build next); `agents/` procedures.
 - `context/changes/<id>/` the 10x change in progress; `context/archive/` closed changes (pre-10x feature specs sit there as `<date>-<name>/spec.md`).
 
 ## Rules by path

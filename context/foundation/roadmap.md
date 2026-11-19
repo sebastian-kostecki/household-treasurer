@@ -1,190 +1,256 @@
 ---
 project: 'Household Treasurer'
-version: 4
+version: 5
 status: draft
 created: 2026-11-02
-updated: 2026-11-15
+updated: 2026-11-19
 prd_version: —
 main_goal: quality
-top_blocker: decisions
-milestone_id: categories-across-years-and-atrament-views
-milestone_seq: 4
-milestone_status: done
+top_blocker: none
+milestone_id: first-full-cycle-on-production
+milestone_seq: 5
+milestone_status: open
 ---
 
 # Roadmap: Household Treasurer
 
-> Derived from the user's description (2026-11-14) and the cards `PageReportsYears`, `PageReports`, `PageCategories` and `Sidebar` in the Atrament design system (claude.ai artifact „Domowy Skarbnik”), + codebase baseline re-checked in the repo.
+> Derived from `context/foundation/development-directions.md` (sekcja „Na już”, wiersze 2–6, i rekomendacja agenta) and `context/archive/2026-11-18-year-turn-rehearsal/rehearsal.md` (luki 1–5 i kandydaci), + codebase baseline re-checked in the repo.
 > Edit-in-place; the next milestone continues this file. Archive only when an independent roadmap replaces it.
 > Slices below are listed in dependency order. The "At a glance" table is the index.
-> Identyfikatory kontynuują numerację: M-1 to F-01 i S-01…S-10, porzucony M-2 to F-02 i S-11…S-17, M-3 to F-03…F-06 i S-18…S-33 (w `## Done` i `## Milestone History`), więc M-4 zaczyna od F-07 i S-34.
+> Identyfikatory kontynuują numerację: M-1 to F-01 i S-01…S-10, porzucony M-2 to F-02 i S-11…S-17, M-3 to F-03…F-06 i S-18…S-33, M-4 to F-07 i S-34…S-38 (w `## Done` i `## Milestone History`), więc M-5 zaczyna od F-08 i S-39.
 
 ## Milestone
 
-**M-4: Kategorie przez lata i widoki Atramentu** — Status: done
+**M-5: Pierwszy pełny cykl na produkcji** — Status: open
 
-- **Intent:** Użytkownik widzi, jak każda kategoria zmieniała się od 2020 roku, porównując lata do tego samego dnia, i dochodzi od raportu roku do szczegółu jednej kategorii. Przy okazji Raporty, Kategorie i menu roku dostają układ wybrany w design systemie Atrament.
-- **Source materials:** opis użytkownika z 2026-11-14 („w ogóle brakuje mi widoku porównania kategorii na przestrzeni lat; jest tylko porównanie lat sąsiednich, a nie ma większych trendów”) i jego wybory w design systemie: `PageReportsYears` (wariant A), `PageReports` (C), `PageCategories` (B), menu roku w `Sidebar` (B). Bez PRD.
-- **Done when:** każdy element F-NN i S-NN poniżej ma status `done`, a użytkownik na produkcji porównał co najmniej jedną kategorię przez lata 2020–2026 w widoku „Lata” i doszedł z niej do panelu tej kategorii.
+- **Intent:** Pierwszy przełom roku na prawdziwych danych (2026→2027) przechodzi na produkcji bez ręcznych poprawek, a aplikacja ma siatkę jakości, która łapie błędy, zanim zrobi to użytkownik: E2E w CI, śledzenie błędów na produkcji, aktualny plan testów i dokumenty zgodne z kodem. Funkcja na następny kamień wynika z listy tarć zebranej w tym cyklu, nie z domysłu.
+- **Source materials:** `context/foundation/development-directions.md` (wiersze 2–6 „Na już”, rekomendacja „kamień jakości”, decyzja użytkownika z 2026-11-18 „A. Kamień jakości”) i `context/archive/2026-11-18-year-turn-rehearsal/rehearsal.md` (luki 1–5, obserwacje faz 1 i 3). Bez PRD.
+- **Done when:** każdy element F-NN i S-NN poniżej ma status `done`, plan stycznia 2027 jest zatwierdzony na produkcji bez ręcznych poprawek po przełomie roku, a lista tarć z grudnia i stycznia (MS-10) jest zapisana.
 - **Scope anchors:**
-  - MS-01: Raporty mają piątą pozycję okresu „Lata”: tabela kategorie × lata 2020–2026, każdy rok liczony do tego samego dnia (przełącznik „Pełne lata”), zmiana od 2020 (albo od pierwszego roku kategorii), mini-wykres w wierszu, grupy z sumami, zarchiwizowane kategorie, zakładki Wydatki | Przychody (`PageReportsYears`).
-  - MS-02: Raport roku pokazuje kategorie od największych, z paskiem udziału, różnicą do poprzedniego roku i panelem wybranej kategorii (2026, 2025, różnica, udział, miesiące roku, przejście do Operacji); przełącznik Kategorie | Grupy (`PageReports`).
-  - MS-03: Panel kategorii w Raporcie ma zakładkę „Lata” z latami 2020–2026 tej kategorii, a nazwa kategorii w tabeli „Lata” otwiera ją w tym panelu.
-  - MS-04: „Kategorie” mają zakładki Wydatki | Przychody | Archiwum z licznikami, szukajkę po nazwie i opisie, filtr rytmu i lata w budżecie jako pasek komórek (`PageCategories`).
-  - MS-05: Menu „Rok budżetu” w sidebarze pokazuje stan roku (bieżący, szkic), dzieli lata na Ostatnie i Starsze i podpisuje „Dodaj rok N” jako szkic z planem roku N−1 (`Sidebar`).
+  - MS-01: Serwer, menu roku i domyślne daty dialogów zgadzają się, który dzień i rok jest „dziś”, także między 00:00 a 01:00 czasu polskiego 1 stycznia (luka 4; dziś serwer liczy w UTC, menu roku bierze rok lokalny przeglądarki, dialogi datę UTC przeglądarki).
+  - MS-02: Rok w sesji przechodzi po przełomie na nowy rok, zamiast zostawać na 2026, gdy Dashboard jest już w 2027 (luka 3, `SelectedBudgetYearTest::…_known_gap`).
+  - MS-03: Przed przełomem aplikacja mówi, co czeka: niezatwierdzony plan grudnia (po północy nie ma już „Zatwierdź”), szkic następnego roku albo uruchomiony Budżet czekający na rok kalendarzowy, oraz że Import nie przyjmie wierszy roku-szkicu (luki 1 i 2, kandydat z fazy 3 o menu roku i Dashboardzie po T1).
+  - MS-04: Import wyciągu z przełomu przy szkicu nowego roku nie odrzuca całego zapisu, a komunikat mówi, że trzeba rozpocząć realizację Budżetu tego roku (obserwacja fazy 1, `CsvImportTest::…_known_gap`, kandydat z fazy 3).
+  - MS-05: „Lata” w trybie „do tego samego dnia” i raport rok do roku dają w pierwszych dniach stycznia odczyt, który ma sens, a nie jeden dzień poprzednich lat (luka 5, pominięty T3).
+  - MS-06: Plan testów odpowiada stanowi repo (wiersz 2).
+  - MS-07: CI uruchamia testy E2E (wiersz 3).
+  - MS-08: Błędy na produkcji trafiają do śledzenia błędów, nie tylko do logu plikowego (wiersz 4).
+  - MS-09: Dokumenty bez pułapek: zdublowany numer ADR 0008 i terminy słownika, których nie ma w kodzie (wiersz 5).
+  - MS-10: Użytkownik zapisuje przez grudzień i styczeń, co go spowalnia; z tej listy powstaje wybór następnej funkcji (wiersz 6). Bez wycinka: to praca użytkownika, sprawdzana w „Done when”.
 
 ## Vision recap
 
-Raporty porównują dziś tylko okres z tym samym okresem rok wcześniej (ADR-0074), a Trend pokazuje miesiące jednego roku (ADR-0077). Od wczytania arkusza (ADR-0085, ADR-0096, ADR-0102) aplikacja ma budżety 2019–2027 na jednej liście kategorii (ADR-0063), ale nie ma miejsca, w którym widać dłuższy trend kategorii, np. że Wakacje urosły prawie czterokrotnie, a Czynsz o 29%. Ten kamień dodaje taki odczyt i łączy go z raportem roku, a przy okazji wdraża w aplikacji projekty Kategorii i menu roku, które użytkownik wybrał w design systemie.
+Cztery kamienie milowe powstały w dwa tygodnie, a aplikacja nie przeszła jeszcze ani jednego przełomu roku na prawdziwych danych. Próba na kopii produkcji (2026-11-18) nie znalazła luk blokujących, ale potwierdziła pięć miejsc, w których 1 stycznia aplikacja zachowa się nieoczywiście, głównie dlatego, że serwer, menu roku i dialogi mają trzy różne „dzisiaj”. Ten kamień usuwa te pułapki przed przełomem, dokłada siatkę jakości (E2E w CI, śledzenie błędów) i zbiera listę tarć, z której w styczniu wynika następna funkcja.
 
 ## North star
 
-**S-34: użytkownik może otworzyć Raporty → „Lata” i porównać każdą kategorię w latach 2020–2026, licząc każdy rok do tego samego dnia** — to dokładnie brak, który użytkownik nazwał, i pierwszy odczyt w aplikacji obejmujący więcej niż dwa lata, więc przy celu „jakość” stoi zaraz po decyzjach, na których się opiera.
+**S-39: użytkownik o 00:30 1 stycznia widzi w menu roku, na Dashboardzie i jako domyślną datę w dialogach ten sam dzień i rok** — trzy zegary w kodzie to wspólna przyczyna luk 2, 3, 4 i 5, więc przy celu „jakość” ten wycinek stoi zaraz po decyzji, który dzień jest „dziś”.
 
 > Gwiazda przewodnia (north star) to najmniejszy wycinek od początku do końca, którego dostarczenie dowodzi, że kamień milowy działa. Stoi tak wcześnie, jak pozwalają warunki wstępne, bo reszta ma sens tylko wtedy, gdy on działa.
 
 ## At a glance
 
-| ID   | Change ID                          | Outcome (user can …)                                                                                                   | Prerequisites | PRD refs            | Status   |
-| ---- | ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------- | ------------- | ------------------- | -------- |
-| F-07 | report-redesign-decisions          | (foundation) ADR i słownik opisują odczyt „Lata”, „Pełne lata”, ranking zamiast wykresu słupkowego i kolory wykresów Raportów | —             | MS-01, MS-02, MS-03 | done        |
-| S-34 | report-categories-across-years     | użytkownik może porównać każdą kategorię w latach 2020–2026 w widoku Raportów „Lata”                                   | F-07          | MS-01               | done        |
-| S-35 | report-ranking-and-category-panel  | użytkownik może zobaczyć raport roku jako ranking kategorii i otworzyć panel jednej kategorii z jej miesiącami          | F-07          | MS-02               | done        |
-| S-36 | report-panel-years-tab             | użytkownik może przejść z tabeli „Lata” do panelu kategorii i zobaczyć w nim jej lata 2020–2026                         | S-34, S-35    | MS-03               | done |
-| S-37 | categories-tabs-and-filters        | użytkownik może przeglądać „Kategorie” w zakładkach z archiwum, szukać ich, filtrować po rytmie i widzieć lata w budżecie | —             | MS-04               | done        |
-| S-38 | budget-year-menu-state             | użytkownik może zobaczyć w menu „Rok budżetu”, który rok jest bieżący, a który jest szkicem                            | —             | MS-05               | done |
+| ID   | Change ID                       | Outcome (user can …)                                                                                          | Prerequisites | PRD refs | Status   |
+| ---- | ------------------------------- | ------------------------------------------------------------------------------------------------------------- | ------------- | -------- | -------- |
+| F-08 | app-day-decision                | (foundation) ADR i słownik ustalają jeden „dzień aplikacji” dla serwera i przeglądarki w miejsce „dziś w UTC”  | —             | MS-01    | done     |
+| F-09 | test-plan-refresh               | (foundation) plan testów odpowiada stanowi repo i wskazuje przepływy E2E, które są bramką CI                   | —             | MS-06    | done     |
+| S-39 | one-app-day                     | użytkownik widzi ten sam dzień i rok w menu roku, na Dashboardzie i w domyślnej dacie dialogów wokół północy   | F-08          | MS-01    | done |
+| S-40 | session-year-follows-year-turn  | użytkownik po przełomie otwiera aplikację w nowym roku bez ręcznej zmiany roku                                 | F-08, S-39    | MS-02    | proposed |
+| S-41 | year-turn-notices               | użytkownik widzi przed przełomem, co czeka: plan grudnia, Budżet następnego roku i Import przy szkicu          | F-08, S-39    | MS-03    | proposed |
+| S-42 | import-across-draft-year        | użytkownik importuje wyciąg z przełomu przy szkicu nowego roku i wie, co zrobić z wierszami nowego roku        | —             | MS-04    | done     |
+| S-43 | years-report-in-early-january   | użytkownik widzi w „Latach” i w roku do roku sensowny odczyt w pierwszych dniach stycznia                     | F-08, S-39    | MS-05    | proposed |
+| S-44 | e2e-in-ci                       | użytkownik (właściciel repo) widzi czerwone CI, gdy zmiana psuje przepływ w przeglądarce                       | F-09          | MS-07    | ready    |
+| S-45 | production-error-tracking       | użytkownik (właściciel) dostaje zgłoszenie wyjątku z produkcji ze stosem wywołań i kontekstem żądania          | —             | MS-08    | blocked  |
+| S-46 | docs-match-code                 | użytkownik i agent czytają słownik i ADR bez zdublowanych numerów i terminów, których nie ma w kodzie          | —             | MS-09    | done     |
 
 ## Streams
 
 Navigation aid — groups items that share a Prerequisites chain. Canonical ordering still lives in the dependency graph below; this table is the proposed reading order across parallel tracks.
 
-| Stream | Theme                    | Chain                                      | Note                                                                                                   |
-| ------ | ------------------------ | ------------------------------------------ | ------------------------------------------------------------------------------------------------------ |
-| A      | Raporty przez lata       | `F-07` → `S-34` → `S-35` → `S-36`          | Przy celu „jakość” najpierw decyzje; `S-34` i `S-35` mogą iść równolegle, `S-36` łączy oba.             |
-| B      | Kategorie                | `S-37`                                     | Samodzielny widok bez warunków wstępnych; decyzja o archiwum (ADR-0067) zapada w planie wycinka.       |
-| C      | Menu roku                | `S-38`                                     | Samodzielny; zmienia wspólny props sidebara, więc najlepiej nie w tym samym czasie co inne zmiany `shell`. |
+| Stream | Theme                 | Chain                                                   | Note                                                                                                                         |
+| ------ | --------------------- | ------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| A      | Przełom roku          | `F-08` → `S-39` → `S-40` · `S-41` · `S-43`; `S-42`       | Przy celu „jakość” najpierw decyzja o dniu; `S-40`, `S-41`, `S-43` idą równolegle po `S-39`, który wprowadza `AppDay` (ADR-0103); `S-42` nie czeka na nic. |
+| B      | Siatka testów         | `F-09` → `S-44`                                         | Odświeżony plan wybiera przepływy-bramki; E2E w CI chroni wdrożenia poprawek strumienia A.                                    |
+| C      | Porządek produkcji    | `S-45` · `S-46`                                         | Dwa samodzielne wycinki; `S-45` czeka na wybór dostawcy, `S-46` może iść od razu.                                             |
 
 ## Baseline
 
-What's already in place in the codebase as of `2026-11-14` (re-checked in the repo; zastępuje stan z 2026-11-08 z M-3).
+What's already in place in the codebase as of `2026-11-18` (re-checked in the repo, user-confirmed; zastępuje stan z 2026-11-14 z M-4).
 Foundations below assume these are present and do NOT re-scaffold them.
 
-- **Frontend:** present — strony Inertia/Vue, w tym `Categories.vue` i `Reports.vue` (Rok, Miesiąc, 12 miesięcy, Trend), wykresy przez shadcn-vue chart i Unovis (ADR-0071), menu roku `BudgetYearSwitcher.vue` (ADR-0087), design system Atrament z kartami docelowych widoków.
-- **Backend / API:** present — `ReportController` z `PeriodReport`, `ReportTrend`, `ReportTwelveMonthWindow` i `ReportComparisonPeriod`, który już liczy okres do tego samego dnia rok wcześniej (ADR-0074).
-- **Data:** present — jedna lista kategorii przez lata (ADR-0063), scalanie z przeniesieniem historii (ADR-0078), budżety 2019–2027 wczytane z arkusza (ADR-0085, ADR-0096, ADR-0102), wzorzec migracji danych z kopią przed wdrożeniem (ADR-0064).
+- **Frontend:** present — strony Inertia/Vue, menu roku `BudgetYearSwitcher.vue` (stan roku z S-38), dialogi operacji, rachunku, lokaty, ruchu kapitału i uzgodnienia salda. Rok w menu bierze lokalny zegar przeglądarki (`BudgetYearSwitcher.vue:82`), domyślne daty dialogów datę UTC przeglądarki (`IncomeFormDialog.vue:332` i cztery inne dialogi).
+- **Backend / API:** present — „dziś” liczone w UTC (`config/app.php:68`, `SelectedBudgetYear.php:36`; ADR-0074, ADR-0075, ADR-0077, ADR-0081, ADR-0097); zegar próby `app:rehearsal-clock` z year-turn-rehearsal.
+- **Data:** present — budżety 2019–2027 (2027 szkic, 43 pozycje), lata 2019–2025 wczytane z arkuszy, snapshot v13.
 - **Auth:** present — Fortify, 2FA, passkeys, polityki w `app/Policies`.
-- **Deploy / infra:** partial — ręczne `scripts/deploy.sh` z kopią bazy; CI testuje na PostgreSQL, nie wdraża i nie uruchamia E2E.
-- **Observability:** partial — log plikowy, `/up`, `backup:monitor`. Ten kamień nic tu nie wymaga.
+- **Deploy / infra:** partial — ręczne `scripts/deploy.sh` z kopią bazy; `.github/workflows/tests.yml` uruchamia `composer ci:check` na PostgreSQL i Sloppy, ale nie Playwrighta; 15 plików `tests/e2e/*.spec.ts` i `playwright.config.ts` działają tylko lokalnie.
+- **Observability:** partial — log plikowy (`LOG_STACK=single`), `/up`, e-mail z `backup:monitor`; brak pakietu śledzenia błędów i powiadomień aplikacji.
+- **Testy (poza tabelą warstw):** partial — `test-plan.md` ma datę 2026-11-17, ale faza 1 ma status „change opened”, choć jest w archiwum (`2026-11-17-testing-import-integrity`), a fazy 2–5 odwołują się do S-11 i S-14 z porzuconego M-2.
 
 ## Foundations
 
-### F-07: Decyzje widoków Raportów
+### F-08: Jeden dzień aplikacji
 
-- **Outcome:** (foundation) ADR opisuje piątą pozycję okresu „Lata” (lata liczone do tego samego dnia, „Pełne lata” z rokiem w toku, zmiana od pierwszego roku kategorii), ranking z panelem kategorii w miejsce wykresu słupkowego z ADR-0071 i ADR-0084 oraz kolory wykresów (tokeny `chart-1`/`chart-2` albo `brand-text`/`success` w design systemie), a `context/foundation/glossary.md` nazywa nowy odczyt po polsku i angielsku.
-- **Change ID:** report-redesign-decisions
-- **PRD refs:** MS-01, MS-02, MS-03
-- **Unlocks:** S-34, S-35 (i przez nie S-36); rozstrzyga pytania 1 i 2 z `## Open Roadmap Questions`.
+- **Outcome:** (foundation) nowy ADR ustala, który dzień kalendarzowy jest „dziś” dla aplikacji (dzień w Polsce albo UTC) i że przeglądarka bierze ten sam dzień co serwer, a słownik i ADR-0074, ADR-0075, ADR-0077, ADR-0081, ADR-0097 przestają mówić „dziś w UTC” na własną rękę.
+- **Change ID:** app-day-decision
+- **PRD refs:** MS-01
+- **Unlocks:** S-39, S-40, S-41, S-43; rozstrzyga, gdzie wypada północ dla luki 2 (dziś 00:00 UTC to 01:00 w Polsce).
 - **Prerequisites:** —
-- **Parallel with:** S-37, S-38
+- **Parallel with:** F-09, S-42, S-45, S-46
+- **Blockers:** —
+- **Unknowns:**
+  - Czy „dzień aplikacji” to dzień w Polsce, czy zostaje UTC, a tylko przeglądarka dopasowuje się do serwera? — Owner: user. Block: no (to jest treść tej decyzji).
+- **Risk:** Stoi przed kodem, bo AGENTS.md wymaga wpisu w słowniku i ADR przed zmianą reguły, a cztery wycinki strumienia A zależą od tej samej odpowiedzi; bez niej dwa równoległe plany rozstrzygnęłyby północ inaczej. Tylko dokumenty.
+- **Status:** done
+
+### F-09: Odświeżony plan testów
+
+- **Outcome:** (foundation) `test-plan.md` odpowiada stanowi repo: faza 1 zamknięta z odnośnikiem do archiwum, fazy 2–5 bez odwołań do porzuconego M-2, z miejscem na testy przełomu roku i z listą przepływów E2E, które są bramką CI.
+- **Change ID:** test-plan-refresh
+- **PRD refs:** MS-06
+- **Unlocks:** S-44 (które spece blokują CI); ścieżka weryfikacji dla S-39…S-43 (wzór testu przełomu roku w §6 planu).
+- **Prerequisites:** —
+- **Parallel with:** F-08, S-42, S-45, S-46
 - **Blockers:** —
 - **Unknowns:** —
-- **Risk:** Stoi przed widokami, bo AGENTS.md wymaga wpisu w słowniku i ADR przed kodem, a `S-34` i `S-35` dzielą kolory i przełącznik okresu; bez wspólnej decyzji dwa równoległe plany rozstrzygnęłyby je inaczej. Tylko dokumenty, bez kodu.
+- **Risk:** Biegnie przez `/10x-test-plan --refresh`, nie `/10x-plan`; jeśli zostanie pominięty, E2E w CI wybierze bramki bez strategii i każdy flaky spec zablokuje wdrożenia poprawek przełomu.
 - **Status:** done
 
 ## Slices
 
-### S-34: Kategorie przez lata
+### S-39: Ten sam dzień w menu, na Dashboardzie i w dialogach
 
-- **Outcome:** użytkownik może otworzyć Raporty → „Lata” i porównać każdą kategorię i grupę w latach 2020–2026, licząc każdy rok do tego samego dnia albo w pełnych latach, ze zmianą od 2020 i mini-wykresem, dla wydatków i przychodów
-- **Change ID:** report-categories-across-years
+- **Outcome:** użytkownik o 00:30 1 stycznia (i o każdej porze wokół północy) widzi w menu roku, na Dashboardzie i jako domyślną datę w dialogach operacji, rachunku, lokaty, ruchu kapitału i uzgodnienia salda ten sam dzień i rok
+- **Change ID:** one-app-day
 - **PRD refs:** MS-01
-- **Prerequisites:** F-07
-- **Parallel with:** S-35, S-37, S-38
-- **Blockers:** —
-- **Unknowns:**
-  - Czy wczytane lata 2020–2021 (ADR-0096) mają kategorie i grupy na tyle spójne, że „—” oznacza brak pozycji, a nie lukę po wczytaniu? — Owner: user. Block: no.
-- **Risk:** Pierwszy odczyt przez więcej niż dwa lata: suma roku w tabeli musi równać się wydatkom tego roku w raporcie Rok, a liczenie siedmiu lat nie może iść zapytaniami w pętli po latach (Sloppy). Zarchiwizowane i scalone kategorie łatwo zgubić albo policzyć podwójnie.
-- **Status:** done
-
-### S-35: Ranking kategorii i panel kategorii
-
-- **Outcome:** użytkownik może zobaczyć raport roku jako listę kategorii od największych z paskiem udziału i różnicą do poprzedniego roku, przełączyć na grupy i otworzyć panel jednej kategorii z kwotą 2026 i 2025, różnicą, udziałem, miesiącami roku i przejściem do Operacji
-- **Change ID:** report-ranking-and-category-panel
-- **PRD refs:** MS-02
-- **Prerequisites:** F-07
-- **Parallel with:** S-34, S-37, S-38
-- **Blockers:** —
-- **Unknowns:**
-  - Czy ranking i panel dotyczą też widoków Miesiąc i 12 miesięcy, czy tylko Roku? — Owner: user. Block: no. — Resolved by ADR-0097 (F-07): ranking w Roku, Miesiącu i 12 miesiącach; panel tylko w Roku.
-- **Risk:** Zastępuje wykres słupkowy i tabelę z S-28/S-29, więc nie może zgubić niczego, co raport dziś pokazuje (grupy, zarchiwizowane, porównanie do tego samego dnia, przejście do Operacji z S-31); panel potrzebuje miesięcy kategorii w widoku Rok i wyboru kategorii w adresie (zmiana propsów z testem `assertInertia`).
-- **Status:** done
-
-### S-36: Zakładka „Lata” w panelu kategorii
-
-- **Outcome:** użytkownik może kliknąć kategorię w tabeli „Lata” i zobaczyć w panelu kategorii Raportu zakładkę „Lata” z jej latami 2020–2026
-- **Change ID:** report-panel-years-tab
-- **PRD refs:** MS-03
-- **Prerequisites:** S-34, S-35
-- **Parallel with:** S-37, S-38
+- **Prerequisites:** F-08
+- **Parallel with:** S-42, F-09, S-44, S-45, S-46
 - **Blockers:** —
 - **Unknowns:** —
-- **Risk:** Łączy dwa wycinki, więc stoi na końcu strumienia; lata w panelu muszą pochodzić z tego samego odczytu co tabela „Lata”, inaczej liczby rozjadą się między dwoma miejscami.
+- **Risk:** Dotyka każdego dialogu z domyślną datą i współdzielonego props sidebara; poprawka sprawdzona tylko w jednym dialogu zostawi resztę na zegarze przeglądarki, więc dowód wymaga zegara próby po stronie serwera i przeglądarki jak w year-turn-rehearsal.
 - **Status:** done
 
-### S-37: Kategorie w zakładkach z filtrami
+### S-40: Rok w sesji po przełomie
 
-- **Outcome:** użytkownik może przeglądać „Kategorie” w zakładkach Wydatki, Przychody i Archiwum z licznikami, szukać po nazwie i opisie, filtrować wydatki po rytmie i widzieć lata w budżecie jako pasek komórek
-- **Change ID:** categories-tabs-and-filters
+- **Outcome:** użytkownik, który w grudniu pracował w roku 2026, po przełomie otwiera aplikację w roku 2027 bez ręcznej zmiany roku, a test `_known_gap` luki 3 przechodzi jako zwykły test
+- **Change ID:** session-year-follows-year-turn
+- **PRD refs:** MS-02
+- **Prerequisites:** F-08, S-39 (`AppDay` z ADR-0103)
+- **Parallel with:** S-41, S-42, S-43, F-09, S-44, S-45, S-46
+- **Blockers:** —
+- **Unknowns:**
+  - Czy przeskakuje tylko rok, który był bieżący przed przełomem, czy także rok wybrany ręcznie do przeglądania (np. 2023)? — Owner: user. Block: no.
+- **Risk:** Zmienia ADR-0075 (rok z sesji ma pierwszeństwo); za szeroka reguła wyrzuci użytkownika z roku, który świadomie przegląda.
+- **Status:** proposed
+
+### S-41: Przypomnienia przed przełomem
+
+- **Outcome:** użytkownik widzi w grudniu w „Wymaga uwagi”, że plan grudnia czeka na zatwierdzenie i po północy nie da się go już zatwierdzić, czy Budżet następnego roku jest szkicem (Import nie przyjmie jego wierszy), a po uruchomieniu menu roku i Dashboard mówią, że Budżet czeka na rok kalendarzowy
+- **Change ID:** year-turn-notices
+- **PRD refs:** MS-03
+- **Prerequisites:** F-08, S-39 (`AppDay` z ADR-0103, te same widoki: menu roku i Dashboard)
+- **Parallel with:** S-40, S-42, S-43, F-09, S-44, S-45, S-46
+- **Blockers:** —
+- **Unknowns:**
+  - Czy miniony miesiąc bez zatwierdzonego planu ma dać się zatwierdzić po północy (zmiana reguły), czy wystarczy ostrzeżenie przed nią? — Owner: user. Block: no.
+- **Risk:** Powiadomienia Dashboardu mają własne reguły wagi i progów (F-01); trzy nowe powiadomienia naraz w grudniu nie mogą zasłonić istniejących ostrzeżeń planu miesiąca.
+- **Status:** proposed
+
+### S-42: Import wyciągu z przełomu przy szkicu roku
+
+- **Outcome:** użytkownik importuje wyciąg z 29.12–02.01, gdy 2027 jest szkicem, zapisuje wiersze grudnia, a przy wierszach stycznia widzi, że trzeba rozpocząć realizację Budżetu 2027; test `_known_gap` z `CsvImportTest` przechodzi jako zwykły test
+- **Change ID:** import-across-draft-year
 - **PRD refs:** MS-04
 - **Prerequisites:** —
-- **Parallel with:** F-07, S-34, S-35, S-36, S-38
+- **Parallel with:** F-08, F-09, S-39, S-40, S-41, S-43, S-44, S-45, S-46
 - **Blockers:** —
-- **Unknowns:** —
-- **Risk:** Archiwum jako zakładka zmienia ADR-0067 (sekcja archiwum pod listą), a przeciąganie musi zniknąć przy włączonym filtrze lub szukaniu, inaczej zapis kolejności z częściowej listy przestawi kategorie (reorder grup z S-22).
+- **Unknowns:**
+  - Zapis częściowy (wiersze starego roku przechodzą, nowego czekają) czy tylko lepszy komunikat z odznaczeniem wierszy stycznia? — Owner: user. Block: no.
+- **Risk:** Zapis częściowy podważa zasadę z fazy 1 planu testów („Import nie zostawia połowicznych zestawów”), więc wybór musi zapaść z nią w ręku, a nie przy kodzie.
 - **Status:** done
 
-### S-38: Stan roku w menu „Rok budżetu”
+### S-43: „Lata” i rok do roku w pierwszych dniach stycznia
 
-- **Outcome:** użytkownik może zobaczyć w menu „Rok budżetu”, który rok jest bieżący, a który jest szkicem, z latami w grupach Ostatnie i Starsze i podpisem „szkic z planem roku N−1” przy „Dodaj rok N”
-- **Change ID:** budget-year-menu-state
+- **Outcome:** użytkownik 1–N stycznia widzi w „Latach” i w raporcie rok do roku odczyt, który porównuje coś więcej niż jeden dzień poprzednich lat, a wynik rok do roku na 1 stycznia jest sprawdzony
+- **Change ID:** years-report-in-early-january
 - **PRD refs:** MS-05
-- **Prerequisites:** —
-- **Parallel with:** F-07, S-34, S-35, S-36, S-37
+- **Prerequisites:** F-08, S-39 (`AppDay` z ADR-0103)
+- **Parallel with:** S-40, S-41, S-42, F-09, S-44, S-45, S-46
 - **Blockers:** —
-- **Unknowns:** —
-- **Risk:** Rozwija ADR-0087 i zmienia współdzielony props `shell.budgetYears` (lata z fazą), który czyta każda strona i paleta ⌘K; ciemne menu to klasa na `DropdownMenuContent`, bez edycji `components/ui`.
+- **Unknowns:**
+  - Co „Lata” pokazują na początku stycznia: domyślnie „Pełne lata”, cięcie do końca poprzedniego miesiąca czy jak dziś z podpowiedzią? — Owner: user. Block: no.
+- **Risk:** Zmienia ADR-0097 (Same-day Cut) i może dotknąć ADR-0074; sumy w „Latach” muszą dalej równać się raportowi Rok.
+- **Status:** proposed
+
+### S-44: E2E w CI
+
+- **Outcome:** użytkownik (właściciel repo) widzi czerwone CI na pushu i PR do `development`, gdy zmiana psuje przepływ, który odświeżony plan testów wskazał jako bramkę
+- **Change ID:** e2e-in-ci
+- **PRD refs:** MS-07
+- **Prerequisites:** F-09
+- **Parallel with:** F-08, S-39, S-40, S-41, S-42, S-43, S-45, S-46
+- **Blockers:** —
+- **Unknowns:**
+  - Skąd CI bierze konto testowe dla `auth.setup.ts` (lokalnie dane logowania są w `.env`)? — Owner: user. Block: no.
+- **Risk:** Flaky spec w bramce zatrzyma wdrożenia poprawek przełomu w grudniu; bramka obejmuje najpierw tylko stabilne przepływy, reszta zostaje lokalna.
+- **Status:** ready
+
+### S-45: Śledzenie błędów na produkcji
+
+- **Outcome:** użytkownik (właściciel) dostaje zgłoszenie wyjątku z produkcji ze stosem wywołań i kontekstem żądania, bez szukania go w pliku logu, także dla błędów, które dziś kod zamienia w przekierowanie albo cichy `catch`
+- **Change ID:** production-error-tracking
+- **PRD refs:** MS-08
+- **Prerequisites:** —
+- **Parallel with:** F-08, F-09, S-39, S-40, S-41, S-42, S-43, S-44, S-46
+- **Blockers:** —
+- **Unknowns:**
+  - Który dostawca (usługa zewnętrzna, własny serwer czy e-mail z aplikacji) i za jaką cenę? Nowa zależność wymaga zgody (AGENTS.md). Ścieżka: `/10x-observability-audit` → `/10x-infra-research`. — Owner: user. Block: yes.
+- **Risk:** Bez audytu najpierw tracker złapie tylko wyjątki, które dziś i tak lądują w logu; audyt pokazuje, gdzie kod je połyka. Wdrożony przed przełomem łapie błędy 1 stycznia, a nie tydzień później.
+- **Status:** blocked
+
+### S-46: Dokumenty zgodne z kodem
+
+- **Outcome:** użytkownik i agent czytają słownik i ADR bez pułapek: dwa ADR 0008 mają osobne numery z poprawionymi odnośnikami, a Year Close, Reserve, Earmark, Agenda i Cash Expectation są w słowniku oznaczone jako „nie w kodzie” albo usunięte
+- **Change ID:** docs-match-code
+- **PRD refs:** MS-09
+- **Prerequisites:** —
+- **Parallel with:** F-08, F-09, S-39, S-40, S-41, S-42, S-43, S-44, S-45
+- **Blockers:** —
+- **Unknowns:**
+  - Oznaczyć terminy jako „nie w kodzie”, czy usunąć? Year Close łączy się z „podsumowaniem roku” z `development-directions.md` (sekcja „Rok 2027”). — Owner: user. Block: no.
+- **Risk:** Zmiana numeru ADR psuje odnośniki w dokumentach i komentarzach kodu; usunięcie terminu z reguł Konta i Kategorii (Cash Expectation) zmienia treść tych reguł, więc to też zmiana słownika według AGENTS.md.
 - **Status:** done
 
 ## Backlog Handoff
 
-| Roadmap ID | Change ID                         | Suggested issue title                                                  | Ready for `/10x-plan` | Notes                                                |
-| ---------- | --------------------------------- | ---------------------------------------------------------------------- | --------------------- | ---------------------------------------------------- |
-| F-07       | report-redesign-decisions         | ADR i słownik: widok „Lata”, ranking z panelem, kolory wykresów         | yes                   | Run `/10x-plan report-redesign-decisions`            |
-| S-34       | report-categories-across-years    | Raporty: kategorie przez lata 2020–2026 do tego samego dnia             | no                    | Po F-07; karta `PageReportsYears`                    |
-| S-35       | report-ranking-and-category-panel | Raporty: ranking kategorii i panel kategorii                           | no                    | Po F-07; karta `PageReports`                         |
-| S-36       | report-panel-years-tab            | Raporty: zakładka „Lata” w panelu kategorii                            | no                    | Po S-34 i S-35                                       |
-| S-37       | categories-tabs-and-filters       | Kategorie: zakładki z archiwum, szukajka, filtr rytmu, pasek lat        | yes                   | Run `/10x-ui` → `/10x-plan categories-tabs-and-filters`; karta `PageCategories` |
-| S-38       | budget-year-menu-state            | Sidebar: stan roku w menu „Rok budżetu”                                | yes                   | Run `/10x-plan budget-year-menu-state`; karta `Sidebar` |
+| Roadmap ID | Change ID                      | Suggested issue title                                                    | Ready for `/10x-plan` | Notes                                                                 |
+| ---------- | ------------------------------ | ------------------------------------------------------------------------ | --------------------- | --------------------------------------------------------------------- |
+| F-08       | app-day-decision               | ADR i słownik: jeden dzień aplikacji zamiast „dziś w UTC”                 | no                    | Zrobione (ADR-0103)  |
+| F-09       | test-plan-refresh              | Plan testów: odświeżenie po M-4 i próbie przełomu                         | yes                   | Run `/10x-test-plan --refresh`, nie `/10x-plan`                        |
+| S-39       | one-app-day                    | Przełom roku: ten sam dzień w menu, na Dashboardzie i w dialogach         | yes                    | Run `/10x-plan one-app-day`; gwiazda przewodnia, spis miejsc w ADR-0103                                                               |
+| S-40       | session-year-follows-year-turn | Przełom roku: rok w sesji przechodzi na nowy rok                          | no                    | Po scaleniu S-39 (`AppDay`); plan `/10x-plan session-year-follows-year-turn` można przygotować wcześniej |
+| S-41       | year-turn-notices              | Przełom roku: przypomnienia w „Wymaga uwagi” i w menu roku                | no                    | Po scaleniu S-39 (`AppDay`, ten sam widok); plan `/10x-plan year-turn-notices` można przygotować wcześniej |
+| S-42       | import-across-draft-year       | Import: wyciąg z przełomu przy szkicu nowego roku                         | yes                   | Run `/10x-plan import-across-draft-year`                               |
+| S-43       | years-report-in-early-january  | Raporty: „Lata” i rok do roku na początku stycznia                        | no                    | Po scaleniu S-39 (`AppDay`); plan `/10x-plan years-report-in-early-january` można przygotować wcześniej |
+| S-44       | e2e-in-ci                      | CI: testy Playwright na pushu i PR                                        | yes                    | Run `/10x-plan e2e-in-ci`; bramki w test-plan.md (F-09)                                                               |
+| S-45       | production-error-tracking      | Produkcja: śledzenie błędów                                               | no                    | Audyt zrobiony (`context/audits/observability/2026-11-19_import-operations-year-turn-backups.md`); teraz `/10x-infra-research`       |
+| S-46       | docs-match-code                | Dokumenty: numer ADR 0008 i terminy słownika bez kodu                     | yes                   | Run `/10x-plan docs-match-code`                                        |
 
 This table is the clean handoff to Jira/Linear or any MCP-backed backlog. Include one row for every `F-NN` and `S-NN`. It should be compact enough to copy into issues, but it must not duplicate the detailed roadmap body.
 
 ## Open Roadmap Questions
 
-1. **Kolory wykresów Raportów.** Aplikacja ma tokeny `chart-1` i `chart-2`, design system Atrament ich nie ma, a karty Raportów używają `brand-text`, `success` i `foreground`. Dopisać tokeny wykresu do design systemu czy zastąpić je w aplikacji? — Owner: user. Block: rozstrzyga F-07; gates S-34, S-35. — Resolved by ADR-0097 (F-07): zostają tokeny aplikacji; wypełnienie wydatku to `chart-1`, przychodu `success`, rok bieżący i najwyższy miesiąc `foreground`, rok bez pozycji `track`; `chart-1` i `chart-2` trafiają do `tokens.json` Atramentu, a karty malują przez `chart-1`, nie `brand-text`.
-2. **Nazwa odczytu „Lata” w słowniku.** Odczyt wielu lat do tego samego dnia potrzebuje terminu po polsku i angielsku obok „Rok do roku” (S-29) i Trendu (S-30). — Owner: user. Block: rozstrzyga F-07; gates S-34. — Resolved by ADR-0097 (F-07): akapit „Years” we wpisie Period Report, adres `?view=years`, segment „Lata”; terminy Same-day Cut, Full Years, Change since First Year, Average Yearly Growth, Fastest Growing.
+1. **Gdzie zapisujesz listę tarć (MS-10)?** Plik w repo, issue na GitHubie z etykietą czy notatka poza repo; od tego zależy, jak w styczniu z niej wybrać funkcję. — Owner: user. Block: roadmap-wide (warunek „Done when”), żaden wycinek.
+2. **Ostatnie wdrożenie przed przełomem.** Do kiedy wdrażać poprawki strumienia A, żeby 31 grudnia produkcja stała na sprawdzonej wersji, i czy powtórzyć próbę przełomu na kopii po tych poprawkach? — Owner: user. Block: no; dotyczy S-39, S-40, S-41, S-42, S-43.
+3. **Snapshot na VPS po próbie.** Plik `user:backup` z pełnymi danymi został w `storage/app/private/user-snapshots/` (rehearsal.md, „Sprzątanie”): usunąć czy świadomie zostawić? — Owner: user. Block: no; żaden wycinek.
 
 ## Parked
 
-- **Wykres zmiany od 2020 dla wybranych kategorii i kafelki kategorii** — Why parked: warianty B i C widoku „Lata” odrzucone przy wyborze w design systemie (2026-11-14); kolor kategorii na liniach wykresu łamał zasadę „kolor kategorii to tylko tożsamość”.
-- **Lata dla okresów Miesiąc i 12 miesięcy** — Why parked: opis mówi o latach całych albo do tego samego dnia; porównanie miesiąca przez lata nie było prośbą.
-- **Plan na grupie i więcej niż dwa poziomy** — Why parked: PRD v3 §Non-Goals; grupa tylko sumuje kategorie.
-- **Liczniki mediów, wynagrodzenia** — Why parked: PRD v3 §Non-Goals.
-- **Cele długoterminowe i nazwane pozycje odkładania** — Why parked: PRD v3 §Non-Goals; „odkładam / dobieram” zostaje jedną kwotą.
-- **Własny zakres dat, eksport i wydruk raportu** — Why parked: poza zakresem; okresy to Rok, Miesiąc, 12 miesięcy, Trend i Lata.
-- **Year Close i Reserve** — Why parked: niezaimplementowane na `main` (AGENTS.md).
-- **Pozostałe karty Atramentu czekające na `/10x-ui`** (Dashboard, Konta, Lokaty, import, ustawienia, strona powitalna, ekrany wejścia) — Why parked: użytkownik wybrał do M-4 tylko Raporty, Kategorie i menu roku.
-- **Automatyczne wdrożenie i E2E w CI** — Why parked: poza zakresem; do czasu E2E w CI plan każdego wycinka zmieniającego widoki dopisuje `npx playwright test` do weryfikacji.
-- **Śledzenie błędów i metryki** — Why parked: obserwowalność częściowa, ten kamień jej nie wymaga.
+- **Nowe funkcje z `development-directions.md`** (wiersze 7–15 „Na już” i etapy „Potem”: Majątek z walutą, szybsze wprowadzanie, płynność w czasie, analityka) — Why parked: decyzja użytkownika 2026-11-18, funkcja w styczniu z listy tarć (MS-10).
+- **Automatyczne wdrożenie** — Why parked: poza zakresem; M-5 dokłada E2E do CI, wdrożenie zostaje ręczne (`scripts/deploy.sh`).
+- **Year Close i Reserve w kodzie** — Why parked: nigdy niezbudowane; ADR-0104 (S-46) usunął je ze słownika, więc powrót zaczyna się od nowego wpisu w słowniku i nowego ADR.
+- **Pozostałe fazy planu testów** (niezmienniki kwot, backup i restore, `arch()`) — Why parked: F-09 ustawia ich kolejność; w M-5 wchodzi tylko E2E w CI (S-44).
+- **Pozostałe karty Atramentu czekające na `/10x-ui`** — Why parked: kamień jakości nie zmienia widoków poza tym, czego wymagają luki przełomu.
+- **Plan na grupie, liczniki mediów, nazwane cele oszczędnościowe** — Why parked: PRD v3 §Non-Goals.
 
 ## Milestone History
 
@@ -234,3 +300,8 @@ This table is the clean handoff to Jira/Linear or any MCP-backed backlog. Includ
 - **S-34: użytkownik może otworzyć Raporty → „Lata” i porównać każdą kategorię i grupę w latach 2020–2026, licząc każdy rok do tego samego dnia albo w pełnych latach, ze zmianą od 2020 i mini-wykresem, dla wydatków i przychodów** — Archived 2026-11-14 → `context/archive/2026-11-14-report-categories-across-years/`. Lesson: —.
 - **S-35: użytkownik może zobaczyć raport roku jako listę kategorii od największych z paskiem udziału i różnicą do poprzedniego roku, przełączyć na grupy i otworzyć panel jednej kategorii z kwotą 2026 i 2025, różnicą, udziałem, miesiącami roku i przejściem do Operacji** — Archived 2026-11-14 → `context/archive/2026-11-14-report-ranking-and-category-panel/`. Lesson: —.
 - **S-36: użytkownik może kliknąć kategorię w tabeli „Lata” i zobaczyć w panelu kategorii Raportu zakładkę „Lata” z jej latami 2020–2026** — Archived 2026-11-14 → `context/archive/2026-11-14-report-panel-years-tab/`. Lesson: —.
+- **S-46: użytkownik i agent czytają słownik i ADR bez pułapek: dwa ADR 0008 mają osobne numery z poprawionymi odnośnikami, a Year Close, Reserve, Earmark, Agenda i Cash Expectation są w słowniku oznaczone jako „nie w kodzie” albo usunięte** — Archived 2026-11-19 → `context/archive/2026-11-19-docs-match-code/`. Lesson: —.
+- **F-09: (foundation) `test-plan.md` odpowiada stanowi repo: faza 1 zamknięta z odnośnikiem do archiwum, fazy 2–5 bez odwołań do porzuconego M-2, z miejscem na testy przełomu roku i z listą przepływów E2E, które są bramką CI.** — Archived 2026-11-19 → `context/archive/2026-11-19-test-plan-refresh/`. Lesson: —.
+- **S-42: użytkownik importuje wyciąg z 29.12–02.01, gdy 2027 jest szkicem, zapisuje wiersze grudnia, a przy wierszach stycznia widzi, że trzeba rozpocząć realizację Budżetu 2027; test `_known_gap` z `CsvImportTest` przechodzi jako zwykły test** — Archived 2026-11-19 → `context/archive/2026-11-18-import-across-draft-year/`. Lesson: —.
+- **F-08: (foundation) nowy ADR ustala, który dzień kalendarzowy jest „dziś” dla aplikacji i że przeglądarka bierze ten sam dzień co serwer (ADR-0103, App Day w Europe/Warsaw), a słownik i starsze ADR przestają mówić „dziś w UTC” na własną rękę.** — Archived 2026-11-19 → `context/archive/2026-11-18-app-day-decision/`. Lesson: —. Wpis i status dopisane przez `/10x-roadmap` 2026-11-19, bo zamknięcie zmiany nie zaktualizowało roadmapy.
+- **S-39: użytkownik o 00:30 1 stycznia (i o każdej porze wokół północy) widzi w menu roku, na Dashboardzie i jako domyślną datę w dialogach operacji, rachunku, lokaty, ruchu kapitału i uzgodnienia salda ten sam dzień i rok** — Archived 2026-11-19 → `context/archive/2026-11-19-one-app-day/`. Lesson: —.

@@ -31,6 +31,25 @@ class ArchiveCategoryTest extends TestCase
         $this->assertNotNull($category->archived_at);
     }
 
+    public function test_archiving_after_polish_new_year_archives_the_line_of_the_new_budget_year(): void
+    {
+        $user = User::factory()->create();
+        $budget2026 = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        $budget2027 = Budget::factory()->for($user)->execution()->create(['year' => 2027]);
+        $category = Category::factory()->for($user)->expense()->create();
+        $line2026 = BudgetLine::factory()->for($budget2026)->create(['category_id' => $category->id]);
+        $line2027 = BudgetLine::factory()->for($budget2027)->create(['category_id' => $category->id]);
+
+        $this->travelTo('2026-12-31 23:30:00');
+
+        $this->actingAs($user)
+            ->post(route('categories.archive', $category))
+            ->assertSessionHasNoErrors();
+
+        $this->assertNotNull($line2027->fresh()->archived_at);
+        $this->assertNull($line2026->fresh()->archived_at);
+    }
+
     public function test_user_can_restore_archived_category(): void
     {
         $user = User::factory()->create();

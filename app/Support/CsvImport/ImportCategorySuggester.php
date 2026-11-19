@@ -64,9 +64,42 @@ class ImportCategorySuggester
     }
 
     /**
+     * The rule behind the `where` clauses of `loadHistory`, for readers that
+     * hold the rows outside the database (the reference set of the benchmark).
+     * SQL `<>` drops a NULL description, so this does too. Change both together:
+     * `ImportSuggestionReferenceCommandTest` checks that a snapshot of the same
+     * user gives the rows `loadHistory` reads.
+     */
+    public function learnsFrom(?string $rawStatementDescription, ?string $description): bool
+    {
+        return $rawStatementDescription !== null
+            && $description !== null
+            && $description !== ImportRowFields::EMPTY_DESCRIPTION_FALLBACK;
+    }
+
+    /**
+     * One history entry as the model reads it. The one place that builds the
+     * text, so the preview, the measurement and the reference set agree.
+     *
+     * @param  'income'|'expense'  $type
+     * @return array{id: int, type: 'income'|'expense', category_id: int, text: string, operation_date: string}
+     */
+    public function historyEntry(int $id, string $type, int $categoryId, ?string $description, ?string $counterparty, string $operationDate): array
+    {
+        return [
+            'id' => $id,
+            'type' => $type,
+            'category_id' => $categoryId,
+            'text' => $this->textOf($description, $counterparty),
+            'operation_date' => substr($operationDate, 0, 10),
+        ];
+    }
+
+    /**
      * The imported operations the model learns from, in no particular order and
      * as a one-shot generator. `ImportCategorySuggestionAccuracy` reads the same
-     * query, so a measurement cannot drift from what the preview learns.
+     * query, so a measurement cannot drift from what the preview learns. Its
+     * `where` clauses are spelled again in `learnsFrom` for snapshot readers.
      *
      * @return \Generator<int, array{
      *     id: int,
@@ -94,13 +127,14 @@ class ImportCategorySuggester
             ->cursor();
 
         foreach ($operations as $operation) {
-            yield [
-                'id' => (int) $operation->id,
-                'type' => $operation->type,
-                'category_id' => (int) $operation->category_id,
-                'text' => $this->textOf($operation->description, $operation->counterparty),
-                'operation_date' => substr((string) $operation->operation_date, 0, 10),
-            ];
+            yield $this->historyEntry(
+                (int) $operation->id,
+                $operation->type,
+                (int) $operation->category_id,
+                $operation->description,
+                $operation->counterparty,
+                (string) $operation->operation_date,
+            );
         }
     }
 

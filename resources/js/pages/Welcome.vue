@@ -15,7 +15,8 @@ import LandingAppPreview from '@/components/LandingAppPreview.vue';
 import LandingFeatureCard from '@/components/LandingFeatureCard.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { useTranslations } from '@/composables/useTranslations';
+import { useShell, useTranslations } from '@/composables/useTranslations';
+import { appDayYear } from '@/lib/app-day';
 import { dashboard, login } from '@/routes';
 
 const t = useTranslations();
@@ -23,7 +24,8 @@ const page = usePage();
 const name = computed(() => page.props.name as string);
 const isAuthenticated = computed(() => Boolean(page.props.auth.user));
 const canRegister = computed(() => Boolean(page.props.canRegister));
-const footerYear = new Date().getFullYear();
+const shell = useShell();
+const footerYear = computed(() => appDayYear(shell.value.today));
 
 const features = [
     {

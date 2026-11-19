@@ -1,0 +1,32 @@
+﻿mBank S.A. Bankowość Detaliczna;
+		Skrytka Pocztowa 2108;
+		90-959 Łódź 2;
+		www.mBank.pl;
+		mLinia: 801 300 800;
+		+48 (42) 6 300 800;
+		
+
+#Klient;
+JANUSZ KOWALSKI;
+
+Lista operacji;
+
+#Za okres:;
+01.01.2025;09.01.2025;
+
+#zgodnie z wybranymi filtrami wyszukiwania;
+      #dla rachunków:;
+      eKonto - 12123412341234123412341234;
+      
+      #Lista nie jest dokumentem w rozumieniu art. 7 Ustawy Prawo Bankowe (Dz. U. Nr 140 z 1997 roku, poz.939 z późniejszymi zmianami), ponieważ operacje można samodzielnie edytować.;
+      
+      #Waluta;#Wpływy;#Wydatki;
+PLN;2 799,86;-690,77;
+      
+#Data operacji;#Opis operacji;#Rachunek;#Kategoria;#Kwota;
+2025-01-10;"BIEDRONKA                                                                         ZAKUP PRZY UZYCIU KARTY W KRAJU                                                     ";"eKonto 1212 ... 1234";"Bez kategorii";-52,30 PLN;;
+2025-01-09;"ZABKA                                                                         ZAKUP PRZY UZYCIU KARTY W KRAJU                                                     ";"eKonto 1212 ... 1234";"Bez kategorii";-18,75 PLN;;
+2025-01-04;"APTEKA DR MAX  ZAKUP PRZY UŻYCIU KARTY W KRAJU                                                     ";"eKonto 1212 ... 1234";"Zdrowie i uroda";-134,83 PLN;;
+2025-01-04;"GOOGLE                                                                         BLIK ZAKUP E-COMMERCE                                                               ";"eKonto 1212 ... 1234";"Bez kategorii";-30,99 PLN;;
+2025-01-02;"OLX.PL                                                                         BLIK ZAKUP E-COMMERCE                                                               ";"eKonto 1212 ... 1234";"Bez kategorii";-41,04 PLN;;
+

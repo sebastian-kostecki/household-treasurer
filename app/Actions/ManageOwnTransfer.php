@@ -5,6 +5,7 @@ namespace App\Actions;
 use App\Models\Account;
 use App\Models\OwnTransfer;
 use App\Models\User;
+use App\Support\InvariantViolation;
 use Illuminate\Support\Facades\DB;
 
 class ManageOwnTransfer
@@ -90,13 +91,17 @@ class ManageOwnTransfer
     {
         return Account::query()
             ->whereBelongsTo($user)
-            ->findOrFail($accountId);
+            ->find($accountId)
+            ?? throw new InvariantViolation('An own transfer refers to an Account the user does not have.', [
+                'user_id' => $user->id,
+                'account_id' => $accountId,
+            ]);
     }
 
     private function applyBalanceChange(Account $account, int $deltaMinorUnits): void
     {
-        $account->update([
-            'current_balance_minor_units' => $account->current_balance_minor_units + $deltaMinorUnits,
-        ]);
+        // One SQL `balance = balance + delta`: a read-then-write of the loaded value would overwrite
+        // an expense, import or second transfer saved on the same Account in between.
+        $account->increment('current_balance_minor_units', $deltaMinorUnits);
     }
 }

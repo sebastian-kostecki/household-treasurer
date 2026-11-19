@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Actions\ManageOwnTransfer;
 use App\Enums\BudgetPhase;
 use App\Models\Account;
 use App\Models\Budget;
@@ -9,6 +10,7 @@ use App\Models\BudgetLine;
 use App\Models\OwnTransfer;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
@@ -367,6 +369,42 @@ class OwnTransferTest extends TestCase
     /**
      * @return array{0: Account, 1: Account}
      */
+    public function test_a_write_saved_on_the_source_account_meanwhile_is_kept(): void
+    {
+        $user = User::factory()->create();
+        [$source, $destination] = $this->createAccountPair($user);
+        $this->saveConcurrentlyAfterTheFirstRead($source, 10000);
+
+        app(ManageOwnTransfer::class)->create($user, [
+            'source_account_id' => $source->id,
+            'destination_account_id' => $destination->id,
+            'transfer_date' => '2026-03-01',
+            'amount_minor_units' => 30000,
+            'description' => 'Transfer',
+        ]);
+
+        $this->assertSame(100000 + 10000 - 30000, $source->refresh()->current_balance_minor_units);
+        $this->assertSame(30000, $destination->refresh()->current_balance_minor_units);
+    }
+
+    /**
+     * Stands in for another transaction (an expense, an import) that commits on the same Account
+     * after the action has loaded it and before it writes the new balance.
+     */
+    private function saveConcurrentlyAfterTheFirstRead(Account $account, int $deltaMinorUnits): void
+    {
+        $saved = false;
+
+        Account::retrieved(function (Account $retrieved) use ($account, $deltaMinorUnits, &$saved): void {
+            if ($saved || $retrieved->id !== $account->id) {
+                return;
+            }
+
+            $saved = true;
+            DB::table('accounts')->where('id', $account->id)->increment('current_balance_minor_units', $deltaMinorUnits);
+        });
+    }
+
     private function createAccountPair(User $user, int $sourceBalance = 100000): array
     {
         $source = Account::factory()->for($user)->bank()->create([

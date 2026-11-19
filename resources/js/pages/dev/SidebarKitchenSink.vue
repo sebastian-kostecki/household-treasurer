@@ -503,6 +503,7 @@ const frames: SidebarFrame[] = [
                 <BudgetYearSwitcher
                     :budget-years="executionYears(2025, 2026)"
                     :budget-year="2026"
+                    :current-year="2026"
                 />
             </SidebarProvider>
         </section>

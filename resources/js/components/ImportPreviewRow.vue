@@ -1,12 +1,15 @@
 <script setup lang="ts">
+import { Link } from '@inertiajs/vue3';
 import { Check } from '@lucide/vue';
-import { computed } from 'vue';
+import { computed, onUnmounted, ref } from 'vue';
+import BudgetController from '@/actions/App/Http/Controllers/BudgetController';
 import AccountAvatar from '@/components/AccountAvatar.vue';
 import AccountSelect from '@/components/AccountSelect.vue';
 import CategorySelect from '@/components/CategorySelect.vue';
 import OperationDescriptionCell from '@/components/OperationDescriptionCell.vue';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -17,11 +20,16 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { useCreateBudgetDialog } from '@/composables/useCreateBudgetDialog';
 import { useTranslations } from '@/composables/useTranslations';
 import {
     termDepositPickerOptions,
     type AccountPickerOption,
 } from '@/lib/account-identity';
+import {
+    listenForBudgetYearSelectionFailure,
+    notifyBudgetYearSelectionFailed,
+} from '@/lib/budget-year-selection';
 import { formatDate, formatMoney } from '@/lib/format';
 import { importRowAmount } from '@/lib/import-row-amount';
 import {
@@ -50,11 +58,13 @@ import {
     importRowHasNotes,
     isCreditRow,
     parsedInterestAmountMinorUnits,
+    rowBudgetYearNotice,
     rowCategoriesEmpty,
     showsCategorySuggestion,
     suggestedCategoryId,
     wouldMakeAccountNegative,
     type CategoryRow,
+    type ImportBudgetYearStates,
     type ImportRow,
     type RowSelection,
     type TermDepositRow,
@@ -70,6 +80,7 @@ const {
     consumedFirstLegKeys,
     monthRemainingWarnings,
     toSpendWarnings,
+    budgetYearStates,
 } = defineProps<{
     row: ImportRow;
     accountBalanceMinorUnits: number;
@@ -80,6 +91,7 @@ const {
     consumedFirstLegKeys: Set<string>;
     monthRemainingWarnings?: MonthRemainingWarningState;
     toSpendWarnings?: ToSpendWarning[];
+    budgetYearStates: ImportBudgetYearStates;
 }>();
 
 const selection = defineModel<RowSelection>('selection', { required: true });
@@ -190,6 +202,32 @@ const monthRemainingPeriodLabel = computed(
     () => monthRemainingWarnings?.periodLabel ?? null,
 );
 
+const budgetYearNotice = computed(() =>
+    rowBudgetYearNotice(row, selection.value, budgetYearStates),
+);
+
+const createBudgetDialog = useCreateBudgetDialog();
+
+/**
+ * A year switch in flight: the link is disabled and a failure shows the sidebar's toast.
+ * Each row keeps its own flag and listener (unlike ReportYearsTable's one for all links):
+ * the ui-contract guard wants the listener in the file with the `<Link>`, only the row in
+ * flight reports the failure, and a second row's POST only selects a Budget year.
+ */
+const selectYearPending = ref(false);
+
+function onSelectYearFailed(): void {
+    notifyBudgetYearSelectionFailed(t.shell.select_year_failed);
+}
+
+// <Link> exposes no HTTP/network error callbacks, only validation `error`.
+onUnmounted(
+    listenForBudgetYearSelectionFailure(
+        () => selectYearPending.value,
+        t.shell.select_year_failed,
+    ),
+);
+
 const hasNotes = computed(() =>
     importRowHasNotes({
         invalidReason: !row.valid && row.invalid_reason !== null,
@@ -198,6 +236,7 @@ const hasNotes = computed(() =>
         toSpend: (toSpendWarnings?.length ?? 0) > 0,
         categoryMonthRemaining: showCategoryMonthRemainingWarning.value,
         poolMonthRemaining: showPoolMonthRemainingWarning.value,
+        budgetYear: budgetYearNotice.value !== null,
     }),
 );
 
@@ -691,6 +730,64 @@ function onPairCandidateChange(value: string): void {
             >
                 {{ importInvalidReasonText(row.invalid_reason, t.operations) }}
             </p>
+            <Alert
+                v-if="budgetYearNotice !== null"
+                variant="note"
+                data-import-budget-year-note
+            >
+                <AlertDescription
+                    class="flex flex-wrap items-center gap-x-3 gap-y-2"
+                >
+                    <span>
+                        {{
+                            (budgetYearNotice.state === 'draft'
+                                ? t.operations.import_budget_year_draft_note
+                                : t.operations.import_budget_year_missing_note
+                            ).replaceAll(':year', String(budgetYearNotice.year))
+                        }}
+                    </span>
+                    <Link
+                        v-if="budgetYearNotice.state === 'draft'"
+                        :href="BudgetController.selectYear()"
+                        method="post"
+                        as="button"
+                        :data="{ year: budgetYearNotice.year }"
+                        :preserve-scroll="false"
+                        :preserve-state="false"
+                        :disabled="selectYearPending ? true : undefined"
+                        :aria-busy="selectYearPending ? 'true' : undefined"
+                        class="text-brand-text focus-visible:ring-ring cursor-pointer rounded-xs text-left font-medium underline-offset-4 outline-none hover:underline focus-visible:ring-2 aria-busy:cursor-wait"
+                        @start="selectYearPending = true"
+                        @error="onSelectYearFailed"
+                        @finish="selectYearPending = false"
+                    >
+                        {{
+                            t.operations.import_budget_year_draft_link.replace(
+                                ':year',
+                                String(budgetYearNotice.year),
+                            )
+                        }}
+                    </Link>
+                    <Button
+                        v-else
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        @click="
+                            createBudgetDialog.openForYear(
+                                budgetYearNotice.year,
+                            )
+                        "
+                    >
+                        {{
+                            t.operations.import_budget_year_missing_action.replace(
+                                ':year',
+                                String(budgetYearNotice.year),
+                            )
+                        }}
+                    </Button>
+                </AlertDescription>
+            </Alert>
             <Alert v-if="makesAccountNegative" variant="warning">
                 <AlertDescription>
                     {{ t.operations.negative_balance_warning }}

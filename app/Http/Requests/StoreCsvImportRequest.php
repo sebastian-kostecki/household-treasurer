@@ -20,7 +20,7 @@ class StoreCsvImportRequest extends FormRequest
     {
         return [
             'rows' => ['required', 'array', 'min:1'],
-            'rows.*.index' => ['required', 'integer', 'min:0'],
+            'rows.*.index' => ['required', 'integer', 'min:0', 'distinct'],
             'rows.*.selected' => ['required', 'boolean'],
             'rows.*.type' => ['required_if:rows.*.selected,true', 'nullable', Rule::in(['income', 'expense', 'refund', 'own_transfer', 'capital_movement'])],
             'rows.*.category_id' => ['nullable', 'integer'],

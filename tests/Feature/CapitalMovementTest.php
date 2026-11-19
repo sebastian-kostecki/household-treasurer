@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Actions\ManageCapitalMovement;
 use App\Enums\Bank;
 use App\Enums\BudgetPhase;
 use App\Enums\CapitalMovementDirection;
@@ -13,6 +14,7 @@ use App\Models\TermDeposit;
 use App\Models\User;
 use App\Support\AccountIdentity;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
@@ -445,6 +447,46 @@ class CapitalMovementTest extends TestCase
     /**
      * @return array{0: Account, 1: TermDeposit}
      */
+    public function test_writes_saved_on_the_account_and_the_term_deposit_meanwhile_are_kept(): void
+    {
+        $user = User::factory()->create();
+        [$account, $termDeposit] = $this->createAccountAndTermDeposit($user);
+        $this->saveConcurrentlyAfterTheFirstRead(Account::class, $account->id, 'accounts', 10000);
+        $this->saveConcurrentlyAfterTheFirstRead(TermDeposit::class, $termDeposit->id, 'term_deposits', 2000);
+
+        app(ManageCapitalMovement::class)->create($user, [
+            'account_id' => $account->id,
+            'term_deposit_id' => $termDeposit->id,
+            'movement_date' => '2026-03-01',
+            'amount_minor_units' => 30000,
+            'direction' => CapitalMovementDirection::ToTermDeposit,
+            'description' => 'Parking',
+        ]);
+
+        $this->assertSame(100000 + 10000 - 30000, $account->refresh()->current_balance_minor_units);
+        $this->assertSame(50000 + 2000 + 30000, $termDeposit->refresh()->current_balance_minor_units);
+    }
+
+    /**
+     * Stands in for another transaction that commits on the same row after the action has loaded
+     * it and before it writes the new balance.
+     *
+     * @param  class-string<Account|TermDeposit>  $model
+     */
+    private function saveConcurrentlyAfterTheFirstRead(string $model, int $id, string $table, int $deltaMinorUnits): void
+    {
+        $saved = false;
+
+        $model::retrieved(function (Account|TermDeposit $retrieved) use ($id, $table, $deltaMinorUnits, &$saved): void {
+            if ($saved || $retrieved->id !== $id) {
+                return;
+            }
+
+            $saved = true;
+            DB::table($table)->where('id', $id)->increment('current_balance_minor_units', $deltaMinorUnits);
+        });
+    }
+
     private function createAccountAndTermDeposit(
         User $user,
         int $accountBalance = 100000,

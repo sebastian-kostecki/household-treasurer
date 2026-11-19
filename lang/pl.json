@@ -78,6 +78,8 @@
     "Own transfer deleted.": "Przelew własny usunięty.",
     "Own transfer recorded.": "Przelew własny zapisany.",
     "Own transfer updated.": "Przelew własny zapisany.",
+    "Row :date: the :year budget is a draft. Start its execution to import income, expenses and refunds from :year.": "Wiersz z :date: Budżet :year jest szkicem. Rozpocznij jego realizację, żeby zaimportować dochód, wydatek albo zwrot z :year.",
+    "Row :date: there is no :year budget. Create it and start its execution to import income, expenses and refunds from :year.": "Wiersz z :date: nie ma Budżetu :year. Utwórz go i rozpocznij realizację, żeby zaimportować dochód, wydatek albo zwrot z :year.",
     "Refund amount must be less than zero.": "Kwota zwrotu musi być mniejsza od zera.",
     "Select an interest amount or clear the income category.": "Podaj kwotę odsetek albo wyczyść kategorię przychodu.",
     "Select at least one row to import.": "Wybierz co najmniej jeden wiersz do importu.",

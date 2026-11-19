@@ -3,6 +3,7 @@
 namespace App\Concerns;
 
 use App\Enums\CategoryType;
+use App\Support\AppDay;
 use App\Support\OperationEntryValidation;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Validation\Rule;
@@ -18,7 +19,7 @@ trait ExpenseValidationRules
         $userId = $this->user()?->id;
 
         return [
-            'operation_date' => ['required', 'date', 'before_or_equal:today'],
+            'operation_date' => ['required', 'date', 'before_or_equal:'.AppDay::today()->toDateString()],
             'amount_minor_units' => ['required', 'integer', Rule::notIn([0])],
             'description' => ['required', 'string', 'max:255'],
             'counterparty' => ['nullable', 'string', 'max:255'],
@@ -55,7 +56,7 @@ trait ExpenseValidationRules
 
         return [
             'convert_to_income' => ['required', 'boolean', 'accepted'],
-            'operation_date' => ['required', 'date', 'before_or_equal:today'],
+            'operation_date' => ['required', 'date', 'before_or_equal:'.AppDay::today()->toDateString()],
             'amount_minor_units' => ['required', 'integer', 'min:1'],
             'description' => ['required', 'string', 'max:255'],
             'counterparty' => ['nullable', 'string', 'max:255'],

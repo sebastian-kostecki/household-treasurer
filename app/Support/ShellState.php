@@ -13,6 +13,7 @@ class ShellState
      *     budgetYear: int|null,
      *     budgetYears: list<array{year: int, phase: 'draft'|'execution'}>,
      *     activeCategoryCount: int,
+     *     today: string,
      *     firstRun: array{
      *         hasAccount: bool,
      *         hasBudget: bool,
@@ -41,6 +42,7 @@ class ShellState
             'budgetYear' => $budgetYear,
             'budgetYears' => $budgetYears,
             'activeCategoryCount' => $user === null ? 0 : $user->categories()->whereNull('archived_at')->count(),
+            'today' => AppDay::today()->toDateString(),
             'firstRun' => $firstRun,
         ];
     }

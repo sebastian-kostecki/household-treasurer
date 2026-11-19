@@ -15,6 +15,7 @@ use App\Models\CategoryGroup;
 use App\Models\CategoryRhythm;
 use App\Models\MonthPlan;
 use App\Models\User;
+use App\Support\AppDay;
 use App\Support\CategoryList\CategoryNameKey;
 use App\Support\CategoryList\LegacyCategoryConversion;
 use App\Support\CategoryList\LegacyRhythmConversion;
@@ -636,7 +637,7 @@ class RestoreUserData
             ->values()
             ->all();
 
-        $since = CarbonImmutable::today('UTC');
+        $since = AppDay::today();
         $entries = $expenseCategoryIds === []
             ? []
             : LegacyRhythmConversion::convert($lines, array_values($expenseCategoryIds), $since->year, $since->month);

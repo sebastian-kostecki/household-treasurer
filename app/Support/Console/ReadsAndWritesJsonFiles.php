@@ -7,7 +7,7 @@ use JsonException;
 
 /**
  * The `--output` / `--compare` files of the read-only console readings
- * (`app:control-numbers`, `import:suggestion-accuracy`): a relative path counts
+ * (`app:control-numbers`, `import:suggestion-accuracy`, `import:suggestion-reference`): a relative path counts
  * from `base_path()`, and a missing or non-object file is an error, never an
  * empty comparison.
  */
@@ -16,6 +16,28 @@ trait ReadsAndWritesJsonFiles
     private function resolvePath(string $path): string
     {
         return str_starts_with($path, '/') ? $path : base_path($path);
+    }
+
+    /**
+     * The option as text, or null when it is not given. A number passed by a
+     * caller (`$this->artisan(..., ['--year' => 2026])`) counts like its text.
+     */
+    private function filledOption(string $name): ?string
+    {
+        $value = $this->option($name);
+
+        return is_scalar($value) && (string) $value !== '' ? (string) $value : null;
+    }
+
+    private function isSameFile(string $first, string $second): bool
+    {
+        if ($first === $second) {
+            return true;
+        }
+
+        $firstReal = realpath($first);
+
+        return $firstReal !== false && $firstReal === realpath($second);
     }
 
     /**

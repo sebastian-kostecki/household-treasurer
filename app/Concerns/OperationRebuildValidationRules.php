@@ -8,6 +8,7 @@ use App\Models\Account;
 use App\Models\CapitalMovement;
 use App\Models\OwnTransfer;
 use App\Models\TermDeposit;
+use App\Support\AppDay;
 use App\Support\CategoryList\OperationCategoryChoice;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Contracts\Validation\Validator;
@@ -27,7 +28,7 @@ trait OperationRebuildValidationRules
             'convert_to_capital_movement' => ['required', 'boolean', 'accepted'],
             'interest_amount_minor_units' => ['prohibited'],
             'interest_category_id' => ['prohibited'],
-            $dateField => ['required', 'date', 'before_or_equal:today'],
+            $dateField => ['required', 'date', 'before_or_equal:'.AppDay::today()->toDateString()],
             'amount_minor_units' => ['required', 'integer', 'min:1'],
             'description' => ['required', 'string', 'max:255'],
             'counterparty' => ['prohibited'],
@@ -66,7 +67,7 @@ trait OperationRebuildValidationRules
             'convert_to_capital_movement' => ['required', 'boolean', 'accepted'],
             'interest_amount_minor_units' => ['prohibited'],
             'interest_category_id' => ['prohibited'],
-            'transfer_date' => ['required', 'date', 'before_or_equal:today'],
+            'transfer_date' => ['required', 'date', 'before_or_equal:'.AppDay::today()->toDateString()],
             'amount_minor_units' => ['required', 'integer', 'min:1'],
             'description' => ['required', 'string', 'max:255'],
             'source_account_id' => ['prohibited'],
@@ -109,7 +110,7 @@ trait OperationRebuildValidationRules
             'convert_to_income' => ['required', 'boolean', 'accepted'],
             'interest_amount_minor_units' => ['prohibited'],
             'interest_category_id' => ['prohibited'],
-            'movement_date' => ['required', 'date', 'before_or_equal:today'],
+            'movement_date' => ['required', 'date', 'before_or_equal:'.AppDay::today()->toDateString()],
             'amount_minor_units' => ['required', 'integer', 'min:1'],
             'description' => ['required', 'string', 'max:255'],
             'direction' => ['prohibited'],
@@ -147,7 +148,7 @@ trait OperationRebuildValidationRules
             'convert_to_expense' => ['required', 'boolean', 'accepted'],
             'interest_amount_minor_units' => ['prohibited'],
             'interest_category_id' => ['prohibited'],
-            'movement_date' => ['required', 'date', 'before_or_equal:today'],
+            'movement_date' => ['required', 'date', 'before_or_equal:'.AppDay::today()->toDateString()],
             'amount_minor_units' => ['required', 'integer', 'min:1'],
             'description' => ['required', 'string', 'max:255'],
             'direction' => ['prohibited'],
@@ -185,7 +186,7 @@ trait OperationRebuildValidationRules
             'convert_to_own_transfer' => ['required', 'boolean', 'accepted'],
             'interest_amount_minor_units' => ['prohibited'],
             'interest_category_id' => ['prohibited'],
-            'movement_date' => ['required', 'date', 'before_or_equal:today'],
+            'movement_date' => ['required', 'date', 'before_or_equal:'.AppDay::today()->toDateString()],
             'amount_minor_units' => ['required', 'integer', 'min:1'],
             'description' => ['required', 'string', 'max:255'],
             'direction' => ['prohibited'],

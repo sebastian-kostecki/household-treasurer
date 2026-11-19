@@ -91,24 +91,6 @@ class ImportSuggestionAccuracyCommand extends Command
         return null;
     }
 
-    private function filledOption(string $name): ?string
-    {
-        $value = $this->option($name);
-
-        return is_string($value) && $value !== '' ? $value : null;
-    }
-
-    private function isSameFile(string $first, string $second): bool
-    {
-        if ($first === $second) {
-            return true;
-        }
-
-        $firstReal = realpath($first);
-
-        return $firstReal !== false && $firstReal === realpath($second);
-    }
-
     /**
      * @param  array<string, mixed>  $result
      */

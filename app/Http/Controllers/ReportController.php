@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Budget;
+use App\Support\AppDay;
 use App\Support\BudgetViewedMonth;
 use App\Support\PeriodReport;
 use App\Support\ReportCategoryPanel;
@@ -50,7 +51,7 @@ class ReportController extends Controller
 
         $this->authorize('view', $budget);
 
-        $today = CarbonImmutable::today('UTC');
+        $today = AppDay::today();
 
         if ($request->query('view') === 'last-12') {
             return $this->lastTwelveMonths($request, $budget, $today);

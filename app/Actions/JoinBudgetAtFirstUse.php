@@ -6,7 +6,7 @@ use App\Models\Budget;
 use App\Models\BudgetLine;
 use App\Models\Category;
 use App\Support\BudgetLineResolver;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
+use App\Support\InvariantViolation;
 
 /**
  * Gives a list Category its Budget Line in a Budget at the first use, with
@@ -39,7 +39,10 @@ class JoinBudgetAtFirstUse
             ->get();
 
         if ($categories->count() !== count($positive)) {
-            throw (new ModelNotFoundException)->setModel(Category::class, array_keys($positive));
+            throw new InvariantViolation('Month plan amounts passed validation for Categories the user does not have.', [
+                'budget_id' => $budget->id,
+                'category_ids' => array_values(array_diff(array_keys($positive), $categories->modelKeys())),
+            ]);
         }
 
         $amountsByLine = [];
@@ -57,14 +60,21 @@ class JoinBudgetAtFirstUse
 
         if ($existing instanceof BudgetLine) {
             if ($existing->isArchived()) {
-                throw (new ModelNotFoundException)->setModel(BudgetLine::class, [$category->id]);
+                throw new InvariantViolation('A Category joined a Budget through an archived Budget Line.', [
+                    'budget_id' => $budget->id,
+                    'category_id' => $category->id,
+                    'budget_line_id' => $existing->id,
+                ]);
             }
 
             return $existing;
         }
 
         if ($category->isArchived()) {
-            throw (new ModelNotFoundException)->setModel(BudgetLine::class, [$category->id]);
+            throw new InvariantViolation('An archived Category passed validation to join a Budget.', [
+                'budget_id' => $budget->id,
+                'category_id' => $category->id,
+            ]);
         }
 
         $now = now();
@@ -85,7 +95,10 @@ class JoinBudgetAtFirstUse
         $line = $this->resolver->forBudget($budget, $category->id);
 
         if (! $line instanceof BudgetLine || $line->isArchived()) {
-            throw (new ModelNotFoundException)->setModel(BudgetLine::class, [$category->id]);
+            throw new InvariantViolation('The Budget Line is missing or archived right after the Category joined the Budget.', [
+                'budget_id' => $budget->id,
+                'category_id' => $category->id,
+            ]);
         }
 
         return $line;

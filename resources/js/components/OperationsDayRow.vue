@@ -4,6 +4,9 @@ import {
     formatOperationDaySum,
     operationDaySumClass,
 } from '@/lib/format';
+import { useShell } from '@/composables/useTranslations';
+
+const shell = useShell();
 
 // Bez sumy (transfery własne, ruchy kapitału) wiersz dnia niesie tylko datę.
 defineProps<{
@@ -14,7 +17,9 @@ defineProps<{
 
 <template>
     <div class="operations-grid operations-day-row">
-        <span class="operations-day-label">{{ formatDayLabel(date) }}</span>
+        <span class="operations-day-label">{{
+            formatDayLabel(date, shell.today)
+        }}</span>
         <span
             v-if="sumMinorUnits !== undefined"
             class="operations-cell-amount amount-sum"
