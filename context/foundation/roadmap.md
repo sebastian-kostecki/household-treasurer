@@ -56,7 +56,7 @@ Cztery kamienie milowe powstały w dwa tygodnie, a aplikacja nie przeszła jeszc
 | F-09 | test-plan-refresh               | (foundation) plan testów odpowiada stanowi repo i wskazuje przepływy E2E, które są bramką CI                   | —             | MS-06    | done     |
 | S-39 | one-app-day                     | użytkownik widzi ten sam dzień i rok w menu roku, na Dashboardzie i w domyślnej dacie dialogów wokół północy   | F-08          | MS-01    | done |
 | S-40 | session-year-follows-year-turn  | użytkownik po przełomie otwiera aplikację w nowym roku bez ręcznej zmiany roku                                 | F-08, S-39    | MS-02    | ready    |
-| S-41 | year-turn-notices               | użytkownik widzi przed przełomem, co czeka: plan grudnia, Budżet następnego roku i Import przy szkicu          | F-08, S-39    | MS-03    | ready    |
+| S-41 | year-turn-notices               | użytkownik widzi przed przełomem, co czeka: plan grudnia, Budżet następnego roku i Import przy szkicu          | F-08, S-39    | MS-03    | done     |
 | S-42 | import-across-draft-year        | użytkownik importuje wyciąg z przełomu przy szkicu nowego roku i wie, co zrobić z wierszami nowego roku        | —             | MS-04    | done     |
 | S-43 | years-report-in-early-january   | użytkownik widzi w „Latach” i w roku do roku sensowny odczyt w pierwszych dniach stycznia                     | F-08, S-39    | MS-05    | done     |
 | S-44 | e2e-in-ci                       | użytkownik (właściciel repo) widzi czerwone CI, gdy zmiana psuje przepływ w przeglądarce                       | F-09          | MS-07    | done     |
@@ -153,7 +153,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Unknowns:**
   - ~~Czy miniony miesiąc bez zatwierdzonego planu ma dać się zatwierdzić po północy (zmiana reguły), czy wystarczy ostrzeżenie przed nią?~~ Answered: the warning only, no rule change (ADR-0109).
 - **Risk:** Powiadomienia Dashboardu mają własne reguły wagi i progów (F-01); trzy nowe powiadomienia naraz w grudniu nie mogą zasłonić istniejących ostrzeżeń planu miesiąca.
-- **Status:** ready
+- **Status:** done
 
 ### S-42: Import wyciągu z przełomu przy szkicu roku
 
@@ -306,3 +306,4 @@ This table is the clean handoff to Jira/Linear or any MCP-backed backlog. Includ
 - **S-39: użytkownik o 00:30 1 stycznia (i o każdej porze wokół północy) widzi w menu roku, na Dashboardzie i jako domyślną datę w dialogach operacji, rachunku, lokaty, ruchu kapitału i uzgodnienia salda ten sam dzień i rok** — Archived 2026-11-19 → `context/archive/2026-11-19-one-app-day/`. Lesson: —.
 - **S-44: użytkownik (właściciel repo) widzi czerwone CI na pushu i PR do `development`, gdy zmiana psuje przepływ, który odświeżony plan testów wskazał jako bramkę** — Archived 2026-11-19 → `context/archive/2026-11-19-e2e-in-ci/`. Lesson: —.
 - **S-43: użytkownik 1–N stycznia widzi w „Latach” i w raporcie rok do roku odczyt, który porównuje coś więcej niż jeden dzień poprzednich lat, a wynik rok do roku na 1 stycznia jest sprawdzony** — Archived 2026-11-19 → `context/archive/2026-11-19-years-report-in-early-january/`. Lesson: —.
+- **S-41: użytkownik widzi w grudniu w „Wymaga uwagi”, że plan grudnia czeka na zatwierdzenie i po północy nie da się go już zatwierdzić, czy Budżet następnego roku jest szkicem (Import nie przyjmie jego wierszy), a po uruchomieniu menu roku i Dashboard mówią, że Budżet czeka na rok kalendarzowy** — Archived 2026-11-19 → `context/archive/2026-11-19-year-turn-notices/`. Lesson: —.
