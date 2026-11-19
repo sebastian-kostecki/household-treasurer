@@ -480,7 +480,7 @@ MCP requests share the four FPM workers with the web UI. Tools return bounded re
 
 #### Manual
 
-- [ ] 1.6 Dashboard, Budget, Month Plan and Operations behave as before in the preview
+- [x] 1.6 Dashboard, Budget, Month Plan and Operations behave as before in the preview — confirmed by the user in the worktree preview 2026-11-19
 
 ### Phase 2: Local read server
 
@@ -492,8 +492,8 @@ MCP requests share the four FPM workers with the web UI. Tools return bounded re
 
 #### Manual
 
-- [ ] 2.4 Four read questions in Claude Code match the app pages
-- [ ] 2.5 Rehearsal clock at 2026-12-31 23:30 gives app_day 2027-01-01 and the 2027 Budget state
+- [x] 2.4 Four read questions in Claude Code match the app pages — confirmed by the user in the worktree preview 2026-11-19
+- [x] 2.5 Rehearsal clock at 2026-12-31 23:30 gives app_day 2027-01-01 and the 2027 Budget state — confirmed by the user in the worktree preview 2026-11-19
 
 ### Phase 3: OAuth through Passport
 
@@ -505,8 +505,8 @@ MCP requests share the four FPM workers with the web UI. Tools return bounded re
 
 #### Manual
 
-- [ ] 3.4 Claude Code OAuth sign-in through the preview works with 2FA and with a passkey
-- [ ] 3.5 Consent page in /dev/ui/auth matches the login screen in both themes and at phone width
+- [x] 3.4 Claude Code OAuth sign-in through the preview works with 2FA and with a passkey — confirmed by the user in the worktree preview 2026-11-19
+- [x] 3.5 Consent page in /dev/ui/auth matches the login screen in both themes and at phone width — confirmed by the user in the worktree preview 2026-11-19
 
 ### Phase 4: Read endpoint on production
 
@@ -532,7 +532,7 @@ MCP requests share the four FPM workers with the web UI. Tools return bounded re
 
 #### Manual
 
-- [ ] 5.4 Operation dialogs behave as before in the preview
+- [x] 5.4 Operation dialogs behave as before in the preview — confirmed by the user in the worktree preview 2026-11-19
 
 ### Phase 6: Cash operation write tool
 
