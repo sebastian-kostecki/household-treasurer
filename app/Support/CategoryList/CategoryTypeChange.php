@@ -10,7 +10,7 @@ use App\Models\FinancialOperation;
 /**
  * The predicate behind "the type of a Category cannot change" (ADR-0063,
  * "Type and deletion"): the Category has a Financial Operation in any year, or
- * a Budget Line in a Budget in execution. (There is no Cash Expectation yet.)
+ * a Budget Line in a Budget in execution.
  */
 final class CategoryTypeChange
 {

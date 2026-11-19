@@ -4,3 +4,5 @@ Year Close posts that Budget’s Year Result into a User-owned plan-plane Reserv
 Amended by ADR-0063: an Earmark is keyed by the list Category, not by name and type; applying it defaults to the same Category with a User override, and Align concerns every expense Budget Line of that Budget.
 
 Amended by ADR-0066: an Earmark comes from positive leftover on any expense Category, not only “(Paced or One-off)”.
+
+Superseded by ADR-0104: never built; Year Close, Reserve and Earmark left the glossary.

@@ -70,7 +70,7 @@ Kolejność to rekomendacja agenta. Wiersze 1–6 to terminy i zabezpieczenia; z
 | 2   | Odświeżenie planu testów                         | plan z 6 listopada nie odpowiada stanowi repo                                              | mały             | w roadmapie (M-5, F-09) |
 | 3   | E2E w CI                                         | testy istnieją, CI ich nie uruchamia                                                       | mały             | w roadmapie (M-5, S-44) |
 | 4   | Śledzenie błędów na produkcji                    | dziś tylko log plikowy                                                                     | mały do średniego | w roadmapie (M-5, S-45) |
-| 5   | Porządek w dokumentach                           | terminy bez kodu w słowniku, zdublowany numer ADR 0008                                     | mały             | w roadmapie (M-5, S-46) |
+| 5   | Porządek w dokumentach                           | terminy bez kodu w słowniku, zdublowany numer ADR 0008                                     | mały             | zrobione (M-5, S-46): ADR-0104, ADR-0105 |
 | 6   | Lista tarć                                       | użytkownik zapisuje przez grudzień i styczeń, co go spowalnia; podstawa wyboru etapu       | zerowy           | w roadmapie (M-5, MS-10) |
 | 7   | Plan roczny 2027 z historii                      | propozycja kwot ze średniej i trendu lat 2019–2026, „co jeśli”; przydaje się tylko przy układaniu roku | średni           | otwarte |
 | 8   | „Zapłacone / czeka” dla stałych opłat            | lista rachunków miesiąca z sumą „czeka” obok salda; bez nowych pól                          | mały             | otwarte |
@@ -93,7 +93,7 @@ Komendy startowe: wiersz 1 `/10x-new-research year-turn-rehearsal`, wiersz 2 `/1
 | 1. Majątek z walutą     | konta, lokaty, waluta po kursie, ręczne aktywa i zobowiązania, historia miesiąc po miesiącu; budżet zostaje w PLN         | jedyny brak oparty na fakcie                                                              | średni            | otwarte |
 | 2. Szybsze wprowadzanie | klawiatura w Operacjach i Planie miesiąca, reguły kontrahenta, auto-akceptacja pewnych podpowiedzi Importu                | najczęstsza czynność; auto-akceptacja wymaga najpierw pomiaru trafności                    | średni            | otwarte |
 | 3. Płynność w czasie    | najniższy punkt salda przed wypłatą dla sumy wszystkich kont (decyzje użytkownika wyżej)                                 | najpierw sprawdzić na liście tarć, czy to realny problem                                   | średni do dużego  | otwarte |
-| 4. Analityka            | podsumowanie roku z decyzją o Year Close, zmiany cen skorygowane o inflację, wykres przepływu, wykrywanie podwyżek        | korzysta z danych 2019–2026, nic nie blokuje                                              | mały do średniego na element | otwarte |
+| 4. Analityka            | podsumowanie roku (odczyt; Year Close odpada, ADR-0104), zmiany cen skorygowane o inflację, wykres przepływu, wykrywanie podwyżek        | korzysta z danych 2019–2026, nic nie blokuje                                              | mały do średniego na element | otwarte |
 | 5. Do rozważenia        | dostęp dla drugiej osoby, liczniki mediów, serwer MCP do odczytu, aplikacja na telefon (PWA), majątek w czasie jako raport | każde wymaga potwierdzenia potrzeby                                                       | różny             | otwarte |
 
 ## Odradzane i odrzucone
@@ -132,7 +132,7 @@ Notatki z rozmowy, żeby nie wyprowadzać ich drugi raz. Każda wymaga kształto
 
 - Otwarte, z rekomendacją agenta: dzień płatności i wpływu jako pole na kategorii, podpowiedziane z historii operacji i zatwierdzane raz; reszta planu wydatków bieżących rozłożona równo na dni do końca miesiąca; horyzont do końca bieżącego miesiąca, a po zatwierdzeniu planu następnego także ten następny; kafelek na Dashboardzie i sekcja w planie miesiąca, bez nowej pozycji w menu.
 - Próg ostrzeżenia: przy sumie wszystkich kont próg „minimum < 0” rzadko zadziała; rekomendacja to minimum poniżej sumy „zebranych”, spójnie z Collected Coverage (ADR-0090).
-- Proponowana kolejność wycinków: decyzje (słownik i ADR, bo „Forecast” i „due date” są _Avoid_) → „zapłacone / czeka” i pesymistyczne minimum bez dat → dzień na kategorii i oś czasu z dniem minimum → ostrzeżenie na Dashboardzie → horyzont na następny miesiąc.
+- Proponowana kolejność wycinków: decyzje (słownik i ADR, bo „Forecast” jest _Avoid_ przy Current Plan, a nowy termin wymaga wpisu) → „zapłacone / czeka” i pesymistyczne minimum bez dat → dzień na kategorii i oś czasu z dniem minimum → ostrzeżenie na Dashboardzie → horyzont na następny miesiąc.
 - Proponowane „Done when”: przez pełny miesiąc na produkcji minimum z prognozy porównane z faktycznym najniższym saldem, z różnicą akceptowalną dla użytkownika.
 
 ### Pomysły z innych aplikacji
@@ -143,7 +143,7 @@ Notatki z rozmowy, żeby nie wyprowadzać ich drugi raz. Każda wymaga kształto
 
 ### Rok 2027
 
-- Podsumowanie roku („2026 w liczbach”: plan, wykonanie, odkładanie, największe zmiany) razem z decyzją, czy Year Close powstaje, czy znika ze słownika.
+- Podsumowanie roku („2026 w liczbach”: plan, wykonanie, odkładanie, największe zmiany) razem z decyzją, czy Year Close powstaje, czy znika ze słownika. Decyzja zapadła 2026-11-19 (ADR-0104): Year Close znika ze słownika, a podsumowanie roku, jeśli powstanie, jest odczytem z nowym ADR.
 - Plan roczny z historii: propozycja kwoty na kategorię ze średniej i trendu oraz „co jeśli” (np. czynsz +10%). Wartość raz w roku.
 
 ## Otwarte pytania
