@@ -80,3 +80,70 @@ test('the clock guard flags the readings it exists for and leaves AppDay and tim
         expect(appDayClockFindings('x.php', $source))->toBe([], $source);
     }
 });
+
+/**
+ * Browser code takes the day only from `shell.today` (ADR-0103, "Browser"). A clock read in `resources/js` gives
+ * the day of the device, not of the server. Methods called on a date that was passed in (`value.getFullYear()`)
+ * and `new Date(...)` with arguments stay allowed. There is no exception list.
+ */
+const APP_DAY_BROWSER_CLOCK_FORBIDDEN_PATTERNS = [
+    'new Date() without an argument' => '/new Date\(\s*\)/',
+    'Date.now()' => '/Date\.now\(/',
+    'toISOString().slice(0, 10)' => '/\.toISOString\(\)\.slice\(\s*0\s*,\s*10\s*\)/',
+];
+
+/**
+ * @return list<string> findings as "file:line: kind: match"
+ */
+function appDayBrowserClockFindings(string $relativePath, string $source): array
+{
+    $findings = [];
+
+    foreach (explode("\n", $source) as $index => $line) {
+        foreach (APP_DAY_BROWSER_CLOCK_FORBIDDEN_PATTERNS as $kind => $pattern) {
+            if (preg_match($pattern, $line, $match) === 1) {
+                $findings[] = sprintf('%s:%d: %s: %s', $relativePath, $index + 1, $kind, $match[0]);
+            }
+        }
+    }
+
+    return $findings;
+}
+
+test('browser code reads the calendar day only from shell.today', function () {
+    $root = dirname(__DIR__, 2);
+    $findings = [];
+
+    $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root.'/resources/js', FilesystemIterator::SKIP_DOTS));
+
+    foreach ($files as $file) {
+        $path = $file->getPathname();
+
+        if (! in_array($file->getExtension(), ['ts', 'vue'], true) || str_ends_with($path, '.test.ts')) {
+            continue;
+        }
+
+        $relativePath = substr($path, strlen($root) + 1);
+
+        $findings = [...$findings, ...appDayBrowserClockFindings($relativePath, file_get_contents($path))];
+    }
+
+    expect($findings)->toBe([]);
+});
+
+test('the browser clock guard flags the readings it exists for and leaves passed dates alone', function () {
+    $flagged = [
+        'new Date()',
+        'new Date( )',
+        'Date.now()',
+        'new Date().toISOString().slice(0, 10)',
+    ];
+
+    foreach ($flagged as $source) {
+        expect(appDayBrowserClockFindings('x.ts', $source))->not->toBe([], $source);
+    }
+
+    foreach (['value.getFullYear()', 'new Date(`${date}T12:00:00`)', 'new Date(Date.UTC(year, month, 0))', 'date.toISOString()'] as $source) {
+        expect(appDayBrowserClockFindings('x.ts', $source))->toBe([], $source);
+    }
+});

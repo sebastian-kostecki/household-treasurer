@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
-import { useTranslations } from '@/composables/useTranslations';
+import { useShell, useTranslations } from '@/composables/useTranslations';
 import type { AccountBank } from '@/lib/account-identity';
 import {
     minorUnitsToMoneyInput,
@@ -40,6 +40,7 @@ const emit = defineEmits<{
     'update:open': [value: boolean];
 }>();
 
+const shell = useShell();
 const t = useTranslations();
 
 const name = ref('');
@@ -115,7 +116,7 @@ watch(
 
         name.value = '';
         bank.value = 'other';
-        openingDate.value = new Date().toISOString().slice(0, 10);
+        openingDate.value = shell.value.today;
         endDate.value = '';
         openingBalanceInput.value = '0,00';
     },

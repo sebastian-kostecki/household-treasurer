@@ -441,11 +441,11 @@ Bez migracji. Istniejące `archived_at` Kategorii z pierwszej godziny po półno
 
 #### Automated
 
-- [ ] 2.1 Testy walidacji przechodzą na PostgreSQL
-- [ ] 2.2 Strażnik PHP przechodzi
-- [ ] 2.3 Celowe zepsucie czerwieni strażnik PHP
-- [ ] 2.4 Brak `before_or_equal:today` i `now()->toDateString` w `app`
-- [ ] 2.5 Pełny gate przechodzi (ci:check, Sloppy, Pint)
+- [x] 2.1 Testy walidacji przechodzą na PostgreSQL — 895a687
+- [x] 2.2 Strażnik PHP przechodzi — 895a687
+- [x] 2.3 Celowe zepsucie czerwieni strażnik PHP — 895a687
+- [x] 2.4 Brak `before_or_equal:today` i `now()->toDateString` w `app` — 895a687
+- [x] 2.5 Pełny gate przechodzi (ci:check, Sloppy, Pint) — 895a687
 
 #### Manual
 
