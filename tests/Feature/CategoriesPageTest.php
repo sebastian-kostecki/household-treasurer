@@ -191,6 +191,23 @@ class CategoriesPageTest extends TestCase
             );
     }
 
+    public function test_the_archive_date_is_the_polish_date_of_the_archive_instant(): void
+    {
+        $user = User::factory()->create();
+        $budget = Budget::factory()->for($user)->execution()->create(['year' => 2027]);
+        $holidays = Category::factory()->for($user)->expense()->create([
+            'name' => 'Wakacje',
+            'archived_at' => '2027-01-31 23:30:00',
+        ]);
+        BudgetLine::factory()->for($budget)->create(['category_id' => $holidays->id]);
+
+        $this->actingAs($user)
+            ->get(route('categories.index'))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('archivedCategories.0.archived_at', '2027-02-01'),
+            );
+    }
+
     public function test_a_category_archived_on_the_list_with_an_active_line_is_still_in_the_archive_section(): void
     {
         $user = User::factory()->create();

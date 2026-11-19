@@ -5,6 +5,7 @@ namespace App\Actions;
 use App\Enums\BudgetPhase;
 use App\Models\BudgetLine;
 use App\Models\Category;
+use App\Support\AppDay;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -25,7 +26,7 @@ class RestoreCategory
                 ->where('category_id', $category->id)
                 ->whereIn('budget_id', $category->user->budgets()
                     ->where('phase', BudgetPhase::Execution)
-                    ->where('year', now()->year)
+                    ->where('year', AppDay::today()->year)
                     ->select('id'))
                 ->update(['archived_at' => null]);
 

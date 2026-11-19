@@ -165,7 +165,7 @@ final class IrregularCollected
 
         $firstDay = CarbonImmutable::create($year, $month, 1)->startOfDay();
 
-        if ($line['archived_at'] !== null && $line['archived_at']->lessThan($firstDay)) {
+        if ($line['archived_at'] !== null && AppDay::of($line['archived_at'])->lessThan($firstDay)) {
             return 0;
         }
 

@@ -8,10 +8,10 @@ use App\Models\Budget;
 use App\Models\BudgetLine;
 use App\Models\Category;
 use App\Models\User;
+use App\Support\AppDay;
 use App\Support\CategoryList\CategoryListSequence;
 use App\Support\CategoryList\CategoryNameGuard;
 use App\Support\CategoryList\CategoryNameKey;
-use Carbon\CarbonImmutable;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -64,7 +64,7 @@ class CreateCategory
 
                 if ($existing === null) {
                     if ($isExpense) {
-                        $this->changeCategoryRhythm->handle($category, Rhythm::Running, CarbonImmutable::today('UTC'));
+                        $this->changeCategoryRhythm->handle($category, Rhythm::Running, AppDay::today());
                     }
 
                     $this->joinDraftBudgets->handle($category, $budget->id);

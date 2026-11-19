@@ -19,7 +19,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
-import { useTranslations } from '@/composables/useTranslations';
+import { useShell, useTranslations } from '@/composables/useTranslations';
 import { OPERATIONS_RETURN_QUERY } from '@/lib/operations-list-query';
 import { useOperationAmountInput } from '@/composables/useOperationAmountInput';
 import { minorUnitsToMoneyInput } from '@/lib/format';
@@ -102,6 +102,7 @@ const emit = defineEmits<{
     'update:open': [value: boolean];
 }>();
 
+const shell = useShell();
 const t = useTranslations();
 
 type EntryType = 'expense' | 'refund' | 'income';
@@ -436,7 +437,7 @@ watch(
             return;
         }
 
-        operationDate.value = new Date().toISOString().slice(0, 10);
+        operationDate.value = shell.value.today;
         description.value = '';
         counterparty.value = '';
         accountId.value = props.accounts[0]?.id ?? '';

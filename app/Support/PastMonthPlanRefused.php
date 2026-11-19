@@ -9,7 +9,7 @@ use RuntimeException;
  * Reported (not thrown) when a Month Plan approval or change is refused because the server already
  * counts the month as past. The user sees the validation message; this event is what lets a
  * responder see that it happened and on which server day, which the browser may not share:
- * around midnight the server day (UTC today, ADR-0103 decides the app day) and the page the user
+ * around midnight the server App Day (ADR-0103) and the page the user
  * filled in can disagree, and an unapproved December cannot be approved after the year turn
  * (observability audit 2026-11-19, MPL-1 and MPL-5).
  */

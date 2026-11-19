@@ -5,6 +5,7 @@ namespace App\Actions;
 use App\Enums\CategoryType;
 use App\Enums\Rhythm;
 use App\Models\Category;
+use App\Support\AppDay;
 use App\Support\CategoryList\CategoryListSequence;
 use App\Support\CategoryList\CategoryNameGuard;
 use App\Support\CategoryList\CategoryNameKey;
@@ -65,7 +66,7 @@ class UpdateListCategory
 
                 $category->update($fields);
 
-                $this->writeRhythm($category, $type, $attributes, $today ?? CarbonImmutable::today('UTC'));
+                $this->writeRhythm($category, $type, $attributes, $today ?? AppDay::today());
 
                 return $category;
             });

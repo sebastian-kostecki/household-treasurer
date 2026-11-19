@@ -19,6 +19,7 @@ import OwnTransferFormDialog from '@/components/OwnTransferFormDialog.vue';
 import TermDepositFormDialog from '@/components/TermDepositFormDialog.vue';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
+import { useShell } from '@/composables/useTranslations';
 import type { AccountFormAccount } from '@/types/accounts';
 import type { TermDepositFormTermDeposit } from '@/types/term-deposits';
 import type { CategoryMergePreviewState } from '@/composables/useCategoryMergePreview';
@@ -35,7 +36,10 @@ import {
     mergeMovePreview,
 } from '@/lib/categories-fixtures';
 import type { CategoryListItem } from '@/types/categories';
-import {
+import { operationDialogFixtures } from '@/lib/operation-dialogs-fixtures';
+
+const shell = useShell();
+const {
     dialogAccounts,
     dialogCapitalMovement,
     dialogEntryToSpend,
@@ -50,7 +54,7 @@ import {
     dialogSheetOperation,
     dialogSheetOperationArchivedCategory,
     dialogTermDeposits,
-} from '@/lib/operation-dialogs-fixtures';
+} = operationDialogFixtures(shell.value.today);
 
 defineProps<{
     categoryAppearanceOptions: CategoryAppearanceOptions;

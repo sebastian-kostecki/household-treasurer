@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Support\AppDay;
 use App\Support\RehearsalClock;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Filesystem\Filesystem;
@@ -41,7 +42,7 @@ class RehearsalClockTest extends TestCase
         RehearsalClock::apply();
 
         $this->assertSame('2027-01-01 00:30:00', now()->utc()->format('Y-m-d H:i:s'));
-        $this->assertSame('2027-01-01', CarbonImmutable::today('UTC')->toDateString());
+        $this->assertSame('2027-01-01', AppDay::today()->toDateString());
     }
 
     #[DataProvider('nonLocalEnvironments')]

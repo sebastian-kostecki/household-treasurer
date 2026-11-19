@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Budget;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -74,6 +75,50 @@ class AppShellTest extends TestCase
                 ->where('shell.firstRun.hasCategories', false)
                 ->where('shell.firstRun.executionStarted', false)
                 ->where('shell.firstRun.showChecklist', true),
+            );
+    }
+
+    /**
+     * @return array<string, array{string, string, int}>
+     */
+    public static function polishMidnightProvider(): array
+    {
+        return [
+            'winter, last second of 2026' => ['2026-12-31 22:59:59', '2026-12-31', 2026],
+            'winter, polish midnight' => ['2026-12-31 23:00:00', '2027-01-01', 2027],
+            'summer, last second of 30 June' => ['2027-06-30 21:59:59', '2027-06-30', 2027],
+            'summer, polish midnight' => ['2027-06-30 22:00:00', '2027-07-01', 2027],
+        ];
+    }
+
+    #[DataProvider('polishMidnightProvider')]
+    public function test_shell_today_is_the_app_day_the_dashboard_and_the_budget_year_follow(string $instant, string $today, int $year): void
+    {
+        $user = User::factory()->create();
+        Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        Budget::factory()->for($user)->execution()->create(['year' => 2027]);
+
+        $this->travelTo($instant);
+
+        $this->actingAs($user)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('shell.today', $today)
+                ->where('shell.budgetYear', $year)
+                ->where('budget_year', $year),
+            );
+    }
+
+    public function test_guest_pages_get_shell_today(): void
+    {
+        $this->travelTo('2026-12-31 23:30:00');
+
+        $this->get(route('login'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('auth/Login')
+                ->where('shell.today', '2027-01-01'),
             );
     }
 

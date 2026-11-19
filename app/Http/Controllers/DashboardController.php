@@ -9,6 +9,7 @@ use App\Models\BudgetLine;
 use App\Models\TermDeposit;
 use App\Models\User;
 use App\Support\AccountIdentity;
+use App\Support\AppDay;
 use App\Support\BudgetPlanSummary;
 use App\Support\CategoryAppearance;
 use App\Support\CategoryExecutionMetrics;
@@ -21,7 +22,6 @@ use App\Support\ShellState;
 use App\Support\SpendableLiquidity;
 use App\Support\TotalFunds;
 use App\Support\YearElapsed;
-use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -32,7 +32,7 @@ class DashboardController extends Controller
     public function show(Request $request): Response
     {
         $user = $request->user();
-        $today = CarbonImmutable::today('UTC');
+        $today = AppDay::today();
         $currentYear = $today->year;
         $budget = $this->findBudgetForYear($user, $currentYear);
 

@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Actions\ArchiveCategory;
 use App\Enums\FinancialOperationType;
 use App\Enums\Rhythm;
 use App\Models\Budget;
@@ -415,6 +416,20 @@ class MonthPlanProposalTest extends TestCase
         $this->assertArrayNotHasKey($old->id, $proposal->reading(11)->amounts);
         $this->assertArrayNotHasKey($gym->id, $proposal->reading(12)->amounts);
         $this->assertArrayHasKey($food->id, $proposal->reading(12)->amounts);
+    }
+
+    public function test_category_archived_after_polish_midnight_belongs_to_the_next_month(): void
+    {
+        $budget = $this->budget(2027);
+        $line = $this->food($budget);
+
+        $this->travelTo('2027-01-31 23:30:00');
+        app(ArchiveCategory::class)->handle($line->category);
+
+        $proposal = MonthPlanProposal::forBudget($budget, $this->day(2027, 1, 31));
+
+        $this->assertArrayHasKey($line->id, $proposal->reading(2)->amounts);
+        $this->assertArrayNotHasKey($line->id, $proposal->reading(3)->amounts);
     }
 
     public function test_budget_loading_uses_a_fixed_number_of_queries(): void

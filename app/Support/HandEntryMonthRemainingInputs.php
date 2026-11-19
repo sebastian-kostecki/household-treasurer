@@ -27,7 +27,7 @@ class HandEntryMonthRemainingInputs
      */
     public static function forUser(User $user, ?CarbonImmutable $today = null): array
     {
-        $today ??= CarbonImmutable::today('UTC');
+        $today ??= AppDay::today();
 
         $budgets = $user->budgets()
             ->where('phase', BudgetPhase::Execution)

@@ -15,9 +15,9 @@ use App\Http\Requests\UpdateCategoryRequest;
 use App\Models\Budget;
 use App\Models\BudgetLine;
 use App\Models\Category;
+use App\Support\AppDay;
 use App\Support\CategoryAppearance;
 use App\Support\CategoryListReading;
-use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -35,7 +35,7 @@ class CategoryController extends Controller
 
     public function index(IndexCategoriesRequest $request): InertiaResponse
     {
-        $today = CarbonImmutable::today('UTC');
+        $today = AppDay::today();
 
         return Inertia::render('Categories', [
             ...CategoryListReading::forUser($request->user()),
