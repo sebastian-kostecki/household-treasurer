@@ -291,9 +291,9 @@ Brak migracji bazy. Pierwsze wdrożenie po zmianie wymaga `git pull --ff-only or
 
 #### Automated
 
-- [x] 2.1 Testy funkcji przechodzą (z przypadkami diffu migracji): `php artisan test --compact tests/Unit/ProductionImagesScriptTest.php`
-- [x] 2.2 Składnia poprawna: `bash -n scripts/rollback.sh scripts/lib/production-images.sh`
-- [x] 2.3 Skrypt ma bit wykonywalny w gicie: `git ls-files -s scripts/rollback.sh` pokazuje `100755`
+- [x] 2.1 Testy funkcji przechodzą (z przypadkami diffu migracji): `php artisan test --compact tests/Unit/ProductionImagesScriptTest.php` — 3a6ba38
+- [x] 2.2 Składnia poprawna: `bash -n scripts/rollback.sh scripts/lib/production-images.sh` — 3a6ba38
+- [x] 2.3 Skrypt ma bit wykonywalny w gicie: `git ls-files -s scripts/rollback.sh` pokazuje `100755` — 3a6ba38
 
 #### Manual
 
@@ -303,8 +303,8 @@ Brak migracji bazy. Pierwsze wdrożenie po zmianie wymaga `git pull --ff-only or
 
 #### Automated
 
-- [ ] 3.1 Numeracja ADR przechodzi: `php artisan test --compact tests/Unit/AdrNumberingTest.php`
-- [ ] 3.2 Pełna bramka przechodzi na PostgreSQL w worktree: `composer ci:check` oraz `vendor/bin/sloppy ci`
+- [x] 3.1 Numeracja ADR przechodzi: `php artisan test --compact tests/Unit/AdrNumberingTest.php`
+- [x] 3.2 Pełna bramka przechodzi na PostgreSQL w worktree: `composer ci:check` oraz `vendor/bin/sloppy ci`
 
 #### Manual
 
