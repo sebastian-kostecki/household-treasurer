@@ -2,13 +2,16 @@
 
 namespace App\Providers;
 
+use App\Support\ApplicationHealth;
 use App\Support\CsvImport\DefaultPaymentInstrumentNumberOmitter;
 use App\Support\CsvImport\PaymentInstrumentNumberOmitter;
 use App\Support\RehearsalClock;
 use App\Support\SheetLoad\SheetMapping;
 use Carbon\CarbonImmutable;
+use Illuminate\Foundation\Events\DiagnosingHealth;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
@@ -34,6 +37,8 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->configureDefaults();
+
+        Event::listen(DiagnosingHealth::class, ApplicationHealth::class);
     }
 
     /**
