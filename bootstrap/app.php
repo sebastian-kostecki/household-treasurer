@@ -75,7 +75,8 @@ return Application::configure(basePath: dirname(__DIR__))
         // Passport reports every invalid or expired bearer token: an expected 401, logged in the `mcp` channel instead.
         $exceptions->dontReport(OAuthServerException::class);
 
+        // `/mcp` answers JSON even without a JSON Accept header: a guest gets 401 with `WWW-Authenticate`, never the login page.
         $exceptions->shouldRenderJsonWhen(
-            fn (Request $request) => $request->is('api/*') || $request->expectsJson(),
+            fn (Request $request) => $request->is('api/*') || $request->is('mcp') || $request->expectsJson(),
         );
     })->create();

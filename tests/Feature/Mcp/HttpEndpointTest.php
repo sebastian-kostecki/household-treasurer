@@ -85,6 +85,13 @@ test('another user\'s token sees only its own data', function () {
     expect($content)->toContain('Obca Kategoria')->not->toContain('Jedzenie')->not->toContain('Czynsz');
 });
 
+test('a request without a token and without a JSON Accept header is 401, never a redirect to the login page', function () {
+    $response = $this->call('POST', '/mcp', [], [], [], ['CONTENT_TYPE' => 'application/json'], json_encode(mcpRequest('tools/list')));
+
+    $response->assertUnauthorized();
+    expect($response->headers->get('WWW-Authenticate'))->toContain('resource_metadata=');
+});
+
 test('in the local environment with MCP_LOCAL_USER set a request without a token is still 401', function () {
     $this->app['env'] = 'local';
     $user = User::factory()->create(['email' => 'local@example.test']);
