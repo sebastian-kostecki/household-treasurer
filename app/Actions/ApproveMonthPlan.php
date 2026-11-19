@@ -7,6 +7,7 @@ use App\Models\MonthPlan;
 use App\Models\MonthPlanItem;
 use App\Support\BudgetLineResolver;
 use App\Support\MonthPlanProposal;
+use App\Support\PastMonthPlanRefused;
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\UniqueConstraintViolationException;
@@ -39,6 +40,8 @@ class ApproveMonthPlan
                 }
 
                 if ($reading->state === 'none') {
+                    report(new PastMonthPlanRefused('approve', $budget->id, $budget->year, $month, $today));
+
                     throw $this->invalid(__('A past month cannot be approved.'));
                 }
 

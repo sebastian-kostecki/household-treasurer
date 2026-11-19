@@ -625,3 +625,18 @@ describe('the Categories view follows the Atrament surface blocks', () => {
         expect(row).not.toContain('aria-selected');
     });
 });
+
+describe('the month plan page', () => {
+    it('shows the month plan items error in every state outside change mode, not only in a proposal', () => {
+        // A refusal can re-render the month in another state: after midnight on 1 January an
+        // unapproved December reads as past ("none"), and the error must still be visible.
+        const page = readFileSync(join(JS_ROOT, 'pages/MonthPlan.vue'), 'utf8');
+
+        expect(page).toContain(
+            '<InputError v-if="!isChanging" :message="errors.items" />',
+        );
+        expect(page).not.toMatch(
+            /state === 'proposal'"\s*:message="errors\.items"/,
+        );
+    });
+});
