@@ -82,12 +82,12 @@ orchestrator updates Status as artifacts appear on disk.
 | 2 | Bramki E2E w CI | CI na pushu i PR do `development` czerwieni się, gdy merge psuje zatwierdzenie Importu, dialog operacji albo plan miesiąca; bramka tylko ze stabilnych speców, bez powtórek (roadmap S-44, zmiana `e2e-in-ci`) | #7 | e2e w CI | not started | — |
 | 3 | Wierność Importu | Zapisana operacja = transakcja z pliku (data, kwota ze znakiem, rachunek); po decyzji o FR-IMP-08/10 przypięte #271 i #272 | #1 | integracja | not started | — |
 | 4 | Backup i restore | Strażnik kompletności snapshotu czerwieni się przy tabeli albo kolumnie z danymi użytkownika spoza snapshotu, restore każdej starszej wersji jest bezstratny (głośna porażka zapisu ma już test z `backup-signals`) | #5, #6 | integracja | not started | — |
-| 5 | Niezmienniki kwot | „do wydania” PHP = TS na wspólnej tabeli przypadków; raport = wykonanie = Wynik miesiąca na ręcznej wyroczni | #2, #3 | kontrakt/parzystość + integracja | change opened | `context/changes/testing-amount-invariants/` |
+| 5 | Niezmienniki kwot | „do wydania” PHP = TS na wspólnej tabeli przypadków; raport = wykonanie = Wynik miesiąca na ręcznej wyroczni | #2, #3 | kontrakt/parzystość + integracja | complete | `context/archive/2026-11-18-testing-amount-invariants/` |
 | 6 | Bramki jakości | Przegląd tras pod izolację, `arch()` dla twardych zasad, PHPStan na `tests/` | #8, przekrojowo | integracja + bramki | not started | — |
 
 Kolejność:
 
-- Etap 2 jest jedynym etapem planu testów w M-5 (roadmap S-44); etapy 4 i 6 są w Parked, a etap 5 idzie poza M-5 w zmianie `testing-amount-invariants`, otwartej 2026-11-18 przed odświeżeniem planu. Etap 2 realizuje zmiana o id `e2e-in-ci`: `/10x-new` S-44 używa tego id (nie `testing-…`), a orkiestrator przy następnym wywołaniu przestawia wiersz na change opened z folderem `context/changes/e2e-in-ci/`. Ta zmiana aktualizuje też `context/foundation/test-stack.md` (opis #7 przy `seed` i fakty CI).
+- Etap 2 jest jedynym etapem planu testów w M-5 (roadmap S-44); etapy 4 i 6 są w Parked, a etap 5 przeszedł poza M-5 w zmianie `testing-amount-invariants` (otwartej 2026-11-18 przed odświeżeniem planu, zarchiwizowanej 2026-11-19). Etap 2 realizuje zmiana o id `e2e-in-ci`: `/10x-new` S-44 używa tego id (nie `testing-…`), a orkiestrator przy następnym wywołaniu przestawia wiersz na change opened z folderem `context/changes/e2e-in-ci/`. Ta zmiana aktualizuje też `context/foundation/test-stack.md` (opis #7 przy `seed` i fakty CI).
 - Etap 3 to obawa nr 1 i zaczyna się od decyzji produktowej o FR-IMP-08/10.
 - Etap 4 wyprzedza etap 5, bo kopia jest drogą odwrotu przy wdrożeniach, a osiem podbić wersji snapshotu przeszło bez strażnika kompletności (#5 High/High).
 - Ryzyko #9 nie ma etapu: testy jadą z S-39…S-43 według §6.2, a bramka stoi w §5. To świadomy wyjątek od zasady „każda bramka ma etap §3”. Orkiestrator nie śledzi jej stanu, więc sprawdza go ręcznie następny `--refresh`.
