@@ -499,9 +499,9 @@ MCP requests share the four FPM workers with the web UI. Tools return bounded re
 
 #### Automated
 
-- [x] 3.1 MCP and Auth feature tests pass
-- [x] 3.2 npm run build, types:check and check:ui pass
-- [x] 3.3 Full gate on PostgreSQL and sloppy ci pass
+- [x] 3.1 MCP and Auth feature tests pass — 39d93511
+- [x] 3.2 npm run build, types:check and check:ui pass — 39d93511
+- [x] 3.3 Full gate on PostgreSQL and sloppy ci pass — 39d93511
 
 #### Manual
 
