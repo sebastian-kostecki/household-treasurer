@@ -1,3 +1,5 @@
+import { appDayMonth, appDayYear } from './app-day';
+
 export type AuthYearMonth = 'past' | 'current' | 'future';
 
 export type AuthYearProgress = {
@@ -14,8 +16,8 @@ const MS_PER_DAY = 86_400_000;
  * each of the twelve months.
  */
 export function authYearProgress(today: string): AuthYearProgress {
-    const year = Number(today.slice(0, 4));
-    const month = Number(today.slice(5, 7)) - 1;
+    const year = appDayYear(today);
+    const month = appDayMonth(today) - 1;
     const day = Number(today.slice(8, 10));
 
     // Calendar days via UTC so a DST change cannot shift the count.

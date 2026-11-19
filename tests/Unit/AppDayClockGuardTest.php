@@ -16,8 +16,10 @@ const APP_DAY_CLOCK_ALLOWED_FILES = [
 const APP_DAY_CLOCK_FORBIDDEN_PATTERNS = [
     'static today() other than AppDay' => '/(?<!AppDay)::today\(/',
     'today() helper' => '/(?<![\w:>$])today\(/',
-    'now() read as a day' => '/now\(\)->(?:year|month|toDateString)\b/',
-    'before_or_equal:today' => '/before_or_equal:today/',
+    'now() read as a day' => '/now\((?:[^()]|\([^()]*\))*\)->(?:year|month|day|toDateString|startOf\w+)\b/',
+    'now() formatted as a day' => '/now\((?:[^()]|\([^()]*\))*\)->format\([\'"][Ymdjn.\/ -]+[\'"]\)/',
+    'date rule relative to today' => '/\b(?:before|after)(?:_or_equal)?:(?:today|now|tomorrow|yesterday)\b/',
+    'Rule::date() relative to today' => '/->(?:todayOrBefore|beforeToday|afterToday|todayOrAfter)\(/',
 ];
 
 /**
@@ -69,14 +71,34 @@ test('the clock guard flags the readings it exists for and leaves AppDay and tim
         'now()->year',
         'now()->month',
         'now()->toDateString()',
+        "now('UTC')->year",
+        "CarbonImmutable::now(config('app.timezone'))->month",
+        'now()->day',
+        'now()->startOfDay()',
+        "now()->format('Y-m-d')",
         "'before_or_equal:today'",
+        "'after_or_equal:today'",
+        "'before:tomorrow'",
+        'Rule::date()->todayOrBefore()',
+        'Rule::date()->beforeToday()',
     ];
 
     foreach ($flagged as $source) {
         expect(appDayClockFindings('x.php', $source))->not->toBe([], $source);
     }
 
-    foreach (['AppDay::today()', 'now()', "now('Europe/Warsaw')", '$this->today()'] as $source) {
+    $allowed = [
+        'AppDay::today()',
+        'now()',
+        "now('Europe/Warsaw')",
+        "CarbonImmutable::now('Europe/Warsaw')->isMonday()",
+        '$this->today()',
+        "now()->format('YmdHis')",
+        "'before_or_equal:'.AppDay::today()->toDateString()",
+        "'after_or_equal:date_from'",
+    ];
+
+    foreach ($allowed as $source) {
         expect(appDayClockFindings('x.php', $source))->toBe([], $source);
     }
 });
@@ -87,8 +109,10 @@ test('the clock guard flags the readings it exists for and leaves AppDay and tim
  * and `new Date(...)` with arguments stay allowed. There is no exception list.
  */
 const APP_DAY_BROWSER_CLOCK_FORBIDDEN_PATTERNS = [
-    'new Date() without an argument' => '/new Date\(\s*\)/',
+    'new Date() without an argument' => '/new Date\b\s*(?:\(\s*\)|(?![\s(]))/',
+    'Date() without new' => '/(?<![\w.$])(?<!new )Date\(\s*\)/',
     'Date.now()' => '/Date\.now\(/',
+    'Intl format() of the current moment' => '/DateTimeFormat\(.*\)\.format\(\s*\)/',
     'toISOString().slice(0, 10)' => '/\.toISOString\(\)\.slice\(\s*0\s*,\s*10\s*\)/',
 ];
 
@@ -137,13 +161,29 @@ test('the browser clock guard flags the readings it exists for and leaves passed
         'new Date( )',
         'Date.now()',
         'new Date().toISOString().slice(0, 10)',
+        'new Date ()',
+        'const now = new Date;',
+        'const now = new Date',
+        'Date()',
+        "new Intl.DateTimeFormat('pl-PL').format()",
     ];
 
     foreach ($flagged as $source) {
         expect(appDayBrowserClockFindings('x.ts', $source))->not->toBe([], $source);
     }
 
-    foreach (['value.getFullYear()', 'new Date(`${date}T12:00:00`)', 'new Date(Date.UTC(year, month, 0))', 'date.toISOString()'] as $source) {
+    $allowed = [
+        'value.getFullYear()',
+        'new Date(`${date}T12:00:00`)',
+        'new Date (value)',
+        'new Date(Date.UTC(year, month, 0))',
+        'date.toISOString()',
+        'new DateRange()',
+        'isDate()',
+        'formatter.format(value)',
+    ];
+
+    foreach ($allowed as $source) {
         expect(appDayBrowserClockFindings('x.ts', $source))->toBe([], $source);
     }
 });

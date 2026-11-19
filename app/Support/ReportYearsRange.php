@@ -29,7 +29,7 @@ final class ReportYearsRange
     ) {}
 
     /**
-     * `$today` is the day the controller uses (UTC).
+     * `$today` is the App Day (ADR-0103) the controller passes in.
      */
     public static function resolve(User $user, CarbonImmutable $today): self
     {

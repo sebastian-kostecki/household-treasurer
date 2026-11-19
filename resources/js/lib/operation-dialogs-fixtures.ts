@@ -23,6 +23,7 @@ import type {
 import type { EntryToSpendInputs } from '@/lib/entry-to-spend-warning';
 import type { Rhythm } from '@/types/rhythm';
 import type { HandEntryMonthRemainingInputs } from '@/lib/hand-entry-month-remaining-preview';
+import { appDayMonth, appDayYear } from './app-day';
 
 function pad(value: number): string {
     return String(value).padStart(2, '0');
@@ -39,8 +40,8 @@ function allMonths(rhythm: Rhythm): Record<number, Rhythm> {
  * 'YYYY-MM-DD'), never from the browser clock (ADR-0103).
  */
 export function operationDialogFixtures(today: string) {
-    const year = Number(today.slice(0, 4));
-    const month = Number(today.slice(5, 7));
+    const year = appDayYear(today);
+    const month = appDayMonth(today);
     const monthStart = `${year}-${pad(month)}-01`;
     const openingDate = `${year - 1}-01-01`;
     const previousMonth = month === 1 ? 12 : month - 1;

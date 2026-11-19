@@ -28,7 +28,7 @@ class ArchiveCategory
                 ->whereNull('archived_at')
                 ->whereIn('budget_id', $category->user->budgets()
                     ->where('phase', BudgetPhase::Execution)
-                    ->where('year', AppDay::today()->year)
+                    ->where('year', AppDay::of($now)->year)
                     ->select('id'))
                 ->update(['archived_at' => $now]);
 
