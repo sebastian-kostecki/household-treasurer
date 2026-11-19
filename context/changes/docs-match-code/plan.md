@@ -343,12 +343,12 @@ Brak migracji. Po scaleniu do `development` w głównym checkoucie zmień S-46 w
 
 #### Automated
 
-- [x] 3.1 W słowniku nie ma nazw usuniętych terminów
-- [x] 3.2 Liczba wpisów słownika spadła o 6
-- [x] 3.3 AGENTS.md bez „not on `main`”, z jednym wierszem ADR-0104
-- [x] 3.4 CategoryTypeChange.php bez „Cash Expectation”
-- [x] 3.5 Bramka composer ci:check przechodzi
-- [x] 3.6 Sloppy w obrazie Sail przechodzi
+- [x] 3.1 W słowniku nie ma nazw usuniętych terminów — 0dde48e
+- [x] 3.2 Liczba wpisów słownika spadła o 6 — 0dde48e
+- [x] 3.3 AGENTS.md bez „not on `main`”, z jednym wierszem ADR-0104 — 0dde48e
+- [x] 3.4 CategoryTypeChange.php bez „Cash Expectation” — 0dde48e
+- [x] 3.5 Bramka composer ci:check przechodzi — 0dde48e
+- [x] 3.6 Sloppy w obrazie Sail przechodzi — 0dde48e
 
 #### Manual
 
