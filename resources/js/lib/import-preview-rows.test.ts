@@ -20,6 +20,7 @@ const kinds: ImportRowNoteKind[] = [
     'toSpend',
     'categoryMonthRemaining',
     'poolMonthRemaining',
+    'budgetYear',
 ];
 
 function flags(active?: ImportRowNoteKind): Record<ImportRowNoteKind, boolean> {

@@ -286,18 +286,18 @@ Brak migracji i zmian danych. Podgląd zapisany w sesji przed wdrożeniem dalej 
 
 #### Automated
 
-- [x] 2.1 Nowe testy Vitest najpierw padają, potem przechodzą
-- [x] 2.2 Cały zestaw Vitest przechodzi
-- [x] 2.3 npm run types:check i npm run check przechodzą
+- [x] 2.1 Nowe testy Vitest najpierw padają, potem przechodzą — dea7b3a
+- [x] 2.2 Cały zestaw Vitest przechodzi — dea7b3a
+- [x] 2.3 npm run types:check i npm run check przechodzą — dea7b3a
 
 ### Phase 3: Klient — notatka wiersza, teksty i kitchen sink
 
 #### Automated
 
-- [ ] 3.1 npm run check:ui przechodzi
-- [ ] 3.2 ImportPreviewHardcodedUiTest przechodzi
-- [ ] 3.3 npm run build, types:check, check i cały Vitest przechodzą
-- [ ] 3.4 Pełna bramka composer ci:check na testing_import_across_draft_year i sloppy ci
+- [x] 3.1 npm run check:ui przechodzi
+- [x] 3.2 ImportPreviewHardcodedUiTest przechodzi
+- [x] 3.3 npm run build, types:check, check i cały Vitest przechodzą
+- [x] 3.4 Pełna bramka composer ci:check na testing_import_across_draft_year i sloppy ci
 
 #### Manual
 

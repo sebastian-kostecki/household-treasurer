@@ -384,7 +384,8 @@ export type ImportRowNoteKind =
     | 'negativeBalance'
     | 'toSpend'
     | 'categoryMonthRemaining'
-    | 'poolMonthRemaining';
+    | 'poolMonthRemaining'
+    | 'budgetYear';
 
 /**
  * Whether the row renders its notes block. The record type forces every note

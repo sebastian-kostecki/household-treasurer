@@ -112,3 +112,17 @@ test('the scan catches styles from before the Atrament system', function () {
         'card title',
     ]);
 });
+
+test('every import block reason key exists in the Polish operations texts', function () {
+    $source = file_get_contents(__DIR__.'/../../resources/js/lib/import-submit-block.ts');
+    preg_match_all("/key: '(import_block_[a-z_]+)'/", $source, $matches);
+    $keys = array_unique($matches[1]);
+
+    expect($keys)->not->toBeEmpty();
+
+    $operations = require __DIR__.'/../../lang/pl/ui.php';
+
+    foreach ($keys as $key) {
+        expect($operations['operations'])->toHaveKey($key);
+    }
+});
