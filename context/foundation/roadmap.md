@@ -37,6 +37,8 @@ milestone_status: open
   - MS-08: Błędy na produkcji trafiają do śledzenia błędów, nie tylko do logu plikowego (wiersz 4).
   - MS-09: Dokumenty bez pułapek: zdublowany numer ADR 0008 i terminy słownika, których nie ma w kodzie (wiersz 5).
   - MS-10: Użytkownik zapisuje przez grudzień i styczeń, co go spowalnia; z tej listy powstaje wybór następnej funkcji (wiersz 6). Bez wycinka: to praca użytkownika, sprawdzana w „Done when”.
+  - MS-11: Użytkownik pyta Claude'a o stan budżetu (salda, „do wydania”, plan kontra wykonanie, ostatnie operacje) na danych z produkcji, a z telefonu dopisuje wydatek gotówkowy (dopisane 2026-11-19 decyzją użytkownika; `context/changes/mcp-read-only-server/change.md`, ADR-0110).
+  - MS-12: Po wdrożeniu zmian M-5 użytkownik sprawdza na produkcji, na własnych danych, że działają, i zapisuje wynik (dopisane 2026-11-19 razem z MS-11).
 
 ## Vision recap
 
@@ -62,8 +64,8 @@ Cztery kamienie milowe powstały w dwa tygodnie, a aplikacja nie przeszła jeszc
 | S-44 | e2e-in-ci                       | użytkownik (właściciel repo) widzi czerwone CI, gdy zmiana psuje przepływ w przeglądarce                       | F-09          | MS-07    | done     |
 | S-45 | production-error-tracking       | użytkownik (właściciel) dostaje zgłoszenie wyjątku z produkcji ze stosem wywołań i kontekstem żądania          | —             | MS-08    | blocked  |
 | S-46 | docs-match-code                 | użytkownik i agent czytają słownik i ADR bez zdublowanych numerów i terminów, których nie ma w kodzie          | —             | MS-09    | done     |
-| S-47 | mcp-read-only-server            | użytkownik pyta Claude'a o stan budżetu i dopisuje gotówkę z telefonu                                          | F-08          | —        | in-progress |
-| S-48 | production-smoke-tests          | użytkownik (właściciel) sprawdza na produkcji, że wdrożone zmiany M-5 działają na jego prawdziwych danych      | S-47          | —        | proposed |
+| S-47 | mcp-read-only-server            | użytkownik pyta Claude'a o stan budżetu i dopisuje gotówkę z telefonu                                          | F-08          | MS-11    | in-progress |
+| S-48 | production-smoke-tests          | użytkownik (właściciel) sprawdza na produkcji, że wdrożone zmiany M-5 działają na jego prawdziwych danych      | S-47          | MS-12    | proposed |
 
 ## Streams
 
@@ -226,7 +228,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 
 - **Outcome:** użytkownik pyta Claude'a (Claude Code, claude.ai, Desktop, telefon) o To Spend, plan i wykonanie, salda i ostatnie operacje oraz dopisuje wydatek gotówkowy z telefonu
 - **Change ID:** mcp-read-only-server
-- **PRD refs:** —
+- **PRD refs:** MS-11
 - **Prerequisites:** F-08
 - **Parallel with:** S-40, S-41 po fazie 1 (wspólne czytniki w `app/Support`), S-43, S-44, S-45, S-46
 - **Blockers:** —
@@ -238,7 +240,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 
 - **Outcome:** użytkownik (właściciel) po wdrożeniu zmian M-5 przechodzi na produkcji, na własnych danych, listę sprawdzeń: konektor MCP z telefonu i z claude.ai (To Spend równy Dashboardowi, wpis gotówki, przełącznik `MCP_WRITE_ENABLED`) oraz zmiany przełomu roku (S-40, S-41, S-43), i zapisuje wynik
 - **Change ID:** production-smoke-tests
-- **PRD refs:** —
+- **PRD refs:** MS-12
 - **Prerequisites:** S-47 wdrożone na produkcję
 - **Parallel with:** —
 - **Blockers:** wdrożenie S-47 (klucze Passport w `.env.prod`, reguły Cloudflare, `scripts/deploy.sh`)
@@ -260,6 +262,8 @@ Foundations below assume these are present and do NOT re-scaffold them.
 | S-44       | e2e-in-ci                      | CI: testy Playwright na pushu i PR                                        | yes                    | Run `/10x-plan e2e-in-ci`; bramki w test-plan.md (F-09)                                                               |
 | S-45       | production-error-tracking      | Produkcja: śledzenie błędów                                               | no                    | Audyt zrobiony (`context/audits/observability/2026-11-19_import-operations-year-turn-backups.md`); teraz `/10x-infra-research`       |
 | S-46       | docs-match-code                | Dokumenty: numer ADR 0008 i terminy słownika bez kodu                     | yes                   | Run `/10x-plan docs-match-code`                                        |
+| S-47       | mcp-read-only-server           | Claude i budżet: serwer MCP z odczytem i wpisem gotówki                   | no                    | W toku; scalone do `development`, zostaje faza 4 (wdrożenie) i 6.3–6.5 na produkcji |
+| S-48       | production-smoke-tests         | Produkcja: sprawdzenia zmian M-5 na własnych danych                       | no                    | Po wdrożeniu S-47 (i S-40, jeśli ma wejść do listy)                    |
 
 This table is the clean handoff to Jira/Linear or any MCP-backed backlog. Include one row for every `F-NN` and `S-NN`. It should be compact enough to copy into issues, but it must not duplicate the detailed roadmap body.
 
