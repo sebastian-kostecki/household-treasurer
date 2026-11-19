@@ -4,6 +4,7 @@ namespace App\Support;
 
 use App\Enums\CategoryType;
 use App\Models\Account;
+use App\Models\FinancialOperation;
 use App\Models\User;
 use App\Support\CategoryList\OperationCategoryChoice;
 use Illuminate\Http\Request;
@@ -18,14 +19,32 @@ final class OperationEntryValidation
 {
     public static function attach(Validator $validator, Request $request, User $user, CategoryType $type): void
     {
-        $validator->after(function (Validator $validator) use ($request, $user, $type): void {
+        $route = $request->route('financial_operation');
+
+        self::attachValues(
+            $validator,
+            $user,
+            $type,
+            $request->all(),
+            $route instanceof FinancialOperation ? $route : null,
+        );
+    }
+
+    /**
+     * The same checks over plain input values, for callers without a request.
+     *
+     * @param  array<string, mixed>  $input
+     */
+    public static function attachValues(Validator $validator, User $user, CategoryType $type, array $input, ?FinancialOperation $editing): void
+    {
+        $validator->after(function (Validator $validator) use ($input, $user, $type, $editing): void {
             if ($validator->errors()->isNotEmpty()) {
                 return;
             }
 
-            $operationDate = $request->input('operation_date');
-            $accountId = $request->input('account_id');
-            $categoryId = $request->input('category_id');
+            $operationDate = $input['operation_date'] ?? null;
+            $accountId = $input['account_id'] ?? null;
+            $categoryId = $input['category_id'] ?? null;
 
             if (! is_string($operationDate) || ! is_numeric($accountId) || ! is_numeric($categoryId)) {
                 return;
@@ -45,7 +64,7 @@ final class OperationEntryValidation
                 (int) $categoryId,
                 $type,
                 Carbon::parse($operationDate)->year,
-                OperationCategoryChoice::currentCategoryIdOf($request->route('financial_operation')),
+                OperationCategoryChoice::currentCategoryIdOf($editing),
             );
 
             if ($message !== null) {

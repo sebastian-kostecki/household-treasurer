@@ -16,8 +16,14 @@ trait ExpenseValidationRules
      */
     protected function storeExpenseRules(): array
     {
-        $userId = $this->user()?->id;
+        return self::expenseStoreRulesFor($this->user()?->id);
+    }
 
+    /**
+     * @return array<string, array<int, ValidationRule|array<mixed>|string>>
+     */
+    public static function expenseStoreRulesFor(?int $userId): array
+    {
         return [
             'operation_date' => ['required', 'date', 'before_or_equal:'.AppDay::today()->toDateString()],
             'amount_minor_units' => ['required', 'integer', Rule::notIn([0])],
@@ -100,7 +106,7 @@ trait ExpenseValidationRules
      */
     public function payload(): array
     {
-        $validated = $this->safe()->only([
+        return self::expensePayloadFrom($this->safe()->only([
             'operation_date',
             'amount_minor_units',
             'description',
@@ -108,8 +114,22 @@ trait ExpenseValidationRules
             'account_id',
             'category_id',
             'convert_to_income',
-        ]);
+        ]));
+    }
 
+    /**
+     * @param  array<string, mixed>  $validated
+     * @return array{
+     *     operation_date: string,
+     *     amount_minor_units: int,
+     *     description: string,
+     *     counterparty?: string|null,
+     *     account_id: int,
+     *     category_id: int,
+     * }
+     */
+    public static function expensePayloadFrom(array $validated): array
+    {
         $payload = [
             'operation_date' => (string) $validated['operation_date'],
             'amount_minor_units' => (int) $validated['amount_minor_units'],

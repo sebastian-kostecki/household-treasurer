@@ -526,9 +526,9 @@ MCP requests share the four FPM workers with the web UI. Tools return bounded re
 
 #### Automated
 
-- [ ] 5.1 Expense, Income and edit/delete tests pass unchanged on SQLite and PostgreSQL
-- [ ] 5.2 Value-based validation gives the same errors as the HTTP path
-- [ ] 5.3 Full gate on PostgreSQL and sloppy ci pass
+- [x] 5.1 Expense, Income and edit/delete tests pass unchanged on SQLite and PostgreSQL
+- [x] 5.2 Value-based validation gives the same errors as the HTTP path
+- [x] 5.3 Full gate on PostgreSQL and sloppy ci pass
 
 #### Manual
 

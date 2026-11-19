@@ -16,8 +16,14 @@ trait IncomeValidationRules
      */
     protected function storeIncomeRules(): array
     {
-        $userId = $this->user()?->id;
+        return self::incomeStoreRulesFor($this->user()?->id);
+    }
 
+    /**
+     * @return array<string, array<int, ValidationRule|array<mixed>|string>>
+     */
+    public static function incomeStoreRulesFor(?int $userId): array
+    {
         return [
             'operation_date' => ['required', 'date', 'before_or_equal:'.AppDay::today()->toDateString()],
             'amount_minor_units' => ['required', 'integer', 'min:1'],
@@ -100,7 +106,7 @@ trait IncomeValidationRules
      */
     public function payload(): array
     {
-        $validated = $this->safe()->only([
+        return self::incomePayloadFrom($this->safe()->only([
             'operation_date',
             'amount_minor_units',
             'description',
@@ -108,8 +114,22 @@ trait IncomeValidationRules
             'account_id',
             'category_id',
             'convert_to_expense_refund',
-        ]);
+        ]));
+    }
 
+    /**
+     * @param  array<string, mixed>  $validated
+     * @return array{
+     *     operation_date: string,
+     *     amount_minor_units: int,
+     *     description: string,
+     *     counterparty?: string|null,
+     *     account_id: int,
+     *     category_id: int,
+     * }
+     */
+    public static function incomePayloadFrom(array $validated): array
+    {
         $payload = [
             'operation_date' => (string) $validated['operation_date'],
             'amount_minor_units' => (int) $validated['amount_minor_units'],
