@@ -20,6 +20,11 @@ type Props = {
 
 const props = defineProps<Props>();
 
+const isOAuthAuthorizeUrl = (url: string): boolean =>
+    new URL(url, window.location.origin).pathname.startsWith(
+        '/oauth/authorize',
+    );
+
 const { verify, isLoading, error, isSupported } = usePasskeyVerify({
     ...(props.routes
         ? {
@@ -30,7 +35,16 @@ const { verify, isLoading, error, isSupported } = usePasskeyVerify({
           }
         : {}),
     onSuccess: (response) => {
-        router.visit(response.redirect ?? dashboard().url);
+        const destination = response.redirect ?? dashboard().url;
+
+        // The authorization endpoint may answer with a 302 to an external redirect_uri, which an XHR visit cannot follow.
+        if (isOAuthAuthorizeUrl(destination)) {
+            window.location.assign(destination);
+
+            return;
+        }
+
+        router.visit(destination);
     },
 });
 </script>

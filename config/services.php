@@ -31,6 +31,8 @@ return [
     'mcp' => [
         // E-mail or id of the user the local stdio MCP server acts for (local environment only).
         'local_user' => env('MCP_LOCAL_USER'),
+        // Registers the cash operation write tool on the MCP server (ADR-0108); read tools never depend on it.
+        'write_enabled' => env('MCP_WRITE_ENABLED', false),
     ],
 
     'slack' => [

@@ -486,9 +486,9 @@ MCP requests share the four FPM workers with the web UI. Tools return bounded re
 
 #### Automated
 
-- [x] 2.1 MCP tool tests and MonthPlanGroupSums parity test pass
-- [x] 2.2 month-plan-groups parity Vitest passes
-- [x] 2.3 Full gate on PostgreSQL and sloppy ci pass
+- [x] 2.1 MCP tool tests and MonthPlanGroupSums parity test pass — fb561edb
+- [x] 2.2 month-plan-groups parity Vitest passes — fb561edb
+- [x] 2.3 Full gate on PostgreSQL and sloppy ci pass — fb561edb
 
 #### Manual
 
@@ -499,9 +499,9 @@ MCP requests share the four FPM workers with the web UI. Tools return bounded re
 
 #### Automated
 
-- [ ] 3.1 MCP and Auth feature tests pass
-- [ ] 3.2 npm run build, types:check and check:ui pass
-- [ ] 3.3 Full gate on PostgreSQL and sloppy ci pass
+- [x] 3.1 MCP and Auth feature tests pass
+- [x] 3.2 npm run build, types:check and check:ui pass
+- [x] 3.3 Full gate on PostgreSQL and sloppy ci pass
 
 #### Manual
 

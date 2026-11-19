@@ -5,16 +5,22 @@ namespace App\Providers;
 use App\Support\ApplicationHealth;
 use App\Support\CsvImport\DefaultPaymentInstrumentNumberOmitter;
 use App\Support\CsvImport\PaymentInstrumentNumberOmitter;
+use App\Support\OAuthConsentProps;
 use App\Support\RehearsalClock;
 use App\Support\SheetLoad\SheetMapping;
 use Carbon\CarbonImmutable;
+use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Foundation\Events\DiagnosingHealth;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
+use Inertia\Inertia;
+use Laravel\Passport\Passport;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -39,6 +45,33 @@ class AppServiceProvider extends ServiceProvider
         $this->configureDefaults();
 
         Event::listen(DiagnosingHealth::class, ApplicationHealth::class);
+
+        $this->configurePassport();
+        $this->configureMcpRateLimit();
+    }
+
+    /**
+     * Passport is the OAuth server of the MCP endpoint (ADR-0108): short access tokens, Inertia consent page.
+     */
+    protected function configurePassport(): void
+    {
+        Passport::tokensExpireIn(now()->addHour());
+        Passport::refreshTokensExpireIn(now()->addDays(30));
+
+        Passport::authorizationView(fn (array $parameters) => Inertia::render(
+            'auth/OAuthAuthorize',
+            OAuthConsentProps::fromAuthorization($parameters),
+        )->toResponse(request()));
+    }
+
+    /**
+     * 60 MCP calls a minute per signed-in user.
+     */
+    protected function configureMcpRateLimit(): void
+    {
+        RateLimiter::for('mcp', fn (Request $request): Limit => Limit::perMinute(60)->by(
+            (string) ($request->user()?->getAuthIdentifier() ?? $request->ip()),
+        ));
     }
 
     /**

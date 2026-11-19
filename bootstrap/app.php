@@ -38,6 +38,10 @@ return Application::configure(basePath: dirname(__DIR__))
         // without this the nightly backup and its monitor would stop without a single mail.
         // Each run overwrites its own output file and mails it on a non-zero exit, so a crash
         // that skips the package's own failure mail (an Error, not an Exception) still arrives.
+        // OAuth housekeeping of the MCP endpoint (ADR-0108): expired tokens hourly, unused registered clients daily.
+        $schedule->command('passport:purge')->hourly()->onOneServer();
+        $schedule->command('app:prune-oauth-clients')->daily()->onOneServer();
+
         $backupCommands = [
             'backup:run' => ['03:00', 120],
             'backup:clean' => ['03:30', 60],

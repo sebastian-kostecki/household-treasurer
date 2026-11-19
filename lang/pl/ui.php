@@ -114,6 +114,16 @@ return [
             'password' => 'Hasło',
             'submit' => 'Potwierdź',
         ],
+        'oauth_authorize' => [
+            'title' => 'Zezwolić na dostęp?',
+            'description' => ':client prosi o dostęp do Twojego budżetu w Domowym Skarbniku.',
+            'intro' => 'Aplikacja będzie mogła:',
+            'scope_read' => 'czytać salda kont, plan miesiąca i roku oraz operacje',
+            'scope_write' => 'zapisywać operacje gotówkowe, każdą po Twoim zatwierdzeniu',
+            'outro' => 'Dostęp możesz cofnąć w każdej chwili. Aplikacja nie zobaczy Twojego hasła.',
+            'allow' => 'Zezwól',
+            'deny' => 'Odmów',
+        ],
         'two_factor' => [
             'title' => 'Uwierzytelnianie dwuskładnikowe',
             'description' => 'Potwierdź dostęp do konta, wpisując kod z aplikacji uwierzytelniającej.',

@@ -8,9 +8,21 @@ use Illuminate\Database\Query\Builder;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 use Illuminate\Support\Facades\DB;
 use Laravel\Fortify\Features;
+use Tests\Feature\Mcp\Support\PassportKeys;
 
 abstract class TestCase extends BaseTestCase
 {
+    /**
+     * The `api` guard builds its resource server from the Passport keys on every request, so each test gets
+     * a throwaway pair instead of key files or secrets in the repository.
+     */
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        PassportKeys::install();
+    }
+
     protected function skipUnlessFortifyHas(string $feature, ?string $message = null): void
     {
         if (! Features::enabled($feature)) {
