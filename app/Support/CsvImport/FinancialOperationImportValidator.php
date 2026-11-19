@@ -10,6 +10,7 @@ use App\Support\AppDay;
 use App\Support\CategoryList\OperationCategoryChoice;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\MessageBag;
 use Illuminate\Validation\Rule;
 
 class FinancialOperationImportValidator
@@ -31,80 +32,123 @@ class FinancialOperationImportValidator
      */
     public function validate(User $user, string $type, array $data): array
     {
-        $rules = match ($type) {
-            'income' => $this->incomeRules($user),
-            'expense', 'refund' => $this->expenseRules($user),
-            default => [],
-        };
-
-        $validator = Validator::make($data, $rules);
+        $validator = Validator::make($data, $this->rules($user, $type));
 
         $validator->after(function ($validator) use ($user, $type, $data): void {
             if ($validator->errors()->isNotEmpty()) {
                 return;
             }
 
-            $account = Account::query()->find($data['account_id']);
-
-            if ($account !== null && $data['operation_date'] < $account->opening_date->toDateString()) {
-                $validator->errors()->add(
-                    'operation_date',
-                    __('The operation date cannot be earlier than the account opening date.'),
-                );
-            }
-
-            $operationDate = Carbon::parse($data['operation_date']);
-            $yearState = $this->yearState($user, $operationDate->year);
-
-            if ($yearState !== ImportBudgetYearState::Execution) {
-                $validator->errors()->add(
-                    'category_id',
-                    __(
-                        $yearState === ImportBudgetYearState::Draft
-                            ? 'Row :date: the :year budget is a draft. Start its execution to import income, expenses and refunds from :year.'
-                            : 'Row :date: there is no :year budget. Create it and start its execution to import income, expenses and refunds from :year.',
-                        ['date' => $operationDate->format('d.m.Y'), 'year' => $operationDate->year],
-                    ),
-                );
-
-                return;
-            }
-
-            $message = OperationCategoryChoice::check(
-                $user,
-                $data['category_id'],
-                $type === 'income' ? CategoryType::Income : CategoryType::Expense,
-                $operationDate->year,
-                null,
-            );
-
-            if ($message !== null) {
-                $validator->errors()->add('category_id', $message);
-            }
-
-            if ($type === 'income' && $data['amount_minor_units'] < 1) {
-                $validator->errors()->add(
-                    'amount_minor_units',
-                    __('Income amount must be greater than zero.'),
-                );
-            }
-
-            if ($type === 'expense' && $data['amount_minor_units'] < 1) {
-                $validator->errors()->add(
-                    'amount_minor_units',
-                    __('Expense amount must be greater than zero.'),
-                );
-            }
-
-            if ($type === 'refund' && $data['amount_minor_units'] > -1) {
-                $validator->errors()->add(
-                    'amount_minor_units',
-                    __('Refund amount must be less than zero.'),
-                );
-            }
+            $this->checkRow($validator->errors(), $user, $type, $data);
         });
 
         return $validator->errors()->all();
+    }
+
+    /**
+     * Checks that need the row's fields already valid: the account opening date, a Budget in
+     * execution for the operation's year (without it nothing else is checked), the Category
+     * choice and the sign of the amount.
+     *
+     * @param  array{
+     *     operation_date: string,
+     *     amount_minor_units: int,
+     *     description: string,
+     *     account_id: int,
+     *     category_id: int,
+     * }  $data
+     */
+    private function checkRow(MessageBag $errors, User $user, string $type, array $data): void
+    {
+        $this->checkAccountOpeningDate($errors, $data['account_id'], $data['operation_date']);
+
+        $operationDate = Carbon::parse($data['operation_date']);
+
+        if (! $this->checkYearInExecution($errors, $user, $operationDate)) {
+            return;
+        }
+
+        $this->checkCategory($errors, $user, $type, $data['category_id'], $operationDate->year);
+        $this->checkAmountSign($errors, $type, $data['amount_minor_units']);
+    }
+
+    private function checkAccountOpeningDate(MessageBag $errors, int $accountId, string $operationDate): void
+    {
+        $account = Account::query()->find($accountId);
+
+        if ($account !== null && $operationDate < $account->opening_date->toDateString()) {
+            $errors->add(
+                'operation_date',
+                __('The operation date cannot be earlier than the account opening date.'),
+            );
+        }
+    }
+
+    /**
+     * Adds the error of a draft or missing Budget for the operation's year and reports
+     * whether the year is in execution.
+     */
+    private function checkYearInExecution(MessageBag $errors, User $user, Carbon $operationDate): bool
+    {
+        $yearState = $this->yearState($user, $operationDate->year);
+
+        if ($yearState === ImportBudgetYearState::Execution) {
+            return true;
+        }
+
+        $errors->add(
+            'category_id',
+            __(
+                $yearState === ImportBudgetYearState::Draft
+                    ? 'Row :date: the :year budget is a draft. Start its execution to import income, expenses and refunds from :year.'
+                    : 'Row :date: there is no :year budget. Create it and start its execution to import income, expenses and refunds from :year.',
+                ['date' => $operationDate->format('d.m.Y'), 'year' => $operationDate->year],
+            ),
+        );
+
+        return false;
+    }
+
+    private function checkCategory(MessageBag $errors, User $user, string $type, int $categoryId, int $year): void
+    {
+        $message = OperationCategoryChoice::check(
+            $user,
+            $categoryId,
+            $type === 'income' ? CategoryType::Income : CategoryType::Expense,
+            $year,
+            null,
+        );
+
+        if ($message !== null) {
+            $errors->add('category_id', $message);
+        }
+    }
+
+    private function checkAmountSign(MessageBag $errors, string $type, int $amountMinorUnits): void
+    {
+        if ($type === 'income' && $amountMinorUnits < 1) {
+            $errors->add('amount_minor_units', __('Income amount must be greater than zero.'));
+        }
+
+        if ($type === 'expense' && $amountMinorUnits < 1) {
+            $errors->add('amount_minor_units', __('Expense amount must be greater than zero.'));
+        }
+
+        if ($type === 'refund' && $amountMinorUnits > -1) {
+            $errors->add('amount_minor_units', __('Refund amount must be less than zero.'));
+        }
+    }
+
+    /**
+     * @return array<string, array<int, mixed>>
+     */
+    private function rules(User $user, string $type): array
+    {
+        return match ($type) {
+            'income' => $this->incomeRules($user),
+            'expense', 'refund' => $this->expenseRules($user),
+            default => [],
+        };
     }
 
     private function yearState(User $user, int $year): ImportBudgetYearState
