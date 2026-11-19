@@ -8,7 +8,7 @@ Examples. 2026 chosen on 31.12 at 23:40 Polish time (22:40 UTC) is 2026 at 22:59
 
 Relation to earlier ADRs. ADR-0075: the order of the default year does not change; the year in the session wins only while it is a choice under this ADR. ADR-0103: both „the year it was chosen in” and „the year now” are App Day years, so the switch happens at 00:00 Polish time. ADR-0031: the Dashboard always reads the current calendar year and is not affected. The rule covers every view that reads `SelectedBudgetYear`: Budget, Month Plan, Reports, the command palette and `shell.budgetYear`.
 
-Consequences. `SelectedBudgetYear` gains `choose` and `forget`, the only writers of the session year, and `resolve` applies the rule. The test that pinned the gap (`test_session_year_of_the_old_year_stays_selected_in_january_known_gap`) is rewritten to the required behaviour as a change of requirement, not assertion tuning. The glossary entry Budget and the README section „Przełom roku” change with the code. No migration, no Inertia prop change.
+Consequences. `SelectedBudgetYear` gains `choose` and `forgetIfChosen`, the only writers of the session year, and `resolve` applies the rule. The test that pinned the gap (`test_session_year_of_the_old_year_stays_selected_in_january_known_gap`) is rewritten to the required behaviour as a change of requirement, not assertion tuning. The glossary entry Budget and the README section „Przełom roku” change with the code. No migration, no Inertia prop change.
 
 We rejected:
 

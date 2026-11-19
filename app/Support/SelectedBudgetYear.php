@@ -59,11 +59,14 @@ class SelectedBudgetYear
     }
 
     /**
-     * Forgets the chosen year and the year it was chosen in (ADR-0111).
+     * Forgets the chosen year and the year it was chosen in when the session
+     * holds $year, e.g. after its Budget is deleted (ADR-0111).
      */
-    public static function forget(Session $session): void
+    public static function forgetIfChosen(Session $session, int $year): void
     {
-        $session->forget([self::YEAR_KEY, self::CHOSEN_IN_KEY]);
+        if (self::intOrNull($session->get(self::YEAR_KEY)) === $year) {
+            $session->forget([self::YEAR_KEY, self::CHOSEN_IN_KEY]);
+        }
     }
 
     private static function intOrNull(mixed $value): ?int

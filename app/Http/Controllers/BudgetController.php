@@ -134,9 +134,7 @@ class BudgetController extends Controller
 
         $budget->delete();
 
-        if ((int) $request->session()->get('budget_year') === $budget->year) {
-            SelectedBudgetYear::forget($request->session());
-        }
+        SelectedBudgetYear::forgetIfChosen($request->session(), $budget->year);
 
         Inertia::flash('toast', [
             'type' => 'success',

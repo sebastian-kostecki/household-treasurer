@@ -336,7 +336,7 @@ Procedura N→N+1 (np. 2026→2027). Rok zmienia się o 00:00 czasu polskiego (A
 - zapomniany grudzień: stycznia nie da się już skopiować z grudnia, Propozycja bierze roczny udział planu, a kwoty poprawiasz ręcznie przed zatwierdzeniem;
 - zapomniany start: uruchom N+1 w dowolnej chwili. Dashboard do tego czasu pokazuje kartę „Budżet jest w szkicu”, a podgląd Importu pokazuje przy wierszach N+1 notatkę „Budżet N+1 jest szkicem” z odnośnikiem do Budżetu, a zaznaczony dochód, wydatek albo zwrot z N+1 blokuje „Zatwierdź import” osobnym powodem. Odznacz te wiersze, żeby zapisać grudzień (ADR-0106). Po starcie Zebrane i Propozycje uzupełniają się same. Potem wgraj plik ponownie: grudzień wróci jako duplikaty (niezaznaczone), a styczeń dostanie kategorie.
 
-Rok N wybrany w menu albo założony jako nowy Budżet w trakcie roku N ustępuje od 00:00 czasu polskiego roku N+1 samoczynnie, bez komunikatu (ADR-0111). Inny rok wybrany do przeglądania (np. 2023) oraz rok N+1 wybrany jeszcze w grudniu zostają. Rok N wybrany ponownie już po przełomie też zostaje.
+Rok N wybrany w menu albo założony jako nowy Budżet w trakcie roku N od 00:00 czasu polskiego 1 stycznia sam ustępuje rokowi N+1, bez komunikatu (ADR-0111). Inny rok wybrany do przeglądania (np. 2023) oraz rok N+1 wybrany jeszcze w grudniu zostają. Rok N wybrany ponownie już po przełomie też zostaje.
 
 **Co sprawdzić 1–2 stycznia:**
 

@@ -10,7 +10,6 @@ use App\Models\Budget;
 use App\Models\BudgetLine;
 use App\Models\Category;
 use App\Models\User;
-use App\Support\AppDay;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -44,7 +43,7 @@ class BudgetTest extends TestCase
         $response
             ->assertSessionHasNoErrors()
             ->assertSessionHas('budget_year', 2026)
-            ->assertSessionHas('budget_year_chosen_in', AppDay::today()->year)
+            ->assertSessionHas('budget_year_chosen_in', 2026)
             ->assertRedirect(route('budget'));
 
         $this->assertDatabaseHas('budgets', [
@@ -353,6 +352,20 @@ class BudgetTest extends TestCase
             ->assertSessionMissing('budget_year_chosen_in');
     }
 
+    public function test_deleting_the_budget_of_another_year_keeps_the_choice(): void
+    {
+        $user = User::factory()->create();
+        Budget::factory()->for($user)->create(['year' => 2025]);
+        $draft = Budget::factory()->for($user)->create(['year' => 2027]);
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2025, 'budget_year_chosen_in' => 2026])
+            ->delete(route('budgets.destroy', $draft))
+            ->assertSessionHasNoErrors()
+            ->assertSessionHas('budget_year', 2025)
+            ->assertSessionHas('budget_year_chosen_in', 2026);
+    }
+
     public function test_budget_page_lists_categories_for_selected_year(): void
     {
         $user = User::factory()->create();
@@ -409,7 +422,7 @@ class BudgetTest extends TestCase
             ->post(route('budget.select-year'), ['year' => 2025])
             ->assertSessionHasNoErrors()
             ->assertSessionHas('budget_year', 2025)
-            ->assertSessionHas('budget_year_chosen_in', AppDay::today()->year)
+            ->assertSessionHas('budget_year_chosen_in', 2026)
             ->assertRedirect(route('budget'));
 
         $this->actingAs($user)

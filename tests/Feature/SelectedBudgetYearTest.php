@@ -18,7 +18,7 @@ class SelectedBudgetYearTest extends TestCase
     /**
      * @param  list<int>  $years
      */
-    private function resolveFor(array $years, string $today, ?int $sessionYear = null, ?int $chosenIn = null): ?int
+    private function resolveFor(array $years, string $today, ?int $sessionYear = null, int|string|null $chosenIn = null): ?int
     {
         $this->travelTo($today);
         $user = User::factory()->create();
@@ -112,6 +112,25 @@ class SelectedBudgetYearTest extends TestCase
     public function test_a_session_year_without_the_choice_year_stays_selected(): void
     {
         $this->assertSame(2026, $this->resolveFor([2026, 2027], '2027-01-05', 2026));
+    }
+
+    /**
+     * ADR-0111: only an App Day year later than the choice year turns it over. A clock moved back
+     * after a rehearsal (`app:rehearsal-clock --off`) keeps the year chosen in the later year.
+     */
+    public function test_a_year_chosen_in_a_later_app_day_year_stays_when_the_clock_goes_back(): void
+    {
+        $this->assertSame(2027, $this->resolveFor([2026, 2027], '2026-11-10', 2027, 2027));
+    }
+
+    public function test_a_choice_year_stored_as_a_digit_string_still_counts(): void
+    {
+        $this->assertSame(2027, $this->resolveFor([2026, 2027], '2027-01-05', 2026, '2026'));
+    }
+
+    public function test_a_malformed_choice_year_keeps_the_session_year(): void
+    {
+        $this->assertSame(2026, $this->resolveFor([2026, 2027], '2027-01-05', 2026, '2026x'));
     }
 
     public function test_the_default_year_changes_at_polish_midnight(): void

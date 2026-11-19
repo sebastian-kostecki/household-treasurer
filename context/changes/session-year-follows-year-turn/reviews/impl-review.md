@@ -39,7 +39,7 @@
 - **Location**: app/Http/Controllers/BudgetController.php:137
 - **Detail**: The plan says both session keys live in one place. `destroy` still checks `(int) $request->session()->get('budget_year') === $budget->year` with a string literal and its own `(int)` cast, while `SelectedBudgetYear` keeps the key in a private `YEAR_KEY` and parses it with `intOrNull`. It works today, because only `choose` writes and always writes an int. Still, the key string now lives in two places, and the docblock claims `SelectedBudgetYear` owns the session year. The plan's grep criterion 2.4 (`put('budget_year'`) cannot see this read.
 - **Fix**: Add `SelectedBudgetYear::forgetIfChosen(Session $session, int $year)` (it uses `intOrNull` and forgets both keys) and call it from `destroy` in place of the `if`.
-- **Decision**: PENDING
+- **Decision**: FIXED. `forgetIfChosen` replaces `forget`, `destroy` calls it, and the controller no longer holds the session key. ADR-0111's Consequences paragraph names the new method. The new negative destroy test from F4 guards it: an always-forget mutant fails that test.
 
 ### F2 — Manual checks pending while change.md said `implemented`
 
@@ -49,7 +49,7 @@
 - **Location**: context/changes/session-year-follows-year-turn/plan.md:225,242-244
 - **Detail**: The manual rows 1.3 (reading ADR-0111 and the glossary) and 2.9–2.11 (the `app:rehearsal-clock` pass 22:30 → 23:05 UTC, 2023 in a second session, README wording) are unchecked. The epilogue had already set `change.md` to `implemented`, and the roadmap shows S-40 in progress. The automated rows are all backed by evidence (see above). No row is falsely ticked.
 - **Fix**: Run the manual pass from plan "Manual Testing Steps" in the worktree preview, then tick 1.3 and 2.9–2.11 before `/10x-archive`.
-- **Decision**: PENDING
+- **Decision**: DEFERRED TO USER. The manual rows need the human pass on the rehearsal clock, so the agent does not tick them.
 
 ### F3 — README sentence does not say what year N gives way to
 
@@ -59,7 +59,7 @@
 - **Location**: README.md:339
 - **Detail**: "Rok N … ustępuje od 00:00 czasu polskiego roku N+1 samoczynnie" reads "roku N+1" as the genitive of "00:00", so the sentence never says that N gives way *to* N+1, which is what the plan asked for. This belongs to manual check 2.11.
 - **Fix**: "…w trakcie roku N od 00:00 czasu polskiego 1 stycznia ustępuje samoczynnie rokowi N+1, bez komunikatu (ADR-0111)."
-- **Decision**: PENDING
+- **Decision**: FIXED. README.md:339 now reads "…w trakcie roku N od 00:00 czasu polskiego 1 stycznia sam ustępuje rokowi N+1, bez komunikatu (ADR-0111)."
 
 ### F4 — Edge cases of the rule that no test pins
 
@@ -75,4 +75,11 @@
 
   `<` → `<=` and dropping `$chosenIn !== null` are equivalent mutants, so they need no test.
 - **Fix**: Add `resolveFor([2026, 2027], '2026-11-10', 2027, 2027)` → 2027 and a malformed-marker case (widen `$chosenIn` to `mixed`). Add a negative destroy case (session 2025, delete draft 2027, `assertSessionHas('budget_year', 2025)`). Assert the literal `2026` in `BudgetTest`.
-- **Decision**: PENDING
+- **Decision**: FIXED.
+  - `SelectedBudgetYearTest` gained three tests: a later-year marker with the clock moved back, a digit-string marker and a malformed marker (`'2026x'`). `$chosenIn` is widened to `int|string|null`.
+  - `BudgetTest` gained `test_deleting_the_budget_of_another_year_keeps_the_choice` and asserts the literal 2026 for the choice year.
+  - On PostgreSQL each new test kills its mutant: `<` → `!==`, a plain `(int)` cast of the marker, and an unconditional forget.
+
+## Triage
+
+The user's decision on 2026-11-19 was "napraw samodzielnie" (fix on your own). Outcome: F1, F3 and F4 are fixed, and F2 is deferred to the user because it is a manual pass.
