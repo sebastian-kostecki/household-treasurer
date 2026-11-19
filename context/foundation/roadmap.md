@@ -59,7 +59,7 @@ Cztery kamienie milowe powstały w dwa tygodnie, a aplikacja nie przeszła jeszc
 | S-41 | year-turn-notices               | użytkownik widzi przed przełomem, co czeka: plan grudnia, Budżet następnego roku i Import przy szkicu          | F-08, S-39    | MS-03    | proposed |
 | S-42 | import-across-draft-year        | użytkownik importuje wyciąg z przełomu przy szkicu nowego roku i wie, co zrobić z wierszami nowego roku        | —             | MS-04    | done     |
 | S-43 | years-report-in-early-january   | użytkownik widzi w „Latach” i w roku do roku sensowny odczyt w pierwszych dniach stycznia                     | F-08, S-39    | MS-05    | proposed |
-| S-44 | e2e-in-ci                       | użytkownik (właściciel repo) widzi czerwone CI, gdy zmiana psuje przepływ w przeglądarce                       | F-09          | MS-07    | ready    |
+| S-44 | e2e-in-ci                       | użytkownik (właściciel repo) widzi czerwone CI, gdy zmiana psuje przepływ w przeglądarce                       | F-09          | MS-07    | in-progress |
 | S-45 | production-error-tracking       | użytkownik (właściciel) dostaje zgłoszenie wyjątku z produkcji ze stosem wywołań i kontekstem żądania          | —             | MS-08    | blocked  |
 | S-46 | docs-match-code                 | użytkownik i agent czytają słownik i ADR bez zdublowanych numerów i terminów, których nie ma w kodzie          | —             | MS-09    | done     |
 
@@ -192,7 +192,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Unknowns:**
   - Skąd CI bierze konto testowe dla `auth.setup.ts` (lokalnie dane logowania są w `.env`)? — Owner: user. Block: no.
 - **Risk:** Flaky spec w bramce zatrzyma wdrożenia poprawek przełomu w grudniu; bramka obejmuje najpierw tylko stabilne przepływy, reszta zostaje lokalna.
-- **Status:** ready
+- **Status:** in-progress
 
 ### S-45: Śledzenie błędów na produkcji
 
