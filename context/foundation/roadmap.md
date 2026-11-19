@@ -53,7 +53,7 @@ Cztery kamienie milowe powstały w dwa tygodnie, a aplikacja nie przeszła jeszc
 | ID   | Change ID                       | Outcome (user can …)                                                                                          | Prerequisites | PRD refs | Status   |
 | ---- | ------------------------------- | ------------------------------------------------------------------------------------------------------------- | ------------- | -------- | -------- |
 | F-08 | app-day-decision                | (foundation) ADR i słownik ustalają jeden „dzień aplikacji” dla serwera i przeglądarki w miejsce „dziś w UTC”  | —             | MS-01    | ready    |
-| F-09 | test-plan-refresh               | (foundation) plan testów odpowiada stanowi repo i wskazuje przepływy E2E, które są bramką CI                   | —             | MS-06    | ready    |
+| F-09 | test-plan-refresh               | (foundation) plan testów odpowiada stanowi repo i wskazuje przepływy E2E, które są bramką CI                   | —             | MS-06    | done     |
 | S-39 | one-app-day                     | użytkownik widzi ten sam dzień i rok w menu roku, na Dashboardzie i w domyślnej dacie dialogów wokół północy   | F-08          | MS-01    | proposed |
 | S-40 | session-year-follows-year-turn  | użytkownik po przełomie otwiera aplikację w nowym roku bez ręcznej zmiany roku                                 | F-08          | MS-02    | proposed |
 | S-41 | year-turn-notices               | użytkownik widzi przed przełomem, co czeka: plan grudnia, Budżet następnego roku i Import przy szkicu          | F-08          | MS-03    | proposed |
@@ -113,7 +113,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** Biegnie przez `/10x-test-plan --refresh`, nie `/10x-plan`; jeśli zostanie pominięty, E2E w CI wybierze bramki bez strategii i każdy flaky spec zablokuje wdrożenia poprawek przełomu.
-- **Status:** ready
+- **Status:** done
 
 ## Slices
 
@@ -301,3 +301,4 @@ This table is the clean handoff to Jira/Linear or any MCP-backed backlog. Includ
 - **S-35: użytkownik może zobaczyć raport roku jako listę kategorii od największych z paskiem udziału i różnicą do poprzedniego roku, przełączyć na grupy i otworzyć panel jednej kategorii z kwotą 2026 i 2025, różnicą, udziałem, miesiącami roku i przejściem do Operacji** — Archived 2026-11-14 → `context/archive/2026-11-14-report-ranking-and-category-panel/`. Lesson: —.
 - **S-36: użytkownik może kliknąć kategorię w tabeli „Lata” i zobaczyć w panelu kategorii Raportu zakładkę „Lata” z jej latami 2020–2026** — Archived 2026-11-14 → `context/archive/2026-11-14-report-panel-years-tab/`. Lesson: —.
 - **S-46: użytkownik i agent czytają słownik i ADR bez pułapek: dwa ADR 0008 mają osobne numery z poprawionymi odnośnikami, a Year Close, Reserve, Earmark, Agenda i Cash Expectation są w słowniku oznaczone jako „nie w kodzie” albo usunięte** — Archived 2026-11-19 → `context/archive/2026-11-19-docs-match-code/`. Lesson: —.
+- **F-09: (foundation) `test-plan.md` odpowiada stanowi repo: faza 1 zamknięta z odnośnikiem do archiwum, fazy 2–5 bez odwołań do porzuconego M-2, z miejscem na testy przełomu roku i z listą przepływów E2E, które są bramką CI.** — Archived 2026-11-19 → `context/archive/2026-11-19-test-plan-refresh/`. Lesson: —.
