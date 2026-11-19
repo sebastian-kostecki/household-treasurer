@@ -176,8 +176,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Prerequisites:** F-08, S-39 (`AppDay` z ADR-0103)
 - **Parallel with:** S-40, S-41, S-42, F-09, S-44, S-45, S-46
 - **Blockers:** —
-- **Unknowns:**
-  - Co „Lata” pokazują na początku stycznia: domyślnie „Pełne lata”, cięcie do końca poprzedniego miesiąca czy jak dziś z podpowiedzią? — Owner: user. Block: no.
+- **Unknowns:** — (rozstrzygnięte w ADR-0108: domyślnie „Pełne lata” przez cały styczeń, poza pierwszym rokiem z budżetem; rok do roku bez zmian, tylko testy)
 - **Risk:** Zmienia ADR-0097 (Same-day Cut) i może dotknąć ADR-0074; sumy w „Latach” muszą dalej równać się raportowi Rok.
 - **Status:** in-progress
 

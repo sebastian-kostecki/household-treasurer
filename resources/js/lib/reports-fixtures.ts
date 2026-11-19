@@ -1008,7 +1008,10 @@ function buildYears(options: {
         current_year: options.currentYear,
         cut: options.cut,
         default_range:
-            options.cut !== null && options.cut.month > 1 ? 'same_day' : 'full',
+            options.cut !== null &&
+            (options.cut.month > 1 || columns.length === 1)
+                ? 'same_day'
+                : 'full',
         same_day:
             options.currentYear === null
                 ? null
@@ -1042,6 +1045,14 @@ const yearsSameDay = buildYears({
 });
 
 const yearsJanuary = buildYears({
+    lastYear: 2027,
+    currentYear: 2027,
+    cut: { month: 1, day: 2 },
+});
+
+/** 2 January 2027 in the first year with a Budget: Full Years would count no column, so „Do D” stays the default (ADR-0108). */
+const yearsJanuarySingleYear = buildYears({
+    firstYear: 2027,
     lastYear: 2027,
     currentYear: 2027,
     cut: { month: 1, day: 2 },
@@ -1272,6 +1283,53 @@ const pastYearComparedReport: PeriodReportData = {
                   through: '2024-12-31',
                   is_partial: false,
               },
+};
+
+/** Year 2027 on 2 January: compared with 1–2 January 2026 (ADR-0074), the panel's N−1 tile. */
+const januaryComparedReport: PeriodReportData = {
+    income_minor_units: 0,
+    expense_minor_units: 2000,
+    result_minor_units: -2000,
+    has_operations: true,
+    comparison: {
+        ...comparison(
+            {
+                from: '2026-01-01',
+                through: '2026-01-02',
+                is_partial: true,
+                income_minor_units: 0,
+                expense_minor_units: 1500,
+                result_minor_units: -1500,
+            },
+            { income: 0, expense: 2000 },
+        ),
+        year: 2026,
+    },
+    expense: [
+        {
+            kind: 'category',
+            ...compared(
+                {
+                    ...food,
+                    amount_minor_units: 1200,
+                    share_tenths_percent: 600,
+                },
+                900,
+            ),
+        },
+        {
+            kind: 'category',
+            ...compared(
+                {
+                    ...media,
+                    amount_minor_units: 800,
+                    share_tenths_percent: 400,
+                },
+                600,
+            ),
+        },
+    ],
+    income: [],
 };
 
 const comparedCinemaOnlyReport: PeriodReportData = {
@@ -2300,7 +2358,7 @@ export const reportScenarios: ReportScenario[] = [
     {
         key: 'panel-years-january',
         caption:
-            'Panel „Lata” Roku 2027 na 2 stycznia: tryb „Pełne lata”, podpis „Pełne lata”, 2027 „w toku” poza zmianą',
+            'Panel „Lata” Roku 2027 na 2 stycznia: tryb „Pełne lata”, podpis „Pełne lata”, 2027 „w toku” poza zmianą; słupek 2026 to cały rok (1 000 zł), kafelek rok wcześniej to 1–2 stycznia 2026 (9 zł)',
         props: {
             budgetYear: 2027,
             budgetPhase: 'execution',
@@ -2311,12 +2369,12 @@ export const reportScenarios: ReportScenario[] = [
                 is_in_progress: true,
                 window: null,
             },
-            report: comparedYearReport,
+            report: januaryComparedReport,
             trend: null,
             years: null,
             rankingMode: 'categories',
             categoryPanel: buildPanel(
-                comparedYearReport,
+                januaryComparedReport,
                 panelJanuaryDay2,
                 1,
                 {},
@@ -2333,6 +2391,10 @@ export const reportScenarios: ReportScenario[] = [
                             91000,
                             100000,
                             1200,
+                        ],
+                        2: [
+                            24000, 25000, 27000, 29000, 31000, 33000, 35000,
+                            800,
                         ],
                     },
                     counted: 7,
@@ -2438,6 +2500,21 @@ export const reportScenarios: ReportScenario[] = [
             report: null,
             trend: null,
             years: yearsJanuary,
+            rankingMode: 'categories',
+            categoryPanel: null,
+        },
+    },
+    {
+        key: 'years-january-single-year',
+        caption:
+            'Pierwszy rok z budżetem, 2 stycznia 2027: jedyna kolumna to rok bieżący, więc domyślnie „Do 2 stycznia” (w „Pełnych latach” nic by się nie liczyło), przełącznik zostaje',
+        props: {
+            budgetYear: 2027,
+            budgetPhase: 'execution',
+            period: yearsPeriod,
+            report: null,
+            trend: null,
+            years: yearsJanuarySingleYear,
             rankingMode: 'categories',
             categoryPanel: null,
         },

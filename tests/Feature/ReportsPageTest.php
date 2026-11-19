@@ -782,7 +782,7 @@ class ReportsPageTest extends TestCase
                     ->where('years.current_year', $currentYear)
                     ->where('years.cut', $cut)
                     ->where('years.default_range', $defaultRange)
-                    ->has('years.same_day'));
+                    ->whereNot('years.same_day', null));
 
             $this->actingAs($user)
                 ->withSession(['budget_year' => $currentYear])

@@ -66,6 +66,12 @@ describe('reportYearsInitialRange', () => {
 
     it('opens on full years without a current year', () => {
         expect(
+            reportYearsInitialRange({ same_day: null, default_range: 'full' }),
+        ).toBe('full');
+    });
+
+    it('never opens on a missing same day cut', () => {
+        expect(
             reportYearsInitialRange({
                 same_day: null,
                 default_range: 'same_day',

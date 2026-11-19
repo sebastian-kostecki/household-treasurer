@@ -276,7 +276,7 @@ test('on 1 January every year-over-year and Years reading gives the hand-counted
         // Years: "Razem" of the Same-day Cut and of Full Years, columns 2026 and 2027.
         ->and($years['columns'])->toBe([2026, 2027])
         ->and($years['same_day']['expense']['total']['cells'])->toBe([1_000, 7_000])
-        ->and($years['full']['expense']['total']['cells'][0])->toBe(3_521_000)
+        ->and($years['full']['expense']['total']['cells'])->toBe([3_521_000, 7_000])
         // The Year 2026 report is the same 35 210 zł.
         ->and(PeriodReport::forYear($budget2026)->toArray()['expense_minor_units'])->toBe(3_521_000);
 });

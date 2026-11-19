@@ -85,6 +85,16 @@ test('the same day cut opens by default only once the current year has a closed 
         ->and($opensOnSameDay('2028-02-29'))->toBeTrue();
 });
 
+test('in January the same day cut stays the default when the current year is the only column', function () {
+    $user = User::factory()->create();
+    yearsRangeBudget($user, 2027);
+
+    $range = ReportYearsRange::resolve($user, CarbonImmutable::parse('2027-01-02'));
+
+    expect($range->columns())->toBe([2027])
+        ->and($range->opensOnSameDay())->toBeTrue();
+});
+
 test('without a current year the same day cut is not the default', function () {
     $user = User::factory()->create();
     yearsRangeBudget($user, 2026);
