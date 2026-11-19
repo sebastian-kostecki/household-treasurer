@@ -13,6 +13,7 @@ paths:
     - 'resources/js/lib/report-window*.ts'
     - 'resources/js/lib/reports-fixtures.ts'
     - 'tests/Unit/ReportsHardcodedUiTest.php'
+    - 'tests/Feature/ReportAmountInvariantTest.php'
 ---
 
 # Reports and charts
@@ -23,7 +24,7 @@ The chart library is shadcn-vue Chart on Unovis (ADR-0071, exact versions in `pa
 
 ## Report amounts equal the existing readings to the grosz
 
-Compute report amounts on the server in `app/Support` and pass them as props in minor units. Reuse `BudgetMonthResult`, `CategoryExecutionMetrics` and `MonthCategoryActuals`, or prove equality with them in a test: a month's report result equals Month Result, and a year's category total equals the annual execution. Refunds count net; own transfers and capital movements are excluded.
+Compute report amounts on the server in `app/Support` and pass them as props in minor units. Reuse `BudgetMonthResult`, `CategoryExecutionMetrics` and `MonthCategoryActuals`, or prove equality with them in a test: a month's report result equals Month Result, and a year's category total equals the annual execution. Refunds count net; own transfers and capital movements are excluded. The proof of equality is a case in `tests/Feature/ReportAmountInvariantTest.php` with a hand-counted literal per reading, not an assertion that the report equals another reading (two errors would cancel); a new report amount or boundary adds a case there.
 
 ## The Reports page is the Ranking on the `.report-grid`, guarded and shown in a kitchen sink
 
