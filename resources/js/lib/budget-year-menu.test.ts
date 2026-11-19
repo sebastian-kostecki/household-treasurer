@@ -24,7 +24,13 @@ describe('budgetYearMenu', () => {
     it('lists the single year and the next year to create', () => {
         expect(budgetYearMenu(entries(2026), 2026, 2026)).toEqual({
             recent: [
-                { year: 2026, selected: true, current: true, draft: false },
+                {
+                    year: 2026,
+                    selected: true,
+                    current: true,
+                    draft: false,
+                    waiting: false,
+                },
             ],
             older: [],
             selected: {
@@ -32,6 +38,7 @@ describe('budgetYearMenu', () => {
                 selected: true,
                 current: true,
                 draft: false,
+                waiting: false,
             },
             createYear: 2027,
             createSourceYear: 2026,
@@ -83,7 +90,42 @@ describe('budgetYearMenu', () => {
             selected: true,
             current: true,
             draft: true,
+            waiting: false,
         });
+    });
+
+    it('marks a year in execution later than the current year as waiting', () => {
+        const menu = budgetYearMenu(entries(2026, 2027), 2026, 2026);
+
+        expect(menu.recent[0]).toMatchObject({
+            year: 2027,
+            waiting: true,
+            draft: false,
+            current: false,
+        });
+        expect(menu.recent[1]).toMatchObject({ year: 2026, waiting: false });
+    });
+
+    it('does not mark a later draft as waiting', () => {
+        const menu = budgetYearMenu(
+            [...entries(2026), { year: 2027, phase: 'draft' }],
+            2026,
+            2026,
+        );
+
+        expect(menu.recent[0]).toMatchObject({ draft: true, waiting: false });
+    });
+
+    it('does not mark a past year in execution as waiting', () => {
+        const menu = budgetYearMenu(entries(2025, 2026), 2025, 2026);
+
+        expect(menu.selected).toMatchObject({ year: 2025, waiting: false });
+    });
+
+    it('marks nothing as waiting when the current year is the highest', () => {
+        const menu = budgetYearMenu(entries(2026, 2027), 2027, 2027);
+
+        expect(menu.recent.some((entry) => entry.waiting)).toBe(false);
     });
 
     it('leaves a year in execution that is not current without marks', () => {

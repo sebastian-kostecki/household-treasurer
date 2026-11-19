@@ -138,6 +138,7 @@ const defaultProps: DashboardPageProps = {
     },
     year_elapsed_as_of: '2026-09-23',
     year_elapsed_percent: 73,
+    waiting_budget_year: null,
     dashboardNotices: [
         {
             severity: 'exceeded',
@@ -307,6 +308,7 @@ const emptyNewUserProps: DashboardPageProps = {
     expenseTotals: zeroTotals,
     year_elapsed_as_of: null,
     year_elapsed_percent: null,
+    waiting_budget_year: null,
     dashboardNotices: [],
     month_to_spend: null,
     month_pace: null,
@@ -576,6 +578,11 @@ const nextYearMissingProps: DashboardPageProps = {
     ],
 };
 
+const nextYearWaitingProps: DashboardPageProps = {
+    ...defaultProps,
+    waiting_budget_year: 2027,
+};
+
 const depositsOnlyProps: DashboardPageProps = {
     ...defaultProps,
     accounts: [],
@@ -659,6 +666,11 @@ export const dashboardScenarios: DashboardScenario[] = [
         key: 'next-year-missing',
         title: 'next-year-missing',
         props: nextYearMissingProps,
+    },
+    {
+        key: 'next-year-waiting',
+        title: 'next-year-waiting',
+        props: nextYearWaitingProps,
     },
     {
         key: 'forgotten-start',

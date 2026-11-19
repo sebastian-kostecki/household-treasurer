@@ -119,6 +119,8 @@ export type DashboardPageProps = {
     expenseTotals: DashboardTypeTotals;
     year_elapsed_as_of: string | null;
     year_elapsed_percent: number | null;
+    /** The next year when its Budget is in execution and waits for 1 January, else null. */
+    waiting_budget_year: number | null;
     dashboardNotices: DashboardNotice[];
     month_to_spend: {
         state: 'proposal' | 'approved';

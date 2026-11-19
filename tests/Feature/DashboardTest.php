@@ -70,8 +70,39 @@ class DashboardTest extends TestCase
                 ->where('expenseCategories', [])
                 ->where('dashboardNotices', [])
                 ->where('year_elapsed_as_of', null)
-                ->where('year_elapsed_percent', null),
+                ->where('year_elapsed_percent', null)
+                ->where('waiting_budget_year', null),
             );
+    }
+
+    public function test_waiting_budget_year_names_the_next_year_in_execution_until_polish_midnight(): void
+    {
+        $user = User::factory()->create();
+        Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        Budget::factory()->for($user)->execution()->create(['year' => 2027]);
+
+        $this->travelTo('2026-12-31 22:59:59');
+        $this->actingAs($user)->get(route('dashboard'))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('budget_year', 2026)
+                ->where('waiting_budget_year', 2027));
+
+        $this->travelTo('2026-12-31 23:00:00');
+        $this->actingAs($user)->get(route('dashboard'))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('budget_year', 2027)
+                ->where('waiting_budget_year', null));
+    }
+
+    public function test_waiting_budget_year_is_null_while_the_next_year_is_a_draft(): void
+    {
+        $user = User::factory()->create();
+        Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        Budget::factory()->for($user)->create(['year' => 2027]);
+
+        $this->travelTo('2026-12-31 22:59:59');
+        $this->actingAs($user)->get(route('dashboard'))
+            ->assertInertia(fn (Assert $page) => $page->where('waiting_budget_year', null));
     }
 
     public function test_dashboard_year_changes_at_polish_midnight(): void

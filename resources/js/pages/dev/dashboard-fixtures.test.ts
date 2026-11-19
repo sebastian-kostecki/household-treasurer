@@ -23,6 +23,7 @@ test('scenario keys are unique and cover the state matrix', () => {
             'all-notice-kinds',
             'december-before-turn',
             'next-year-missing',
+            'next-year-waiting',
             'forgotten-start',
             'deposits-only',
             'month-start',
@@ -81,4 +82,10 @@ test('month pace scenarios hit their edges', () => {
 test('liquidity caption has both states: with and without the collected total', () => {
     expect(scenario('all-notice-kinds').collected_minor_units).toBe(60_000);
     expect(scenario('no-month-plan').collected_minor_units).toBeNull();
+});
+
+test('next-year-waiting names the waiting Budget year and the others do not', () => {
+    expect(scenario('next-year-waiting').waiting_budget_year).toBe(2027);
+    expect(scenario('december-before-turn').waiting_budget_year).toBeNull();
+    expect(scenario('many-categories').waiting_budget_year).toBeNull();
 });

@@ -80,8 +80,7 @@ function isNoticePending(notice: DashboardNotice): boolean {
 
 function isMissingBudgetNotice(notice: DashboardNotice): boolean {
     return (
-        notice.kind === 'budget_not_in_execution' &&
-        notice.state === 'missing'
+        notice.kind === 'budget_not_in_execution' && notice.state === 'missing'
     );
 }
 
@@ -89,8 +88,7 @@ function isMissingBudgetNotice(notice: DashboardNotice): boolean {
 function isSelectYearNotice(notice: DashboardNotice): boolean {
     return (
         isMonthNotice(notice) ||
-        (notice.kind === 'budget_not_in_execution' &&
-            notice.state === 'draft')
+        (notice.kind === 'budget_not_in_execution' && notice.state === 'draft')
     );
 }
 

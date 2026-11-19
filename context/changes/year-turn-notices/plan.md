@@ -412,11 +412,11 @@ None. No schema change, and the prop changes are additive except the new `approv
 
 #### Automated
 
-- [ ] 3.1 Vitest passes
-- [ ] 3.2 Full gate passes on PostgreSQL
-- [ ] 3.3 Sloppy reports no new finding
-- [ ] 3.4 Types and UI guards pass
-- [ ] 3.5 App Day guard stays green
+- [x] 3.1 Vitest passes
+- [x] 3.2 Full gate passes on PostgreSQL
+- [x] 3.3 Sloppy reports no new finding
+- [x] 3.4 Types and UI guards pass
+- [x] 3.5 App Day guard stays green
 
 #### Manual
 
