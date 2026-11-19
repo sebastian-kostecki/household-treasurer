@@ -30,7 +30,7 @@ Claude Code answers from local data over stdio. On production, `https://budget.k
 | Cash kinds | Expense, refund and income; kind + unsigned amount | Same validation and Action cover all three; the model never picks a sign | Plan |
 | Duplicates | Separate `mcp_operation_requests` table, unique `(user_id, request_id)` | Real protection without touching the ledger or the snapshot format | Plan |
 | After-write answer | `MonthToSpend` before/after, warn when `after < 0 && after < before` | Same reading as the Dashboard, no third calculator | Plan |
-| Read vs write | One scope `mcp:use`, forced approval, `MCP_WRITE_ENABLED` switch (default off) | Write can be turned off in `.env.prod` without a code deploy | Plan |
+| Read vs write | One scope `mcp:use`, forced approval, `MCP_WRITE_ENABLED` switch (default off) | Write can be turned off in `.env.prod` plus `scripts/artisan.sh config:cache`, without a code deploy | Plan |
 | Extraction vs copy | Extract shared readers to `app/Support` in Phase 1 | No duplicate logic in `app/Mcp` | Research |
 | Local server | Registered in the user's own Claude Code config, user pinned by `MCP_LOCAL_USER` in `local` only | Not started in every worktree session | Plan |
 
@@ -51,7 +51,7 @@ Claude Code answers from local data over stdio. On production, `https://budget.k
 
 ## Architecture / Approach
 
-`routes/ai.php` registers `TreasurerServer` twice: `Mcp::local` (stdio, pinned user) and `Mcp::web('/mcp')` behind `auth:api` (Passport), `throttle:mcp` and `LogMcpCall`. Tools in `app/Mcp/Tools` start from `$request->user()` relations, call `app/Support` readers with `AppDay::today()`, and return minor units plus display strings and `app_day`. The write tool calls `App\Actions\RecordCashOperation`, which validates through the Phase 5 rules and writes through `ManageFinancialOperation`.
+`routes/ai.php` registers `LocalTreasurerServer` (a subclass that only pins the user in `boot()`) with `Mcp::local` (stdio) and `TreasurerServer` with `Mcp::web('/mcp')` behind `auth:api` (Passport), `throttle:mcp` and `LogMcpCall`. Tools in `app/Mcp/Tools` start from `$request->user()` relations, call `app/Support` readers with `AppDay::today()`, and return minor units plus display strings and `app_day`. The write tool calls `App\Actions\RecordCashOperation`, which validates through the Phase 5 rules and writes through `ManageFinancialOperation`.
 
 ## Phases at a Glance
 
