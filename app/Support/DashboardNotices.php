@@ -51,6 +51,7 @@ class DashboardNotices
      *     kind: 'month_plan_not_approved',
      *     severity: 'warning',
      *     month: int,
+     *     approve_by: string,
      * }|array{
      *     kind: 'month_pace_ahead',
      *     severity: 'warning',
@@ -64,6 +65,11 @@ class DashboardNotices
      *     month: int,
      *     shortfall_minor_units: int,
      *     collected_minor_units: int,
+     * }|array{
+     *     kind: 'budget_not_in_execution',
+     *     severity: 'warning',
+     *     year: int,
+     *     state: 'draft'|'missing',
      * }>
      *
      * The order of appending is the contract of the list: every exceeded notice
@@ -71,6 +77,7 @@ class DashboardNotices
      */
     public static function forDashboard(
         ?Budget $budget,
+        ?Budget $nextYearBudget,
         Collection $accounts,
         Collection $termDeposits,
         ?MonthToSpend $monthToSpend,
@@ -236,6 +243,7 @@ class DashboardNotices
                     'kind' => 'month_plan_not_approved',
                     'severity' => DashboardNoticeSeverity::Warning->value,
                     'month' => $today->month,
+                    'approve_by' => $today->endOfMonth()->toDateString(),
                 ];
             }
 
@@ -263,7 +271,7 @@ class DashboardNotices
             }
         }
 
-        return $notices;
+        return [...$notices, ...BudgetNotInExecutionNotices::for($budget, $nextYearBudget, $today)];
     }
 
     /**

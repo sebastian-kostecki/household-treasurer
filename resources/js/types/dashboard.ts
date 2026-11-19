@@ -43,6 +43,7 @@ export type DashboardNotice = {
     | {
           kind: 'month_plan_not_approved';
           month: number;
+          approve_by: string;
       }
     | {
           kind: 'month_pace_ahead';
@@ -56,6 +57,11 @@ export type DashboardNotice = {
           month: number;
           shortfall_minor_units: number;
           collected_minor_units: number;
+      }
+    | {
+          kind: 'budget_not_in_execution';
+          year: number;
+          state: 'draft' | 'missing';
       }
     | {
           kind: 'even_annual_over_limit';

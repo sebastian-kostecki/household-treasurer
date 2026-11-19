@@ -385,10 +385,10 @@ None. No schema change, and the prop changes are additive except the new `approv
 
 #### Automated
 
-- [x] 1.1 ADR file exists and is the only 0108
-- [x] 1.2 Glossary names the new kind and the deadline
-- [x] 1.3 Amended ADRs cite 0108
-- [x] 1.4 Rule files mention the kind and the mark
+- [x] 1.1 ADR file exists and is the only 0108 — cc08f0ca
+- [x] 1.2 Glossary names the new kind and the deadline — cc08f0ca
+- [x] 1.3 Amended ADRs cite 0108 — cc08f0ca
+- [x] 1.4 Rule files mention the kind and the mark — cc08f0ca
 
 #### Manual
 
@@ -398,10 +398,10 @@ None. No schema change, and the prop changes are additive except the new `approv
 
 #### Automated
 
-- [ ] 2.1 Dashboard and year-turn Feature tests pass on PostgreSQL
-- [ ] 2.2 Vitest passes for the presentation and the fixtures
-- [ ] 2.3 Types and UI guards pass
-- [ ] 2.4 PHP style is clean
+- [x] 2.1 Dashboard and year-turn Feature tests pass on PostgreSQL
+- [x] 2.2 Vitest passes for the presentation and the fixtures
+- [x] 2.3 Types and UI guards pass
+- [x] 2.4 PHP style is clean
 
 #### Manual
 

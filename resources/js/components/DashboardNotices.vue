@@ -2,10 +2,12 @@
 import { Link } from '@inertiajs/vue3';
 import { AlertTriangle, CalendarDays, OctagonX } from '@lucide/vue';
 import { computed, onUnmounted, ref } from 'vue';
+import type { Component } from 'vue';
 import AccountAvatar from '@/components/AccountAvatar.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
+import { useCreateBudgetDialog } from '@/composables/useCreateBudgetDialog';
 import { useTranslations } from '@/composables/useTranslations';
 import {
     listenForBudgetYearSelectionFailure,
@@ -35,6 +37,7 @@ const hiddenNoticeCount = computed(() =>
     Math.max(props.notices.length - VISIBLE_NOTICE_LIMIT, 0),
 );
 
+const createBudgetDialog = useCreateBudgetDialog();
 const monthPlanRequestPending = ref(false);
 
 function onMonthPlanRequestFailed(): void {
@@ -72,7 +75,62 @@ const warningCount = computed(
 );
 
 function isNoticePending(notice: DashboardNotice): boolean {
-    return isMonthNotice(notice) && monthPlanRequestPending.value;
+    return isSelectYearNotice(notice) && monthPlanRequestPending.value;
+}
+
+function isMissingBudgetNotice(notice: DashboardNotice): boolean {
+    return (
+        notice.kind === 'budget_not_in_execution' &&
+        notice.state === 'missing'
+    );
+}
+
+// A month notice and a draft Budget year both POST `select-year` to open a screen.
+function isSelectYearNotice(notice: DashboardNotice): boolean {
+    return (
+        isMonthNotice(notice) ||
+        (notice.kind === 'budget_not_in_execution' &&
+            notice.state === 'draft')
+    );
+}
+
+function openMissingBudget(notice: DashboardNotice): void {
+    if (notice.kind === 'budget_not_in_execution') {
+        createBudgetDialog.openForYear(notice.year);
+    }
+}
+
+// `select-year` needs an existing Budget (422), so a missing year is a button
+// that opens the "Dodaj rok" dialog instead of a link.
+function cardAttributes(notice: DashboardNotice): Record<string, unknown> {
+    if (isMissingBudgetNotice(notice)) {
+        return { type: 'button' };
+    }
+
+    return {
+        href: noticeHref(notice),
+        data: noticeData(notice),
+        as: isSelectYearNotice(notice) ? 'button' : 'a',
+        disabled: isNoticePending(notice) ? true : undefined,
+    };
+}
+
+function noticeData(
+    notice: DashboardNotice,
+): { year: number; destination: string } | undefined {
+    if (isMonthNotice(notice)) {
+        return { year: props.budgetYear, destination: 'month-plan' };
+    }
+
+    if (notice.kind === 'budget_not_in_execution') {
+        return { year: notice.year, destination: 'budget' };
+    }
+
+    return undefined;
+}
+
+function cardComponent(notice: DashboardNotice): Component | string {
+    return isMissingBudgetNotice(notice) ? 'button' : Link;
 }
 
 function isMonthNotice(notice: DashboardNotice): notice is Extract<
@@ -104,6 +162,13 @@ function noticeLabel(notice: DashboardNotice): string {
 function noticeIdentity(notice: DashboardNotice): string {
     const identity = noticePresentation(notice).identity;
 
+    if (identity.type === 'year') {
+        return t.dashboard.notice_identity_budget_year.replace(
+            ':year',
+            String(identity.year),
+        );
+    }
+
     return identity.type === 'month'
         ? capitalized(monthName(identity.month))
         : identity.name;
@@ -124,6 +189,20 @@ function noticeValue(notice: DashboardNotice): string | null {
 
     if (value.type === 'money') {
         return formatMoney(value.minorUnits);
+    }
+
+    if (value.type === 'approve_by') {
+        return t.dashboard.notice_value_approve_by.replace(
+            ':date',
+            `${value.date.slice(8, 10)}.${value.date.slice(5, 7)}`,
+        );
+    }
+
+    if (value.type === 'import_refused') {
+        return t.dashboard.notice_value_import_refused.replace(
+            ':year',
+            String(value.year),
+        );
     }
 
     if (value.type === 'collected_shortfall') {
@@ -165,7 +244,7 @@ function monthDateRange(
 }
 
 function noticeHref(notice: DashboardNotice) {
-    if (isMonthNotice(notice)) {
+    if (isMonthNotice(notice) || notice.kind === 'budget_not_in_execution') {
         return BudgetController.selectYear();
     }
 
@@ -217,6 +296,10 @@ function noticeKey(notice: DashboardNotice): string {
         return `${notice.kind}-${notice.id}`;
     }
 
+    if (notice.kind === 'budget_not_in_execution') {
+        return `${notice.kind}-${notice.year}-${notice.state}`;
+    }
+
     return `${notice.kind}-${notice.month}`;
 }
 </script>
@@ -253,22 +336,23 @@ function noticeKey(notice: DashboardNotice): string {
         </div>
 
         <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            <Link
+            <component
+                :is="cardComponent(notice)"
                 v-for="notice in visibleNotices"
                 :key="noticeKey(notice)"
-                :href="noticeHref(notice)"
-                :data="
-                    isMonthNotice(notice)
-                        ? { year: budgetYear, destination: 'month-plan' }
-                        : undefined
-                "
-                :as="isMonthNotice(notice) ? 'button' : 'a'"
-                :disabled="isNoticePending(notice) ? true : undefined"
+                v-bind="cardAttributes(notice)"
                 class="dashboard-notice"
                 :aria-busy="isNoticePending(notice) ? 'true' : undefined"
-                @start="monthPlanRequestPending = isMonthNotice(notice)"
+                @click="
+                    isMissingBudgetNotice(notice)
+                        ? openMissingBudget(notice)
+                        : null
+                "
+                @start="monthPlanRequestPending = isSelectYearNotice(notice)"
                 @error="
-                    isMonthNotice(notice) ? onMonthPlanRequestFailed() : null
+                    isSelectYearNotice(notice)
+                        ? onMonthPlanRequestFailed()
+                        : null
                 "
                 @finish="monthPlanRequestPending = false"
             >
@@ -326,7 +410,7 @@ function noticeKey(notice: DashboardNotice): string {
                 >
                     {{ noticeValue(notice) }}
                 </span>
-            </Link>
+            </component>
         </div>
 
         <div v-if="showExpander || showCollapse">

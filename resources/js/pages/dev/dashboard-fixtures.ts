@@ -149,6 +149,7 @@ const defaultProps: DashboardPageProps = {
             severity: 'warning',
             kind: 'month_plan_not_approved',
             month: 10,
+            approve_by: '2026-10-31',
         },
     ],
     month_to_spend: { state: 'approved', to_spend_minor_units: 154000 },
@@ -329,6 +330,20 @@ const draftProps: DashboardPageProps = {
     planSummary: defaultProps.planSummary,
 };
 
+const forgottenStartProps: DashboardPageProps = {
+    ...draftProps,
+    budget_year: 2027,
+    budget: { year: 2027, phase: 'draft' },
+    dashboardNotices: [
+        {
+            severity: 'warning',
+            kind: 'budget_not_in_execution',
+            year: 2027,
+            state: 'draft',
+        },
+    ],
+};
+
 const noCategoriesProps: DashboardPageProps = {
     ...defaultProps,
     incomeCategories: [],
@@ -499,6 +514,7 @@ const allNoticeKindsProps: DashboardPageProps = {
             severity: 'warning',
             kind: 'month_plan_not_approved',
             month: 10,
+            approve_by: '2026-10-31',
         },
         {
             severity: 'warning',
@@ -512,6 +528,7 @@ const allNoticeKindsProps: DashboardPageProps = {
             severity: 'warning',
             kind: 'month_plan_not_approved',
             month: 11,
+            approve_by: '2026-11-30',
         },
         {
             severity: 'warning',
@@ -519,6 +536,42 @@ const allNoticeKindsProps: DashboardPageProps = {
             month: 9,
             shortfall_minor_units: 10_000,
             collected_minor_units: 60_000,
+        },
+        {
+            severity: 'warning',
+            kind: 'budget_not_in_execution',
+            year: 2027,
+            state: 'draft',
+        },
+    ],
+};
+
+const decemberBeforeTurnProps: DashboardPageProps = {
+    ...defaultProps,
+    dashboardNotices: [
+        {
+            severity: 'warning',
+            kind: 'month_plan_not_approved',
+            month: 12,
+            approve_by: '2026-12-31',
+        },
+        {
+            severity: 'warning',
+            kind: 'budget_not_in_execution',
+            year: 2027,
+            state: 'draft',
+        },
+    ],
+};
+
+const nextYearMissingProps: DashboardPageProps = {
+    ...defaultProps,
+    dashboardNotices: [
+        {
+            severity: 'warning',
+            kind: 'budget_not_in_execution',
+            year: 2027,
+            state: 'missing',
         },
     ],
 };
@@ -596,6 +649,21 @@ export const dashboardScenarios: DashboardScenario[] = [
         key: 'all-notice-kinds',
         title: 'all-notice-kinds',
         props: allNoticeKindsProps,
+    },
+    {
+        key: 'december-before-turn',
+        title: 'december-before-turn',
+        props: decemberBeforeTurnProps,
+    },
+    {
+        key: 'next-year-missing',
+        title: 'next-year-missing',
+        props: nextYearMissingProps,
+    },
+    {
+        key: 'forgotten-start',
+        title: 'forgotten-start',
+        props: forgottenStartProps,
     },
     { key: 'deposits-only', title: 'deposits-only', props: depositsOnlyProps },
     { key: 'month-start', title: 'month-start', props: monthStartProps },

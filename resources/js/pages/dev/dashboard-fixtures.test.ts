@@ -21,6 +21,9 @@ test('scenario keys are unique and cover the state matrix', () => {
             'income-over-100',
             'overrun',
             'all-notice-kinds',
+            'december-before-turn',
+            'next-year-missing',
+            'forgotten-start',
             'deposits-only',
             'month-start',
             'month-end',
@@ -48,11 +51,11 @@ test('income-over-100 and overrun go past their plan', () => {
     );
 });
 
-test('all-notice-kinds has eight kinds and more than six cards', () => {
+test('all-notice-kinds has nine kinds and more than six cards', () => {
     const notices = scenario('all-notice-kinds').dashboardNotices;
 
     expect(notices.length).toBeGreaterThan(6);
-    expect(new Set(notices.map((notice) => notice.kind)).size).toBe(8);
+    expect(new Set(notices.map((notice) => notice.kind)).size).toBe(9);
 });
 
 test('deposits-only has term deposits and no accounts', () => {
