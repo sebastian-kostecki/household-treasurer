@@ -13,6 +13,7 @@ import { firstRowsError } from '@/lib/import-preview-errors';
 import {
     expenseCategories,
     importAccount,
+    importPreviewBudgetYearStates,
     importPreviewEntryToSpend,
     importPreviewMonthRemainingContext,
     importPreviewRows,
@@ -24,6 +25,8 @@ import {
     sampleLaterMonthToSpendWarning,
     sampleToSpendWarning,
     termDeposits,
+    yearTurnRows,
+    yearTurnSelections,
 } from '@/lib/import-preview-fixtures';
 import type { ImportRow, RowSelection } from '@/lib/import-preview-rows';
 
@@ -39,6 +42,7 @@ const pageProps = {
     expenseCategories,
     otherAccounts,
     termDeposits,
+    budgetYearStates: importPreviewBudgetYearStates,
     monthRemainingContext: importPreviewMonthRemainingContext,
     entryToSpend: importPreviewEntryToSpend,
 };
@@ -82,6 +86,14 @@ const submitBarStates = computed(() => [
         processing: false,
     },
     {
+        key: 'year-turn-draft',
+        title: 'Pasek: zablokowany Budżetem bez realizacji (przełom roku)',
+        reason: t.operations.import_block_budget_year_not_in_execution
+            .replace(':count', '2')
+            .replace(':years', '2025, 2027'),
+        processing: false,
+    },
+    {
         key: 'processing',
         title: 'Pasek: w trakcie zatwierdzania (loading)',
         reason: null,
@@ -109,6 +121,10 @@ const stateMatrix = [
     {
         state: 'error',
         where: 'Scenariusze duplicate-error i errors (firstRowsError); w aplikacji screenshots/preview-duplicate-error.png.',
+    },
+    {
+        state: 'budget-year-note',
+        where: 'Scenariusz year-turn-draft: wiersze 2025-12-30 (brak Budżetu, przycisk "Utwórz Budżet"), 2026-12-29 (realizacja, bez notatki), 2027-01-02 jako wydatek (szkic, odnośnik "Przejdź do Budżetu") i jako przelew własny (bez notatki); pasek zablokowany nowym powodem w scenariuszu submit-bar-year-turn-draft.',
     },
     {
         state: 'empty',
@@ -172,6 +188,9 @@ const rowSections: RowSection[] = [
         termDeposits: noTermDeposits,
     },
 ];
+
+const yearTurnSelectionValues =
+    ref<Record<number, RowSelection>>(yearTurnSelections());
 
 const sectionSelections = ref<Record<string, Record<number, RowSelection>>>(
     Object.fromEntries(
@@ -293,6 +312,33 @@ const sampleErrors = {
             <InputError :message="firstRowsError(sampleErrors.rowType)" />
         </section>
 
+        <section class="space-y-2" data-scenario="year-turn-draft">
+            <h2 class="section-title">Przełom roku: szkic i brak Budżetu</h2>
+            <p class="meta text-muted-foreground">
+                Stan roku z propa strony: 2025 brak, 2026 realizacja, 2027
+                szkic. Przelew własny w roku-szkicu nie ma notatki.
+            </p>
+            <ListSurface flush>
+                <div class="overflow-x-auto">
+                    <ImportPreviewRow
+                        v-for="row in yearTurnRows"
+                        :key="row.index"
+                        :row="row"
+                        v-model:selection="yearTurnSelectionValues[row.index]"
+                        :account-balance-minor-units="
+                            importAccount.current_balance_minor_units
+                        "
+                        :income-categories="incomeCategories"
+                        :expense-categories="expenseCategories"
+                        :other-accounts="otherAccounts"
+                        :term-deposits="noTermDeposits"
+                        :consumed-first-leg-keys="new Set()"
+                        :budget-year-states="importPreviewBudgetYearStates"
+                    />
+                </div>
+            </ListSurface>
+        </section>
+
         <section
             v-for="section in rowSections"
             :key="section.key"
@@ -353,6 +399,7 @@ const sampleErrors = {
                                 ? sampleMonthRemainingWarning
                                 : undefined
                         "
+                        :budget-year-states="importPreviewBudgetYearStates"
                         :to-spend-warnings="
                             section.withWarnings &&
                             row.index - section.offset === 1

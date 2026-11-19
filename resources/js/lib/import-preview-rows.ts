@@ -9,6 +9,13 @@ import {
     type PairRowSelection,
 } from './import-pair-selection';
 
+export type ImportBudgetYearState = 'execution' | 'draft' | 'missing';
+
+/** Keyed by year; PHP encodes an empty map as `[]`, so a missing key means no note. */
+export type ImportBudgetYearStates = Partial<
+    Record<string, ImportBudgetYearState>
+>;
+
 export type ImportRow = {
     index: number;
     operation_date: string | null;
@@ -221,23 +228,90 @@ export function parsedInterestAmountMinorUnits(
     return parseMoneyInputToMinorUnits(selection.interest_amount_input);
 }
 
-export function interestSplitValid(
+export function rowBudgetYearState(
+    row: ImportRow,
+    states: ImportBudgetYearStates,
+): ImportBudgetYearState | null {
+    if (row.operation_date === null) {
+        return null;
+    }
+
+    const year = row.operation_date.slice(0, 4);
+
+    return (Array.isArray(states) ? undefined : states[year]) ?? null;
+}
+
+export function rowBudgetYearNotice(
+    row: ImportRow,
+    selection: RowSelection,
+    states: ImportBudgetYearStates,
+): { state: 'draft' | 'missing'; year: number } | null {
+    if (!row.valid) {
+        return null;
+    }
+
+    const state = rowBudgetYearState(row, states);
+
+    if (state === null || state === 'execution') {
+        return null;
+    }
+
+    if (selection.type === 'own_transfer') {
+        return null;
+    }
+
+    if (
+        selection.type === 'capital_movement' &&
+        !interestSplitsFileAmount(row, selection)
+    ) {
+        return null;
+    }
+
+    return {
+        state,
+        year: Number((row.operation_date as string).slice(0, 4)),
+    };
+}
+
+export function rowNeedsBudgetInExecution(
+    row: ImportRow,
+    selection: RowSelection,
+    states: ImportBudgetYearStates,
+): boolean {
+    return (
+        selection.selected &&
+        rowBudgetYearNotice(row, selection, states) !== null
+    );
+}
+
+/**
+ * The interest splits off as income: a credit row with 0 < interest < file
+ * amount (`CapitalMovementInterestImportValidator::splitAmounts`).
+ */
+function interestSplitsFileAmount(
     row: ImportRow,
     selection: RowSelection,
 ): boolean {
     const interestAmount = parsedInterestAmountMinorUnits(selection);
+    const fileAmount = row.amount_minor_units ?? 0;
 
-    if (interestAmount === null) {
+    return (
+        interestAmount !== null &&
+        interestAmount > 0 &&
+        interestAmount < fileAmount &&
+        fileAmount > 0
+    );
+}
+
+export function interestSplitValid(
+    row: ImportRow,
+    selection: RowSelection,
+): boolean {
+    if (parsedInterestAmountMinorUnits(selection) === null) {
         return selection.interest_category_id === '';
     }
 
-    const fileAmount = row.amount_minor_units ?? 0;
-
-    if (
-        interestAmount <= 0 ||
-        interestAmount >= fileAmount ||
-        fileAmount <= 0
-    ) {
+    if (!interestSplitsFileAmount(row, selection)) {
         return false;
     }
 
@@ -324,7 +398,8 @@ export type ImportRowNoteKind =
     | 'negativeBalance'
     | 'toSpend'
     | 'categoryMonthRemaining'
-    | 'poolMonthRemaining';
+    | 'poolMonthRemaining'
+    | 'budgetYear';
 
 /**
  * Whether the row renders its notes block. The record type forces every note

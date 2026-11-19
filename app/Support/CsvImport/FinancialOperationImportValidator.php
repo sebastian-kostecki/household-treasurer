@@ -3,6 +3,7 @@
 namespace App\Support\CsvImport;
 
 use App\Enums\CategoryType;
+use App\Enums\ImportBudgetYearState;
 use App\Models\Account;
 use App\Models\User;
 use App\Support\CategoryList\OperationCategoryChoice;
@@ -12,6 +13,11 @@ use Illuminate\Validation\Rule;
 
 class FinancialOperationImportValidator
 {
+    /**
+     * @var array<string, ImportBudgetYearState>
+     */
+    private array $yearStates = [];
+
     /**
      * @param  array{
      *     operation_date: string,
@@ -46,11 +52,28 @@ class FinancialOperationImportValidator
                 );
             }
 
+            $operationDate = Carbon::parse($data['operation_date']);
+            $yearState = $this->yearState($user, $operationDate->year);
+
+            if ($yearState !== ImportBudgetYearState::Execution) {
+                $validator->errors()->add(
+                    'category_id',
+                    __(
+                        $yearState === ImportBudgetYearState::Draft
+                            ? 'Row :date: the :year budget is a draft. Start its execution to import income, expenses and refunds from :year.'
+                            : 'Row :date: there is no :year budget. Create it and start its execution to import income, expenses and refunds from :year.',
+                        ['date' => $operationDate->format('d.m.Y'), 'year' => $operationDate->year],
+                    ),
+                );
+
+                return;
+            }
+
             $message = OperationCategoryChoice::check(
                 $user,
                 $data['category_id'],
                 $type === 'income' ? CategoryType::Income : CategoryType::Expense,
-                Carbon::parse($data['operation_date'])->year,
+                $operationDate->year,
                 null,
             );
 
@@ -81,6 +104,11 @@ class FinancialOperationImportValidator
         });
 
         return $validator->errors()->all();
+    }
+
+    private function yearState(User $user, int $year): ImportBudgetYearState
+    {
+        return $this->yearStates[$user->id.':'.$year] ??= ImportBudgetYearStates::forYear($user, $year);
     }
 
     /**

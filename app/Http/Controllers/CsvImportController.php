@@ -14,6 +14,7 @@ use App\Support\CsvImport\BnpParibasXlsxParser;
 use App\Support\CsvImport\CsvImportParser;
 use App\Support\CsvImport\CsvImportPreviewValidator;
 use App\Support\CsvImport\CsvImportSession;
+use App\Support\CsvImport\ImportBudgetYearStates;
 use App\Support\CsvImport\ImportCategoryOptions;
 use App\Support\CsvImport\ImportCategorySuggester;
 use App\Support\CsvImport\ImportDuplicateDetector;
@@ -141,6 +142,7 @@ class CsvImportController extends Controller
             'expenseCategories' => ImportCategoryOptions::expense($request->user()),
             'otherAccounts' => $this->otherAccounts($request, $account, $import['rows']),
             'termDeposits' => $this->termDeposits($request),
+            'budgetYearStates' => ImportBudgetYearStates::forRows($request->user(), $import['rows']),
             'monthRemainingContext' => ImportMonthRemainingContext::forUser($request->user()),
             'entryToSpend' => EntryToSpendInputs::forUser($request->user()),
         ]);

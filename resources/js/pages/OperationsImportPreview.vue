@@ -37,6 +37,7 @@ import {
     emptySelection,
     initialSelection,
     type CategoryRow,
+    type ImportBudgetYearStates,
     type ImportRow,
     type RowSelection,
     type TermDepositRow,
@@ -54,6 +55,7 @@ const {
     expenseCategories,
     otherAccounts,
     termDeposits,
+    budgetYearStates,
     monthRemainingContext,
     entryToSpend,
 } = defineProps<{
@@ -63,6 +65,7 @@ const {
     expenseCategories: CategoryRow[];
     otherAccounts: OtherAccountRow[];
     termDeposits: TermDepositRow[];
+    budgetYearStates: ImportBudgetYearStates;
     monthRemainingContext: MonthRemainingContext;
     entryToSpend: EntryToSpendInputs;
 }>();
@@ -127,6 +130,7 @@ const blockReason = computed(() => {
         selections.value,
         termDeposits,
         duplicateWarningAcknowledged.value,
+        budgetYearStates,
     );
 
     if (reason === null) {
@@ -135,9 +139,17 @@ const blockReason = computed(() => {
 
     const text = t.operations[reason.key];
 
-    return reason.key === 'import_block_incomplete_rows'
-        ? text.replace(':count', String(reason.count))
-        : text;
+    if (reason.key === 'import_block_incomplete_rows') {
+        return text.replace(':count', String(reason.count));
+    }
+
+    if (reason.key === 'import_block_budget_year_not_in_execution') {
+        return text
+            .replace(':count', String(reason.count))
+            .replace(':years', reason.years.join(', '));
+    }
+
+    return text;
 });
 
 const monthNameTranslations = computed(() =>
@@ -365,6 +377,7 @@ watch(consumedFirstLegKeysSet, () => {
                                     : monthRemainingWarnings[row.index]
                             "
                             :to-spend-warnings="toSpendWarnings[row.index]"
+                            :budget-year-states="budgetYearStates"
                         />
                     </div>
                     <template #footer>
