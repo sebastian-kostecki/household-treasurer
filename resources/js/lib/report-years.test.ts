@@ -3,6 +3,7 @@ import {
     formatYearsChange,
     reportYearsCutLabel,
     reportYearsCutShort,
+    reportYearsInitialRange,
     reportYearsSparkBars,
 } from './report-years';
 
@@ -42,6 +43,34 @@ describe('formatYearsChange', () => {
     it('keeps zero unsigned and a missing value as a dash', () => {
         expect(formatYearsChange(0)).toBe('0,0%');
         expect(formatYearsChange(null)).toBe('—');
+    });
+});
+
+describe('reportYearsInitialRange', () => {
+    const mode = {} as never;
+
+    it('opens on the same day cut when the server says so', () => {
+        expect(
+            reportYearsInitialRange({
+                same_day: mode,
+                default_range: 'same_day',
+            }),
+        ).toBe('same-day');
+    });
+
+    it('opens on full years in January although the same day cut exists', () => {
+        expect(
+            reportYearsInitialRange({ same_day: mode, default_range: 'full' }),
+        ).toBe('full');
+    });
+
+    it('opens on full years without a current year', () => {
+        expect(
+            reportYearsInitialRange({
+                same_day: null,
+                default_range: 'same_day',
+            }),
+        ).toBe('full');
     });
 });
 

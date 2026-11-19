@@ -25,7 +25,10 @@ use LogicException;
  * The "Years" tab (ADR-0101) carries per Category the row of `ReportYears` in the
  * mode of the panel: "same day" for the current year, full years for every
  * other year and without a current year, so the bars of the viewed year and of
- * the year before equal the tiles.
+ * the year before equal the tiles. In January the current year has no closed
+ * month and the default range is full years (ADR-0108): the current year is
+ * full too, and the bar of the year before is the whole year while its tile
+ * stays the year-over-year amount up to the same day.
  *
  * A Budget of a future year is no column of the Years report: its panel has no
  * "Years" tab (`years` is null on the panel and on every Category, `tab` is
@@ -46,7 +49,7 @@ final class ReportCategoryPanel
     public static function forYear(Budget $budget, PeriodReport $report, mixed $requestedCategory, CarbonImmutable $today, string $tab, ReportYears $reportYears): self
     {
         $yearsShape = $reportYears->toArray();
-        $sameDay = $yearsShape['current_year'] === $budget->year;
+        $sameDay = $yearsShape['current_year'] === $budget->year && $yearsShape['default_range'] === 'same_day';
         $yearsByCategory = $reportYears->categoriesById($sameDay);
         $yearIsColumn = in_array($budget->year, $yearsShape['columns'], true);
 

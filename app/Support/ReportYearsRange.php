@@ -80,6 +80,15 @@ final class ReportYearsRange
     }
 
     /**
+     * Whether the Same-day Cut is the default range: the current year has a
+     * closed month, that is, the cut month is after January (ADR-0108).
+     */
+    public function opensOnSameDay(): bool
+    {
+        return $this->cut !== null && $this->cut['month'] > 1;
+    }
+
+    /**
      * The last day counted for a year, both ends included from 1 January.
      */
     public function throughOf(int $year, bool $sameDay): CarbonImmutable

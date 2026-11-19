@@ -71,6 +71,28 @@ test('without a Budget in execution in the current year there is no current year
         ->and($range->throughOf(2025, true)->toDateString())->toBe('2025-12-31');
 });
 
+test('the same day cut opens by default only once the current year has a closed month', function () {
+    $user = User::factory()->create();
+    foreach ([2026, 2027, 2028] as $year) {
+        yearsRangeBudget($user, $year);
+    }
+
+    $opensOnSameDay = fn (string $day): bool => ReportYearsRange::resolve($user, CarbonImmutable::parse($day))->opensOnSameDay();
+
+    expect($opensOnSameDay('2027-01-01'))->toBeFalse()
+        ->and($opensOnSameDay('2027-01-31'))->toBeFalse()
+        ->and($opensOnSameDay('2027-02-01'))->toBeTrue()
+        ->and($opensOnSameDay('2028-02-29'))->toBeTrue();
+});
+
+test('without a current year the same day cut is not the default', function () {
+    $user = User::factory()->create();
+    yearsRangeBudget($user, 2026);
+    yearsRangeBudget($user, 2027, false);
+
+    expect(ReportYearsRange::resolve($user, CarbonImmutable::parse('2027-01-10'))->opensOnSameDay())->toBeFalse();
+});
+
 test('without Budgets in execution the columns are empty', function () {
     $user = User::factory()->create();
     yearsRangeBudget($user, 2026, false);

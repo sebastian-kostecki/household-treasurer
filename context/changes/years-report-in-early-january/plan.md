@@ -284,8 +284,8 @@ None: no schema or stored data changes.
 
 #### Automated
 
-- [x] 1.1 ADR-0108 exists and is referenced from the glossary, ADR-0097 and ADR-0101
-- [x] 1.2 No other ADR uses the number 0108 in this branch
+- [x] 1.1 ADR-0108 exists and is referenced from the glossary, ADR-0097 and ADR-0101 — d521550
+- [x] 1.2 No other ADR uses the number 0108 in this branch — d521550
 
 #### Manual
 
@@ -295,12 +295,12 @@ None: no schema or stored data changes.
 
 #### Automated
 
-- [ ] 2.1 Phase 2 Feature tests pass on PostgreSQL
-- [ ] 2.2 Vitest passes
-- [ ] 2.3 Build and types pass
-- [ ] 2.4 UI guards pass
-- [ ] 2.5 Full gate on PostgreSQL and Sloppy pass
-- [ ] 2.6 Formatting applied
+- [x] 2.1 Phase 2 Feature tests pass on PostgreSQL
+- [x] 2.2 Vitest passes
+- [x] 2.3 Build and types pass
+- [x] 2.4 UI guards pass
+- [x] 2.5 Full gate on PostgreSQL and Sloppy pass
+- [x] 2.6 Formatting applied
 
 #### Manual
 

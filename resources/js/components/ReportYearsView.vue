@@ -4,7 +4,10 @@ import ReportYearsStatPanel from '@/components/ReportYearsStatPanel.vue';
 import ReportYearsTable from '@/components/ReportYearsTable.vue';
 import SegmentedControl from '@/components/SegmentedControl.vue';
 import { useTranslations } from '@/composables/useTranslations';
-import { reportYearsCutLabel } from '@/lib/report-years';
+import {
+    reportYearsCutLabel,
+    reportYearsInitialRange,
+} from '@/lib/report-years';
 import type { ReportYearsData } from '@/types/reports';
 
 const props = defineProps<{
@@ -18,9 +21,7 @@ type YearsRange = 'same-day' | 'full';
 
 /** Tab and range are local to the page (not in the URL); both modes are in the props. */
 const type = ref<YearsType>('expense');
-const range = ref<YearsRange>(
-    props.years.same_day === null ? 'full' : 'same-day',
-);
+const range = ref<YearsRange>(reportYearsInitialRange(props.years));
 
 const mode = computed(() =>
     range.value === 'same-day' && props.years.same_day !== null

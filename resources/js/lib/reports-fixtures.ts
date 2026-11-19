@@ -1007,6 +1007,8 @@ function buildYears(options: {
         columns,
         current_year: options.currentYear,
         cut: options.cut,
+        default_range:
+            options.cut !== null && options.cut.month > 1 ? 'same_day' : 'full',
         same_day:
             options.currentYear === null
                 ? null
@@ -1037,6 +1039,12 @@ const yearsSameDay = buildYears({
     lastYear: 2026,
     currentYear: 2026,
     cut: yearsNovemberCut,
+});
+
+const yearsJanuary = buildYears({
+    lastYear: 2027,
+    currentYear: 2027,
+    cut: { month: 1, day: 2 },
 });
 
 const yearsNoCurrentYear = buildYears({
@@ -1096,6 +1104,11 @@ const panelInProgress: PanelTiming = {
     in_progress_month: 11,
     through: '2026-11-14',
     closed_month_count: 10,
+};
+const panelJanuaryDay2: PanelTiming = {
+    in_progress_month: 1,
+    through: '2027-01-02',
+    closed_month_count: 0,
 };
 const panelClosed: PanelTiming = {
     in_progress_month: null,
@@ -1175,6 +1188,7 @@ function buildPanel(
         );
 
         const cellsOverride = yearsOptions.cellsById?.[row.id];
+        const panelColumns = yearsOptions.years?.columns ?? PANEL_YEARS_COLUMNS;
 
         return {
             years: cellsOverride
@@ -1184,20 +1198,16 @@ function buildPanel(
                   )
                 : {
                       cells: [
-                          ...Array<number | null>(
-                              PANEL_YEARS_COLUMNS.length - 1,
-                          ).fill(null),
+                          ...Array<number | null>(panelColumns.length - 1).fill(
+                              null,
+                          ),
                           row.amount_minor_units,
                       ],
                       change_tenths: null,
                       change_first_year: null,
                       max_years:
                           row.amount_minor_units > 0
-                              ? [
-                                    PANEL_YEARS_COLUMNS[
-                                        PANEL_YEARS_COLUMNS.length - 1
-                                    ],
-                                ]
+                              ? [panelColumns[panelColumns.length - 1]]
                               : [],
                   },
             id: row.id,
@@ -2288,6 +2298,55 @@ export const reportScenarios: ReportScenario[] = [
         },
     },
     {
+        key: 'panel-years-january',
+        caption:
+            'Panel „Lata” Roku 2027 na 2 stycznia: tryb „Pełne lata”, podpis „Pełne lata”, 2027 „w toku” poza zmianą',
+        props: {
+            budgetYear: 2027,
+            budgetPhase: 'execution',
+            period: {
+                kind: 'year',
+                month: null,
+                default_month: 1,
+                is_in_progress: true,
+                window: null,
+            },
+            report: comparedYearReport,
+            trend: null,
+            years: null,
+            rankingMode: 'categories',
+            categoryPanel: buildPanel(
+                comparedYearReport,
+                panelJanuaryDay2,
+                1,
+                {},
+                {},
+                {
+                    tab: 'years',
+                    cellsById: {
+                        1: [
+                            58000,
+                            63000,
+                            null,
+                            79000,
+                            86000,
+                            91000,
+                            100000,
+                            1200,
+                        ],
+                    },
+                    counted: 7,
+                    years: {
+                        columns: [...PANEL_YEARS_COLUMNS, 2027],
+                        current_year: 2027,
+                        cut: { month: 1, day: 2 },
+                        mode: 'full',
+                    },
+                },
+            ),
+        },
+    },
+    {
         key: 'panel-years-future-year',
         caption:
             'Rok 2027 w realizacji przy bieżącym 2026 (z ?panel=years w adresie): 2027 nie jest kolumną „Lat”, więc panel nie ma przełącznika, tylko etykietę „Miesiące 2027”',
@@ -2364,6 +2423,21 @@ export const reportScenarios: ReportScenario[] = [
             report: null,
             trend: null,
             years: yearsSameDay,
+            rankingMode: 'categories',
+            categoryPanel: null,
+        },
+    },
+    {
+        key: 'years-january',
+        caption:
+            'Lata 2020–2027 na 2 stycznia: domyślnie „Pełne lata” (rok bieżący „w toku” poza zmianą i statystykami), przełącznik „Do 2 stycznia | Pełne lata”; „Do 2 stycznia” pokazuje się kliknięciem (stan lokalny)',
+        props: {
+            budgetYear: 2027,
+            budgetPhase: 'execution',
+            period: yearsPeriod,
+            report: null,
+            trend: null,
+            years: yearsJanuary,
             rankingMode: 'categories',
             categoryPanel: null,
         },

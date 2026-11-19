@@ -721,6 +721,38 @@ class ReportsPageTest extends TestCase
         }
     }
 
+    public function test_the_years_default_range_is_full_for_the_whole_of_january_at_polish_midnight(): void
+    {
+        $user = User::factory()->create();
+        $this->bookExpense($user, 2026, 'Żywność', '2026-03-10', 12000);
+        $this->bookExpense($user, 2027, 'Żywność', '2027-01-01', 3000);
+
+        $cases = [
+            ['2026-12-31 22:59:59', 2026, ['month' => 12, 'day' => 31], 'same_day', 'same_day'],
+            ['2026-12-31 23:00:00', 2027, ['month' => 1, 'day' => 1], 'full', 'full'],
+            ['2027-01-31 22:59:59', 2027, ['month' => 1, 'day' => 31], 'full', 'full'],
+            ['2027-01-31 23:00:00', 2027, ['month' => 2, 'day' => 1], 'same_day', 'same_day'],
+        ];
+
+        foreach ($cases as [$now, $currentYear, $cut, $defaultRange, $panelMode]) {
+            $this->travelTo($now);
+
+            $this->actingAs($user)
+                ->get(route('reports', ['view' => 'years']))
+                ->assertInertia(fn (Assert $page) => $page
+                    ->where('years.current_year', $currentYear)
+                    ->where('years.cut', $cut)
+                    ->where('years.default_range', $defaultRange)
+                    ->has('years.same_day'));
+
+            $this->actingAs($user)
+                ->withSession(['budget_year' => $currentYear])
+                ->get(route('reports', ['panel' => 'years']))
+                ->assertInertia(fn (Assert $page) => $page
+                    ->where('categoryPanel.years.mode', $panelMode));
+        }
+    }
+
     public function test_the_years_view_flags_the_categories_that_open_the_panel(): void
     {
         $this->travelTo('2026-11-14');
