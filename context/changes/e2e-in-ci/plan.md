@@ -470,9 +470,9 @@ Brak migracji danych. Zmiana seedera dotyczy tylko nowych seedów i nie rusza is
 
 #### Automated
 
-- [x] 5.1 `actionlint` na `tests.yml` bez uwag
-- [x] 5.2 Każde `uses:` w `tests.yml` przypięte pełnym SHA
-- [x] 5.3 Pełna bramka `ci:check` na `testing_e2e_in_ci` i Sloppy
+- [x] 5.1 `actionlint` na `tests.yml` bez uwag — 4b35ab3
+- [x] 5.2 Każde `uses:` w `tests.yml` przypięte pełnym SHA — 4b35ab3
+- [x] 5.3 Pełna bramka `ci:check` na `testing_e2e_in_ci` i Sloppy — 4b35ab3
 
 #### Manual
 
