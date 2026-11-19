@@ -285,7 +285,7 @@ Brak migracji bazy. Pierwsze wdrożenie po zmianie wymaga `git pull --ff-only or
 
 #### Manual
 
-- [ ] 1.5 Lokalny build z `GIT_REVISION=test123` i `DEPLOYED_AT` daje obraz z etykietami `org.opencontainers.image.revision=test123` i `household-treasurer.deployed-at`
+- [x] 1.5 Lokalny build z `GIT_REVISION=test123` i `DEPLOYED_AT` daje obraz z etykietami `org.opencontainers.image.revision=test123` i `household-treasurer.deployed-at`
 
 ### Phase 2: scripts/rollback.sh z blokadą migracji
 
@@ -297,7 +297,7 @@ Brak migracji bazy. Pierwsze wdrożenie po zmianie wymaga `git pull --ff-only or
 
 #### Manual
 
-- [ ] 2.4 Lokalnie bez `.env.prod` `scripts/rollback.sh` kończy się czytelnym błędem o braku `.env.prod`
+- [x] 2.4 Lokalnie bez `.env.prod` `scripts/rollback.sh` kończy się czytelnym błędem o braku `.env.prod`
 
 ### Phase 3: Dokumentacja i próba na halina175
 
@@ -308,8 +308,8 @@ Brak migracji bazy. Pierwsze wdrożenie po zmianie wymaga `git pull --ff-only or
 
 #### Manual
 
-- [ ] 3.3 Na halina175 `scripts/deploy.sh` loguje tag `legacy-…`, tag SHA i sprzątanie, a `docker image ls` pokazuje `prod`, `<sha>` i `legacy-…`
-- [ ] 3.4 `scripts/rollback.sh` wypisuje tagi z `← prod` przy bieżącym SHA
-- [ ] 3.5 `scripts/rollback.sh legacy-<data>` przechodzi blokadę, a `/up` zwraca 200 na starym obrazie
-- [ ] 3.6 `scripts/rollback.sh <sha>` wraca na nowy obraz, a `/up` zwraca 200
-- [ ] 3.7 Kolejne wdrożenie zostawia najwyżej 3 tagi poza `prod`
+- [x] 3.3 Na halina175 `scripts/deploy.sh` loguje tag `legacy-…`, tag SHA i sprzątanie, a `docker image ls` pokazuje `prod`, `<sha>` i `legacy-…`
+- [x] 3.4 `scripts/rollback.sh` wypisuje tagi z `← prod` przy bieżącym SHA
+- [x] 3.5 `scripts/rollback.sh legacy-<data>` przechodzi blokadę, a `/up` zwraca 200 na starym obrazie
+- [x] 3.6 `scripts/rollback.sh <sha>` wraca na nowy obraz, a `/up` zwraca 200
+- [x] 3.7 Kolejne wdrożenie zostawia najwyżej 3 tagi poza `prod`
