@@ -7,8 +7,8 @@ Zmiana realizuje krok 2 „Szybki rollback obrazu” z `context/foundation/infra
 Decyzje z wywiadu (2026-11-19):
 
 1. **Mechanizm tagu: `:prod` jako wskaźnik.** Compose zostaje przy `image: household-treasurer-app:prod`. Tagi SHA są historią obok. Odrzucona zmienna `${APP_IMAGE_TAG:-prod}` z infrastructure.md: każde wywołanie Compose bez niej po cichu podniosłoby przestarzały `:prod`.
-2. **Migracje przy wycofaniu: twarda blokada.** Gdy tabela `migrations` zawiera nazwę, której nie ma w `database/migrations` obrazu docelowego, skrypt przerywa z listą tych migracji i poleceniem `scripts/artisan.sh migrate:rollback --force`. Nie pyta o potwierdzenie.
-3. **Obraz sprzed tagów i sprzątanie.** Dawny `:prod` bez etykiety `revision` dostaje tag `legacy-<RRRRMMDD daty utworzenia obrazu>`. Po udanym wdrożeniu zostają 3 najnowsze tagi, a `docker image prune -f` zdejmuje wiszące obrazy. Cache budowania zostaje nietknięty.
+2. **Migracje przy wycofaniu: twarda blokada w obie strony.** Gdy tabela `migrations` zawiera nazwę, której nie ma w `database/migrations` obrazu docelowego, skrypt przerywa z listą tych migracji i poleceniem `scripts/artisan.sh migrate:rollback --force`. Gdy obraz docelowy ma migracje, których baza nie ma (np. powrót na nowszy obraz po `migrate:rollback`), skrypt też przerywa i odsyła do `scripts/deploy.sh`, bo `rollback.sh` nigdy nie migruje, a nowy kod nie może obsłużyć żądania na starym schemacie (README, krok 3 `deploy.sh`). Nie pyta o potwierdzenie.
+3. **Obraz sprzed tagów i sprzątanie.** Dawny `:prod` bez etykiety `revision` dostaje tag `legacy-<RRRRMMDD daty utworzenia obrazu>`. Po udanym wdrożeniu zostają 3 najnowsze tagi według czasu wdrożenia (etykieta `household-treasurer.deployed-at`, nie `.Created`), a `docker image prune -f --filter label=maintainer=household-treasurer` zdejmuje wiszące obrazy tylko tej aplikacji (serwer jest współdzielony). Cache budowania zostaje nietknięty.
 4. **Testy:** Pest na czystych funkcjach bash (wybór tagów do usunięcia, diff migracji). Kolejność wywołań `docker` sprawdza ręczna próba na halina175.
 
 ## Current State Analysis
@@ -23,9 +23,9 @@ Decyzje z wywiadu (2026-11-19):
 
 ## Desired End State
 
-- Po każdym udanym `scripts/deploy.sh` w `docker image ls household-treasurer-app` jest `:prod` i ten sam obraz pod `:<sha HEAD>`, z etykietą `org.opencontainers.image.revision=<sha>`. Tagów innych niż `prod` jest najwyżej 3.
+- Po każdym udanym `scripts/deploy.sh` w `docker image ls household-treasurer-app` jest `:prod` i ten sam obraz pod `:<sha HEAD>`, z etykietami `org.opencontainers.image.revision=<sha>` i `household-treasurer.deployed-at=<czas wdrożenia UTC>`. Tagów innych niż `prod` jest najwyżej 3, plus ewentualnie tag obrazu, który działał przed tym wdrożeniem, gdy wypadł z trzech najnowszych.
 - Pierwsze wdrożenie po zmianie zostawia dawny obraz jako `:legacy-<RRRRMMDD>`, więc od razu jest do czego wracać.
-- `scripts/rollback.sh` bez argumentu wypisuje dostępne tagi z datą, rewizją i znacznikiem obrazu `:prod`. `scripts/rollback.sh <tag>` w ciągu sekund (bez buildu) stawia aplikację na tym obrazie, przez tryb serwisowy, z przebudowanym cache. Przerywa przed jakąkolwiek zmianą, gdy baza ma migracje nieznane obrazowi docelowemu.
+- `scripts/rollback.sh` bez argumentu wypisuje dostępne tagi z datą, rewizją i znacznikiem obrazu `:prod`. `scripts/rollback.sh <tag>` w ciągu sekund (bez buildu) stawia aplikację na tym obrazie, przez tryb serwisowy, z przebudowanym cache. Przerywa przed jakąkolwiek zmianą, gdy zbiór migracji w bazie różni się od zbioru w obrazie docelowym (w którąkolwiek stronę).
 - README, ADR-0107 i infrastructure.md opisują nowy przebieg. Ręczna próba na halina175 przechodzi: wdrożenie → wycofanie → powrót.
 
 ### Key Discoveries:
@@ -35,6 +35,9 @@ Decyzje z wywiadu (2026-11-19):
 - `scripts/lib/production-deploy.sh:113-121`: wzorzec pułapki EXIT, która zostawia aplikację w trybie serwisowym i mówi, co dalej.
 - Dzisiejszy przebieg `build` → `up -d` dowodzi, że Compose odtwarza kontener, gdy ten sam tag `:prod` wskazuje nowy obraz. Wycofanie korzysta z tego samego mechanizmu (`docker tag` → `up -d --no-build`).
 - Następny wolny numer ADR to 0107 (`tests/Unit/AdrNumberingTest.php` pilnuje ciągłości).
+- `.Created` nie mówi, kiedy wdrożono obraz (eksperyment z BuildKit podczas przeglądu planu). Build, który różni się tylko końcowym `LABEL`, dostaje nowe ID, ale `Created` ostatniej warstwy z cache. `.dockerignore` wyklucza `context`, `scripts`, `tests`, `.ai`, `.github`, `AGENTS.md`, więc wdrożenie commita z samą dokumentacją jest w pełni z cache i remisuje z poprzednim, a przebudowa po `git revert` dostaje starą datę. Kolejność wdrożeń niesie więc osobna etykieta `household-treasurer.deployed-at`.
+- `Dockerfile.prod:79` ma już `LABEL maintainer="household-treasurer"`, także w dawnych obrazach. Tym filtrem `docker image prune` ogranicza się do tej aplikacji. halina175 dzielą landing, root-keeper, menu-maker, Vaultwarden i Backrest (infrastructure.md:59).
+- Przesunięcie tagu `:prod` na inny obraz i `docker compose up -d --no-build` odtwarza kontener, a przy niezmienionym obrazie zostawia go działającego (sprawdzone lokalnie, Compose v2.39).
 
 ## What We're NOT Doing
 
@@ -53,25 +56,25 @@ Logika decyzyjna (które tagi usunąć, które migracje są nieznane) trafia do 
 ## Critical Implementation Details
 
 - **Kolejność w `deploy.sh`.** Tag `legacy-…` trzeba nadać **przed** `build`, bo po buildzie dawny obraz traci tag `:prod` i staje się wiszący. Tag SHA idzie zaraz po `build`, a sprzątanie dopiero na końcu udanego wdrożenia. Nieudane wdrożenie nie może usunąć obrazu, do którego trzeba wrócić.
-- **Ochrona przy sprzątaniu.** Nigdy nie zdejmuj tagu, którego obraz ma to samo ID co `:prod`. Po udanym wdrożeniu to obraz działającego kontenera, a po wycofaniu obraz, na który wrócono. Bez tej reguły wdrożenie następujące po wycofaniu mogłoby skasować jedyny dobry obraz, jeśli jest starszy niż 3 najnowsze tagi.
-- **Etykieta na końcu `Dockerfile.prod`.** `ARG GIT_REVISION` + `LABEL org.opencontainers.image.revision=$GIT_REVISION` jako ostatnie instrukcje etapu `runtime`. Zmienna wartość wyżej unieważniłaby cache wszystkich kolejnych warstw przy każdym commicie.
-- **Blokada przed jakąkolwiek zmianą.** `rollback.sh` sprawdza istnienie tagu, różnicę od `:prod` i migracje, zanim wejdzie w tryb serwisowy. Odmowa zostawia działającą aplikację nietkniętą.
+- **Ochrona przy sprzątaniu.** Nigdy nie zdejmuj tagu, którego obraz ma ID z listy chronionych: bieżący `:prod` (nowy build, czyli obraz działającego kontenera) oraz obraz, który był `:prod` przed tym wdrożeniem (`PREVIOUS_PROD_IMAGE_ID`, odczytany przed buildem). Sprzątanie biegnie po przesunięciu `:prod`, więc sama ochrona bieżącego `:prod` nie obejmuje obrazu, na który wcześniej wycofano. Bez drugiego ID wdrożenie po wycofaniu (np. ponowny `deploy.sh` złego commita bez `git revert`) mogłoby skasować jedyny dobry obraz, jeśli jest starszy niż 3 najnowsze tagi.
+- **Etykiety na końcu `Dockerfile.prod`.** `ARG GIT_REVISION` + `ARG DEPLOYED_AT` + `LABEL org.opencontainers.image.revision=$GIT_REVISION household-treasurer.deployed-at=$DEPLOYED_AT` jako ostatnie instrukcje etapu `runtime`. Zmienna wartość wyżej unieważniłaby cache wszystkich kolejnych warstw przy każdym commicie. `LABEL` zmienia tylko metadane, więc warstwy dalej idą z cache.
+- **Blokada przed jakąkolwiek zmianą.** `rollback.sh` sprawdza istnienie tagu, różnicę od obrazu działającego kontenera i migracje (w obie strony), zanim wejdzie w tryb serwisowy. Odmowa zostawia działającą aplikację nietkniętą.
 
 ## Phase 1: Obrazy z tagiem SHA w `deploy.sh`
 
 ### Overview
 
-Każde wdrożenie buduje obraz z etykietą rewizji, nadaje mu tag SHA, przed buildem ratuje dawny obraz bez etykiety jako `legacy-…`, a po sukcesie zostawia 3 najnowsze tagi.
+Każde wdrożenie buduje obraz z etykietami rewizji i czasu wdrożenia, nadaje mu tag SHA, przed buildem ratuje dawny obraz bez etykiety jako `legacy-…`, a po sukcesie zostawia 3 najnowsze tagi (plus obraz sprzed wdrożenia).
 
 ### Changes Required:
 
-#### 1. Etykieta rewizji w obrazie
+#### 1. Etykiety rewizji i czasu wdrożenia w obrazie
 
 **File**: `docker/8.5/Dockerfile.prod`, `docker-compose.prod.yml`
 
-**Intent**: Obraz ma znać commit, z którego go zbudowano, bo `.git` nie trafia do kontekstu budowania. Etykieta odróżnia obraz otagowany od legacy.
+**Intent**: Obraz ma znać commit, z którego go zbudowano, bo `.git` nie trafia do kontekstu budowania, oraz chwilę wdrożenia, bo `.Created` jej nie oddaje (Key Discoveries). Etykieta rewizji odróżnia obraz otagowany od legacy.
 
-**Contract**: `Dockerfile.prod`, koniec etapu `runtime`: `ARG GIT_REVISION=` i `LABEL org.opencontainers.image.revision=$GIT_REVISION`. `docker-compose.prod.yml` → `app.build.args`: `GIT_REVISION: ${GIT_REVISION:-}`. `image:` zostaje `household-treasurer-app:prod`.
+**Contract**: `Dockerfile.prod`, koniec etapu `runtime`: `ARG GIT_REVISION=`, `ARG DEPLOYED_AT=` i `LABEL org.opencontainers.image.revision=$GIT_REVISION household-treasurer.deployed-at=$DEPLOYED_AT`. `docker-compose.prod.yml` → `app.build.args`: `GIT_REVISION: ${GIT_REVISION:-}` i `DEPLOYED_AT: ${DEPLOYED_AT:-}`. `image:` zostaje `household-treasurer-app:prod` (nie może pasować do regexu `postgres:` z `ProductionPostgresClientVersionTest`).
 
 #### 2. Funkcje obrazów
 
@@ -81,12 +84,12 @@ Każde wdrożenie buduje obraz z etykietą rewizji, nadaje mu tag SHA, przed bui
 
 **Contract**:
 - `PRODUCTION_IMAGE_REPOSITORY="household-treasurer-app"`.
-- `production_image_tags_to_remove <keep> <protected-image-id>` (czysta). Stdin: wiersze `<tag>\t<created ISO-8601 UTC>\t<image-id>`. Pomija `prod` i `<none>`. Pozostałe sortuje malejąco po dacie utworzenia, pierwsze `<keep>` zostają. Z reszty wypisuje (po jednym w wierszu) tylko tagi, których ID ≠ `<protected-image-id>`.
-- `production_unknown_migrations <db-list-file> <image-list-file>` (czysta). Wypisuje nazwy migracji z bazy, których nie ma w obrazie, posortowane, po jednym w wierszu. Wiersze listy obrazu mogą mieć sufiks `.php`; puste wiersze pomija. Migracje obecne tylko w obrazie (oczekujące) nie są błędem.
-- `production_image_listing`: wiersze w formacie wejścia `production_image_tags_to_remove` dla wszystkich tagów repozytorium (`docker image ls` + `docker image inspect --format '{{.Created}}'`/`{{.Id}}`).
+- `production_image_tags_to_remove <keep> <protected-image-id>...` (czysta). Stdin: wiersze `<tag>\t<deployed-at ISO-8601 UTC>\t<image-id>`. Pomija `prod` i `<none>`. Pozostałe sortuje malejąco po czasie wdrożenia (porównuje pierwsze 19 znaków, do sekund, bo `.Created` legacy ma ułamek sekundy), pierwsze `<keep>` zostają. Z reszty wypisuje (po jednym w wierszu) tylko tagi, których ID nie ma wśród `<protected-image-id>...`.
+- `production_prod_image_id`: ID obrazu `:prod` albo pusto, gdy tagu nie ma (pierwsze wdrożenie).
+- `production_image_listing`: wiersze w formacie wejścia `production_image_tags_to_remove` dla wszystkich tagów repozytorium (`docker image ls` + `docker image inspect`: `{{index .Config.Labels "household-treasurer.deployed-at"}}`, przy pustej etykiecie (legacy) `{{.Created}}`, oraz `{{.Id}}`).
 - `production_tag_legacy_prod_image`: gdy `:prod` istnieje i nie ma etykiety `revision` (pusta albo brak), taguje go `legacy-<RRRRMMDD z .Created>` i loguje to. W przeciwnym razie nic.
 - `production_tag_built_image <revision>`: `docker tag …:prod …:<revision>`.
-- `production_remove_old_image_tags <keep>`: liczy tagi z `production_image_tags_to_remove`, zdejmuje je (`docker rmi <repo>:<tag>`), loguje każdy, potem `docker image prune -f`.
+- `production_remove_old_image_tags <keep> [<extra-protected-image-id>...]`: chroni zawsze bieżące ID `:prod` plus podane, liczy tagi z `production_image_tags_to_remove`, zdejmuje je (`docker rmi <repo>:<tag>`), loguje każdy, potem `docker image prune -f --filter label=maintainer=household-treasurer` (serwer współdzielony, nie gołe `prune -f`).
 
 #### 3. Tagowanie i sprzątanie w `deploy.sh`
 
@@ -94,25 +97,21 @@ Każde wdrożenie buduje obraz z etykietą rewizji, nadaje mu tag SHA, przed bui
 
 **Intent**: Wpiąć funkcje w obecny przebieg bez ruszania bramek (tryb serwisowy, snapshoty, liczby kontrolne, kopia instancji).
 
-**Contract**: `source` nowego pliku obok `production-deploy.sh`. Po `production_pull_latest`: `export GIT_REVISION="$(git rev-parse --short HEAD)"` (osobna linia, żeby błąd zatrzymał skrypt), potem `production_tag_legacy_prod_image`. Po `$COMPOSE build app`: `production_tag_built_image "$GIT_REVISION"`. Po cache, przed „Done”: `production_remove_old_image_tags 3`. Bez `|| true` nigdzie.
+**Contract**: `source` nowego pliku obok `production-deploy.sh`. Po `production_pull_latest`: `GIT_REVISION="$(git rev-parse --short HEAD)"` i `PREVIOUS_PROD_IMAGE_ID="$(production_prod_image_id)"` (każde w osobnej linii, żeby błąd zatrzymał skrypt), `export GIT_REVISION`, `export DEPLOYED_AT="$(date -u +%Y-%m-%dT%H:%M:%SZ)"`, potem `production_tag_legacy_prod_image`. Po `$COMPOSE build app`: `production_tag_built_image "$GIT_REVISION"`. Po cache, przed „Done”: `production_remove_old_image_tags 3 "$PREVIOUS_PROD_IMAGE_ID"` (pusty argument przy pierwszym wdrożeniu nic nie chroni). Bez `|| true` nigdzie.
 
 #### 4. Testy funkcji
 
 **File**: `tests/Unit/ProductionImagesScriptTest.php` (nowy)
 
-**Intent**: Przypiąć reguły wyboru tagów i diffu migracji, czyli tę część, której pomyłka kasuje cel wycofania albo przepuszcza stary kod na nowy schemat.
+**Intent**: Przypiąć reguły wyboru tagów, czyli tę część, której pomyłka kasuje cel wycofania. (Diff migracji i jego testy są w fazie 2, gdzie są używane.)
 
 **Contract**: Styl jak `ProductionPostgresClientVersionTest` (klasa `extends Tests\TestCase`). Funkcje uruchamiane przez `Symfony\Component\Process\Process` / `Illuminate\Support\Facades\Process`: `bash -c 'source scripts/lib/production-images.sh; …'` z wejściem na stdin albo w plikach tymczasowych. Przypadki dla `production_image_tags_to_remove`:
 - 5 tagów SHA: usuwa 2 najstarsze;
 - `prod` nigdy nie jest liczony ani wypisany;
 - tag o ID równym chronionemu zostaje, nawet gdy jest najstarszy;
-- `legacy-…` jest sortowany po dacie jak inne tagi;
+- dwa chronione ID (bieżący `:prod` i obraz sprzed wdrożenia): oba zostają, gdy są poza trzema najnowszymi;
+- `legacy-…` z datą `.Created` z ułamkiem sekundy jest sortowany po czasie jak inne tagi;
 - ≤3 tagi: pusto.
-
-Przypadki dla `production_unknown_migrations`:
-- baza ma migrację spoza obrazu: wypisana;
-- obraz ma migrację spoza bazy (oczekującą): pusto;
-- równe listy z sufiksem `.php` po stronie obrazu: pusto.
 
 ### Success Criteria:
 
@@ -125,7 +124,7 @@ Przypadki dla `production_unknown_migrations`:
 
 #### Manual Verification:
 
-- Lokalny `docker compose -f docker-compose.prod.yml build app` z `GIT_REVISION=test123` daje obraz z etykietą `org.opencontainers.image.revision=test123` (`docker image inspect`)
+- Lokalny `docker compose -f docker-compose.prod.yml build app` z `GIT_REVISION=test123` i `DEPLOYED_AT=2026-11-19T10:00:00Z` daje obraz z etykietami `org.opencontainers.image.revision=test123` i `household-treasurer.deployed-at=2026-11-19T10:00:00Z` (`docker image inspect`)
 
 **Implementation Note**: Po zielonej weryfikacji automatycznej zatrzymaj się na potwierdzenie ręcznej weryfikacji przed fazą 2.
 
@@ -135,17 +134,20 @@ Przypadki dla `production_unknown_migrations`:
 
 ### Overview
 
-Nowy skrypt operatora: bez argumentu wypisuje tagi, z tagiem przełącza produkcję na ten obraz bez budowania, przez tryb serwisowy. Odmawia, gdy baza ma migracje nieznane obrazowi docelowemu.
+Nowy skrypt operatora: bez argumentu wypisuje tagi, z tagiem przełącza produkcję na ten obraz bez budowania, przez tryb serwisowy. Odmawia, gdy zbiory migracji bazy i obrazu docelowego się różnią.
 
 ### Changes Required:
 
-#### 1. Odczyt migracji z bazy i obrazu
+#### 1. Diff migracji i odczyt list z bazy i obrazu
 
-**File**: `scripts/lib/production-images.sh`
+**File**: `scripts/lib/production-images.sh`, `tests/Unit/ProductionImagesScriptTest.php`
 
-**Intent**: Zasilić czystą funkcję diffu prawdziwymi listami, w tym samym stylu co `production_user_ids`.
+**Intent**: Czyste funkcje diffu w obie strony, zasilone prawdziwymi listami w tym samym stylu co `production_user_ids`. `rollback.sh` nie migruje, więc obraz docelowy musi znać dokładnie te migracje, które ma baza.
 
 **Contract**:
+- `production_unknown_migrations <db-list-file> <image-list-file>` (czysta). Wypisuje nazwy migracji z bazy, których nie ma w obrazie, posortowane, po jednym w wierszu. Wiersze listy obrazu mogą mieć sufiks `.php`; puste wiersze pomija.
+- `production_pending_migrations <db-list-file> <image-list-file>` (czysta). To samo w drugą stronę: migracje z obrazu, których nie ma w bazie (bez `.php`).
+- Przypadki testowe (w `ProductionImagesScriptTest`): baza ma migrację spoza obrazu → `unknown` ją wypisuje, `pending` pusto; obraz ma migrację spoza bazy → `pending` ją wypisuje, `unknown` pusto; równe listy z sufiksem `.php` po stronie obrazu → obie puste.
 - `production_database_migrations`: `$COMPOSE exec -T pgsql sh -ec`, `to_regclass('public.migrations')`, potem `SELECT migration FROM migrations ORDER BY migration` (`-At`, `ON_ERROR_STOP=1`). Pusto, gdy tabeli nie ma. Błąd psql zatrzymuje skrypt.
 - `production_image_migrations <tag>`: `docker run --rm --entrypoint ls <repo>:<tag> /var/www/html/database/migrations` (implementer potwierdza `WORKDIR` w `Dockerfile.prod`).
 
@@ -156,10 +158,10 @@ Nowy skrypt operatora: bez argumentu wypisuje tagi, z tagiem przełącza produkc
 **Intent**: Wycofanie kodu w sekundach zamiast przebudowy, z tymi samymi zabezpieczeniami trybu serwisowego co `deploy.sh`.
 
 **Contract**: Szkielet jak `deploy.sh`: `set -euo pipefail`, `cd` do roota, `source` obu bibliotek, `COMPOSE`, sprawdzenie `.env.prod`. Przebieg:
-1. Bez argumentu: tabela tagów (tag, data utworzenia, rewizja z etykiety, `← prod` przy obrazie `:prod`) i użycie, wyjście 0.
-2. `<tag>`: odmowa, gdy tag nie istnieje albo wskazuje ten sam obraz co `:prod`. Zapamiętanie bieżącego tagu `:prod` (tag SHA/legacy o tym samym ID) jako drogi powrotu.
-3. Blokada: `production_unknown_migrations` na listach z kroku 1. Niepusto → wypisz migracje, polecenie `scripts/artisan.sh migrate:rollback --force` (sprawdź listę w wyjściu, kolejność z README) i wyjście 1. Nic się wcześniej nie zmieniło.
-4. Pułapka EXIT (wzór `production_report_failure`): przy błędzie po wejściu w tryb serwisowy komunikat, że aplikacja zostaje w trybie serwisowym, plus tag, z którego wyszliśmy (`scripts/rollback.sh <poprzedni>`).
+1. Bez argumentu: tabela tagów z `production_image_listing` (tag, czas wdrożenia, rewizja z etykiety, `← prod` przy obrazie `:prod`) i użycie, wyjście 0.
+2. `<tag>`: odmowa, gdy tag nie istnieje albo wskazuje ten sam obraz, na którym działa kontener `app` (`docker inspect --format '{{.Image}}'` na `$COMPOSE ps -q app`; gdy kontenera nie ma, porównanie z `:prod`). Porównanie z działającym kontenerem, nie z `:prod`, pozwala powtórzyć wycofanie, gdy poprzednia próba przesunęła `:prod`, a `up -d` padł. Zapamiętanie obrazu działającego kontenera jako drogi powrotu: jego tag SHA/legacy, a gdy żadnego nie ma, ID obrazu.
+3. Blokada: `production_unknown_migrations` i `production_pending_migrations` na listach z kroku 1. Nieznane niepuste → wypisz je, polecenie `scripts/artisan.sh migrate:rollback --force` (sprawdź listę w wyjściu, kolejność z README) i wyjście 1. Oczekujące niepuste → wypisz je, wyjaśnij, że `rollback.sh` nie migruje, a powrót na nowszy kod idzie przez `scripts/deploy.sh` (tryb serwisowy, kopie, liczby kontrolne), i wyjście 1. Nic się wcześniej nie zmieniło.
+4. Pułapka EXIT (wzór `production_report_failure`): przy błędzie po wejściu w tryb serwisowy komunikat, że aplikacja zostaje w trybie serwisowym, plus droga powrotu z kroku 2 (`scripts/rollback.sh <poprzedni tag>` albo `docker tag <ID> household-treasurer-app:prod` + `up -d --no-build app`, gdy był tylko ID).
 5. Tryb serwisowy: gdy `app` działa, `exec -T -u sail app php artisan down` i `MAINTENANCE_STARTED=1`. Bez `user:backup`, więc **nie** `production_prepare_running_instance`.
 6. `docker tag <repo>:<tag> <repo>:prod`, `$COMPOSE up -d --no-build app`, `production_ensure_maintenance_mode`.
 7. `chown` storage i `bootstrap/cache` (jak `deploy.sh`), `package:discover`, `config:cache`, `route:cache`, `view:cache`, potem `production_leave_maintenance_mode`.
@@ -196,8 +198,8 @@ Runbooki i decyzja opisują nowy przebieg, a człowiek raz przechodzi go na prod
 **Intent**: Operator ma znaleźć szybkie wycofanie tam, gdzie dziś szuka wycofania, i wiedzieć, kiedy wystarcza.
 
 **Contract**:
-- „Kroki `scripts/deploy.sh`”: krok 1 dopisuje etykietę rewizji, tag `legacy-…` przed buildem i tag SHA po nim. Nowy krok 10: zostają 3 najnowsze tagi, potem `docker image prune -f`.
-- Nowa sekcja `#### Wycofanie obrazu (bez budowania)` po „Kroki `scripts/deploy.sh`”: kiedy wystarcza (wdrożenie bez migracji albo po `migrate:rollback` nowym kodem), `scripts/rollback.sh` / `scripts/rollback.sh <tag>`, co znaczy blokada migracji, że git na serwerze zostaje na złym commicie i trzeba dokończyć przez `git revert` + `git pull` + `deploy.sh` (przebudowa trafia w cache warstw, bo treść plików jest jak przed złym commitem), pierwsze wdrożenie daje `legacy-<data>`.
+- „Kroki `scripts/deploy.sh`”: krok 1 dopisuje etykiety rewizji i czasu wdrożenia, tag `legacy-…` przed buildem i tag SHA po nim. Nowy krok 10: zostają 3 najnowsze tagi (według czasu wdrożenia) i obraz sprzed wdrożenia, potem `docker image prune -f --filter label=maintainer=household-treasurer` (tylko obrazy tej aplikacji, serwer jest współdzielony).
+- Nowa sekcja `#### Wycofanie obrazu (bez budowania)` po „Kroki `scripts/deploy.sh`”: kiedy wystarcza (wdrożenie bez migracji albo po `migrate:rollback` nowym kodem), `scripts/rollback.sh` / `scripts/rollback.sh <tag>`, co znaczy blokada migracji w obie strony (nieznane migracje → najpierw `migrate:rollback`; oczekujące → powrót na nowszy kod tylko przez `deploy.sh`), że git na serwerze zostaje na złym commicie i trzeba dokończyć przez `git revert` + `git pull` + `deploy.sh` (przebudowa trafia w cache warstw, bo treść plików jest jak przed złym commitem), pierwsze wdrożenie daje `legacy-<data>`.
 - „Wycofanie S-18 po wdrożeniu” i pokrewne: jedno zdanie odsyłające. Po `migrate:rollback` można od razu `scripts/rollback.sh <poprzedni tag>`, a `git revert` + `deploy.sh` przestają blokować powrót aplikacji.
 
 #### 2. ADR-0107
@@ -206,7 +208,7 @@ Runbooki i decyzja opisują nowy przebieg, a człowiek raz przechodzi go na prod
 
 **Intent**: Zapisać, czemu `:prod` zostaje wskaźnikiem (odejście od zapisu w infrastructure.md), czemu blokada jest twarda i czemu cache budowania zostaje.
 
-**Contract**: Format jak ADR-0064 (akapity decyzji, „We rejected:”). Odrzucone: `${APP_IMAGE_TAG}` w Compose, ostrzeżenie z potwierdzeniem, sam opis w README, `docker builder prune` w tej zmianie. Numeracja przechodzi `AdrNumberingTest`.
+**Contract**: Format jak ADR-0064 (akapity decyzji, „We rejected:”). Odrzucone: `${APP_IMAGE_TAG}` w Compose, ostrzeżenie z potwierdzeniem, sam opis w README, `docker builder prune` w tej zmianie, kolejność po `.Created` (BuildKit zostawia datę warstwy z cache), gołe `docker image prune -f` i `--filter "until=168h"` z infrastructure.md (serwer współdzielony; filtr `label=maintainer=household-treasurer` zamiast wieku), przepuszczanie migracji oczekujących przy wycofaniu. Numeracja przechodzi `AdrNumberingTest`.
 
 #### 3. infrastructure.md
 
@@ -214,7 +216,7 @@ Runbooki i decyzja opisują nowy przebieg, a człowiek raz przechodzi go na prod
 
 **Intent**: Dokument opisuje stan faktyczny, więc „Rollback” i krok 2 mają mówić, co jest.
 
-**Contract**: „Operational Story” → „Rollback”: najpierw `scripts/rollback.sh <tag>` (sekundy), potem `git revert` + `deploy.sh`. „Getting Started” krok 2: dopisek, że zrobione inaczej niż zapisano (`:prod` jako wskaźnik, ADR-0107). Wiersz rejestru ryzyk: mitygacja wskazuje `scripts/rollback.sh`.
+**Contract**: „Operational Story” → „Rollback”: najpierw `scripts/rollback.sh <tag>` (sekundy), potem `git revert` + `deploy.sh`. „Getting Started” krok 2: dopisek, że zrobione inaczej niż zapisano (`:prod` jako wskaźnik, ADR-0107). Wiersz rejestru ryzyk: mitygacja wskazuje `scripts/rollback.sh`. „Devil's Advocate” punkty 1 („Brak szybkiego rollbacku”) i 2 (zdanie „Ani `deploy.sh`, ani `kostecki-dev-infra` nie robi `docker image prune`”): adnotacja, że zmitygowane przez ADR-0107 (`rollback.sh`, sprzątanie obrazów aplikacji w `deploy.sh`).
 
 ### Success Criteria:
 
@@ -239,7 +241,7 @@ Runbooki i decyzja opisują nowy przebieg, a człowiek raz przechodzi go na prod
 
 ### Unit Tests:
 
-- `tests/Unit/ProductionImagesScriptTest.php`: `production_image_tags_to_remove` (więcej niż `keep`, `prod` pomijany, ochrona ID `:prod` dla najstarszego tagu, `legacy-…` w kolejności dat, mniej niż `keep`) i `production_unknown_migrations` (migracja tylko w bazie, tylko w obrazie, równe listy z `.php`).
+- `tests/Unit/ProductionImagesScriptTest.php`: `production_image_tags_to_remove` (więcej niż `keep`, `prod` pomijany, ochrona ID `:prod` dla najstarszego tagu, dwa chronione ID, `legacy-…` z ułamkiem sekundy w kolejności czasu, mniej niż `keep`) oraz `production_unknown_migrations` / `production_pending_migrations` (migracja tylko w bazie, tylko w obrazie, równe listy z `.php`).
 
 ### Integration Tests:
 
@@ -283,7 +285,7 @@ Brak migracji bazy. Pierwsze wdrożenie po zmianie wymaga `git pull --ff-only or
 
 #### Manual
 
-- [ ] 1.5 Lokalny build z `GIT_REVISION=test123` daje obraz z etykietą `org.opencontainers.image.revision=test123`
+- [ ] 1.5 Lokalny build z `GIT_REVISION=test123` i `DEPLOYED_AT` daje obraz z etykietami `org.opencontainers.image.revision=test123` i `household-treasurer.deployed-at`
 
 ### Phase 2: scripts/rollback.sh z blokadą migracji
 

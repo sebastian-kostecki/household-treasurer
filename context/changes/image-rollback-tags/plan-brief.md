@@ -12,16 +12,16 @@ Wycofanie wadliwego wdrożenia na halina175 trwa dziś minuty: `git revert`, `gi
 
 ## Desired End State
 
-Po wdrożeniu `docker image ls household-treasurer-app` pokazuje `:prod` i ten sam obraz pod `:<sha>`, plus najwyżej dwa starsze tagi (przy pierwszym wdrożeniu `legacy-<data>` dla dawnego obrazu). `scripts/rollback.sh` wypisuje tagi. `scripts/rollback.sh <tag>` przełącza produkcję przez tryb serwisowy i odbudowuje cache. Odmawia, zanim cokolwiek zmieni, gdy baza ma migracje, których obraz docelowy nie zna.
+Po wdrożeniu `docker image ls household-treasurer-app` pokazuje `:prod` i ten sam obraz pod `:<sha>`, plus najwyżej dwa starsze tagi (przy pierwszym wdrożeniu `legacy-<data>` dla dawnego obrazu). `scripts/rollback.sh` wypisuje tagi. `scripts/rollback.sh <tag>` przełącza produkcję przez tryb serwisowy i odbudowuje cache. Odmawia, zanim cokolwiek zmieni, gdy baza ma migracje, których obraz docelowy nie zna, albo obraz ma migracje, których baza nie ma.
 
 ## Key Decisions Made
 
 | Decision | Choice | Why (1 sentence) |
 | --- | --- | --- |
 | Mechanizm tagu | `:prod` zostaje wskaźnikiem, tagi SHA są historią obok | Zmienna `${APP_IMAGE_TAG}` w Compose sprawiłaby, że każde `up -d`/`start` bez niej po cichu podnosi przestarzały `:prod`. |
-| Migracje przy wycofaniu | Twarda blokada z listą migracji i poleceniem `migrate:rollback --force` | Stary kod na nowym schemacie ma być niemożliwy, także w stresie. Cofnięcie addytywnej migracji jest tanie. |
+| Migracje przy wycofaniu | Twarda blokada w obie strony: nieznane migracje → `migrate:rollback --force`, oczekujące → `deploy.sh` | Ani stary kod na nowym schemacie, ani nowy na starym, także w stresie. `rollback.sh` nigdy nie migruje. |
 | Obraz sprzed tagów | Dawny `:prod` bez etykiety `revision` dostaje tag `legacy-<RRRRMMDD>` przed buildem | Już pierwsze wdrożenie po zmianie ma cel wycofania. |
-| Sprzątanie | 3 najnowsze tagi + `docker image prune -f`, nigdy obraz `:prod`. Cache budowania nietknięty | Ogranicza dysk, a cache przyspiesza przebudowę po `git revert`. |
+| Sprzątanie | 3 najnowsze tagi według etykiety `deployed-at` (nie `.Created`, które BuildKit bierze z warstwy z cache), nigdy obraz `:prod` ani obraz sprzed wdrożenia, potem `docker image prune -f --filter label=maintainer=household-treasurer`. Cache budowania nietknięty | Ogranicza dysk bez ruszania obrazów innych aplikacji współdzielonego serwera, a cache przyspiesza przebudowę po `git revert`. |
 | Testy | Pest na czystych funkcjach bash (wybór tagów, diff migracji) + ręczna próba na halina175 | Tanio i stabilnie łapie pomyłki, które kasują cel wycofania albo przepuszczają zły schemat. |
 
 ## Scope
@@ -45,7 +45,7 @@ Po wdrożeniu `docker image ls household-treasurer-app` pokazuje `:prod` i ten s
 
 ## Architecture / Approach
 
-Czyste funkcje (`production_image_tags_to_remove`, `production_unknown_migrations`) dostają listy i zwracają listy, więc testy uruchamiają je przez `bash` bez Dockera. Cienkie wrappery `docker` w tym samym pliku obsługują `deploy.sh`:
+Czyste funkcje (`production_image_tags_to_remove`, `production_unknown_migrations`, `production_pending_migrations`) dostają listy i zwracają listy, więc testy uruchamiają je przez `bash` bez Dockera. Cienkie wrappery `docker` w tym samym pliku obsługują `deploy.sh`:
 
 ```
 pull → tag legacy (jeśli brak etykiety) → build → tag <sha> → [bramki bez zmian] → cache → sprzątanie
@@ -70,7 +70,7 @@ sprawdź tag → blokada migracji → down → tag <tag> jako :prod → up -d --
 
 ## Open Risks & Assumptions
 
-- Zakładamy, że `docker compose up -d --no-build` odtwarza kontener, gdy `:prod` wskazuje inny obraz. Dzisiejszy przebieg `build` → `up -d` działa na tej samej zasadzie, a próba w fazie 3 to potwierdza.
+- `docker compose up -d --no-build` odtwarza kontener, gdy `:prod` wskazuje inny obraz (potwierdzone lokalnie podczas przeglądu planu, Compose v2.39). Próba w fazie 3 potwierdza to na halina175.
 - Wycofanie używa `docker-compose.prod.yml` z bieżącego (złego) commitu na serwerze. Jeśli zły commit zmienił sam plik Compose, przełączenie obrazu tego nie cofnie (README to zaznacza).
 - Po wycofaniu następny `deploy.sh` bez `git revert` zbuduje zły commit z powrotem. Mówi o tym komunikat skryptu i README.
 
