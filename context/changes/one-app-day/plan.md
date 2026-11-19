@@ -470,10 +470,10 @@ Bez migracji. Istniejące `archived_at` Kategorii z pierwszej godziny po półno
 
 #### Automated
 
-- [ ] 4.1 Indeks reguł zawiera app-day.md
-- [ ] 4.2 README nie mówi o UTC przy przełomie ani o page.clock
-- [ ] 4.3 js-auth.md nie mówi „not from an Inertia prop”
-- [ ] 4.4 Pełny gate przechodzi na gałęzi po rebase
+- [x] 4.1 Indeks reguł zawiera app-day.md — 73692cf
+- [x] 4.2 README nie mówi o UTC przy przełomie ani o page.clock — 73692cf
+- [x] 4.3 js-auth.md nie mówi „not from an Inertia prop” — 73692cf
+- [x] 4.4 Pełny gate przechodzi na gałęzi po rebase — 73692cf
 
 #### Manual
 

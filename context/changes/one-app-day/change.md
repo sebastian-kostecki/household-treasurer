@@ -1,7 +1,7 @@
 ---
 change_id: one-app-day
 title: Ten sam dzień w menu, na Dashboardzie i w dialogach (AppDay i shell.today)
-status: implementing
+status: implemented
 created: 2026-11-19
 updated: 2026-11-19
 ---
