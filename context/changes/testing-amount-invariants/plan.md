@@ -558,7 +558,7 @@ Brak migracji. Zmiana zachowania jest możliwa tylko w fazie 3, jeśli poprawka 
 
 #### Manual
 
-- [ ] 1.5 Przegląd `derivation` w tabeli: każdą liczbę da się odtworzyć z glosariusza
+- [x] 1.5 Przegląd `derivation` w tabeli: każdą liczbę da się odtworzyć z glosariusza — potwierdzone przez użytkownika 2026-11-19 (29 przypadków przeliczonych niezależnie ze słownika, 0 rozbieżności)
 
 ### Phase 2: Ścieżka wejść „do wydania”
 
@@ -573,7 +573,7 @@ Brak migracji. Zmiana zachowania jest możliwa tylko w fazie 3, jeśli poprawka 
 
 #### Manual
 
-- [ ] 2.7 Przegląd pięciu scenariuszy pod kątem dialogu i planu miesiąca
+- [x] 2.7 Przegląd pięciu scenariuszy pod kątem dialogu i planu miesiąca — potwierdzone przez użytkownika 2026-11-19; niepokryte sytuacje dopisane do §7 planu testów
 
 ### Phase 3: Kandydaci 1 i 2
 
@@ -586,7 +586,7 @@ Brak migracji. Zmiana zachowania jest możliwa tylko w fazie 3, jeśli poprawka 
 
 #### Manual
 
-- [ ] 3.5 Potwierdzone rozstrzygnięcie kandydata 2 po zobaczeniu czerwonego testu
+- [x] 3.5 Potwierdzone rozstrzygnięcie kandydata 2 po zobaczeniu czerwonego testu — potwierdzone przez użytkownika 2026-11-19: #273 zostaje osobnym zgłoszeniem poza M-5 (błędny tylko podgląd ostrzeżenia, przypadek rzadki)
 
 ### Phase 4: Niezmiennik raportu
 
@@ -600,7 +600,7 @@ Brak migracji. Zmiana zachowania jest możliwa tylko w fazie 3, jeśli poprawka 
 
 #### Manual
 
-- [ ] 4.6 Przegląd komentarzy z rachunkiem: każdą liczbę da się odtworzyć z listy operacji
+- [x] 4.6 Przegląd komentarzy z rachunkiem: każdą liczbę da się odtworzyć z listy operacji — potwierdzone przez użytkownika 2026-11-19 (liczby przeliczone z listy operacji)
 
 ### Phase 5: Plan testów i reguły
 
@@ -613,4 +613,4 @@ Brak migracji. Zmiana zachowania jest możliwa tylko w fazie 3, jeśli poprawka 
 
 #### Manual
 
-- [ ] 5.5 Przeczytane §2, §3, §5, §6 i §7 oddają decyzje z planowania
+- [x] 5.5 Przeczytane §2, §3, §5, §6 i §7 oddają decyzje z planowania — potwierdzone przez użytkownika 2026-11-19 po merge'u z test-plan-refresh: trzy wskazania z planowania (kontekst #2, źródło i kontekst #3) dopisane na wierzch wersji F-09; §5 „required after §3 Phase 5” spełnia się przy archiwizacji
