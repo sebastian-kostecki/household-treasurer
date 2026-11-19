@@ -12,6 +12,7 @@ Decyzje technologiczne MVP. Wymagania produktowe pozostają w `context/foundatio
 - **Vite** — bundler i serwer deweloperski assetów frontendu, uruchamiany przez Vite+ (`vp`), który obsługuje też formatowanie i lint.
 - **Tailwind CSS** + **shadcn-vue** — stylowanie i gotowe komponenty UI.
 - **Pest** — testy PHP.
+- **Laravel MCP** (`laravel/mcp`) + **Laravel Passport** (OAuth) — serwer MCP dla Claude'a: lokalnie przez stdio, na produkcji pod `/mcp` (ADR-0108).
 - **Docker** — środowisko uruchomieniowe.
 - **Laravel Sail** — lokalne środowisko deweloperskie na Dockerze (WSL2).
 
@@ -32,7 +33,7 @@ Logika budżetu, sald, atomowość transferów i importu CSV żyje po stronie La
 
 Kwoty są przechowywane i liczone jako **liczba całkowita minor units** (`bigint`, kolumny `*_minor_units`). MVP: PLN, skala 2. PHP nie używa `float`/`double` do pieniędzy. TypeScript na froncie dostaje kwoty jako string albo integer minor units i tylko je formatuje do wyświetlenia (PLN).
 
-Osobne REST/JSON API nie powstaje w MVP.
+Osobne REST/JSON API nie powstaje. Jedyny interfejs maszynowy to serwer MCP z OAuth przez Passport (ADR-0108, zastępuje dawne „brak API”).
 
 ## 3. Baza, cache, kolejki
 
@@ -84,7 +85,7 @@ Porównanie platform, rejestr ryzyk i opis operacji: `context/foundation/infrast
 | Redis       | brak w MVP                | Redis od dnia zerowego               | Jeden użytkownik naraz na instancję, brak real-time, brak ciężkich jobów. Kolejka w Postgresie wystarcza na maile.                                                              |
 | Poczta prod | Resend (SMTP)             | własny MTA, Mailgun jako wymóg       | Transakcyjne maile bez utrzymywania serwera poczty. SMTP w `.env` pozwala zmienić dostawcę.                                                                                     |
 | Hosting     | VPS + Docker Compose      | Render, Railway, Laravel Cloud, Fly.io | Zgodne z decyzją „na Dockerze”. Mikrus dzielony z innymi aplikacjami kosztuje prawie nic, a PaaS $6–47/mies. Szczegóły: `infrastructure.md`.                                    |
-| API         | brak                      | osobne REST API                      | Inertia pokrywa UI. API byłoby drugim kontraktem bez konsumenta.                                                                                                                |
+| API         | serwer MCP (ADR-0108)     | osobne REST API                      | Inertia pokrywa UI; jedynym konsumentem maszynowym jest Claude przez MCP (`laravel/mcp`, OAuth przez Passport). Osobne REST API nadal byłoby drugim kontraktem.                  |
 
 ## 8. Świadomie odłożone
 
@@ -93,6 +94,5 @@ Nie są częścią MVP i nie instalujemy ich „na zapas”:
 - Redis, Horizon, WebSockets,
 - object storage,
 - Laravel Octane / FrankenPHP jako wymóg (można dodać później bez zmiany stacku UI),
-- osobne REST API,
 - WorkOS / SSO,
 - Kubernetes.

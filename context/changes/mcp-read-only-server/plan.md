@@ -472,11 +472,11 @@ MCP requests share the four FPM workers with the web UI. Tools return bounded re
 
 #### Automated
 
-- [ ] 1.1 Unit tests for BudgetForYear, CurrentMonthReading and MonthTiming pass
-- [ ] 1.2 Dashboard, Budget, Month Plan and Operations feature tests pass unchanged
-- [ ] 1.3 AdrNumberingTest passes with ADR-0108
-- [ ] 1.4 boost:index-rules lists .ai/rules/mcp.md
-- [ ] 1.5 Full gate on PostgreSQL and sloppy ci pass
+- [x] 1.1 Unit tests for BudgetForYear, CurrentMonthReading and MonthTiming pass
+- [x] 1.2 Dashboard, Budget, Month Plan and Operations feature tests pass unchanged
+- [x] 1.3 AdrNumberingTest passes with ADR-0108
+- [x] 1.4 boost:index-rules lists .ai/rules/mcp.md
+- [x] 1.5 Full gate on PostgreSQL and sloppy ci pass
 
 #### Manual
 

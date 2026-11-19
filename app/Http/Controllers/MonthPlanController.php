@@ -17,6 +17,7 @@ use App\Support\MonthPace;
 use App\Support\MonthPlanItemRow;
 use App\Support\MonthPlanJoinCandidates;
 use App\Support\MonthSummary;
+use App\Support\MonthTiming;
 use App\Support\MonthToSpend;
 use App\Support\MonthYearComparison;
 use App\Support\SelectedBudgetYear;
@@ -60,7 +61,7 @@ class MonthPlanController extends Controller
             $budget->year,
             $today,
         );
-        $timing = $this->monthTiming($budget->year, $viewedMonth, $today);
+        $timing = MonthTiming::of($budget->year, $viewedMonth, $today);
 
         return Inertia::render('MonthPlan', [
             'budget' => [
@@ -312,20 +313,5 @@ class MonthPlanController extends Controller
             'income' => MonthYearComparison::totals(array_column($incomeItems, 'year_comparison'), CategoryType::Income),
             'expense' => MonthYearComparison::totals(array_column($expenseItems, 'year_comparison'), CategoryType::Expense),
         ];
-    }
-
-    /**
-     * @return 'past'|'current'|'future'
-     */
-    private function monthTiming(int $year, int $month, CarbonImmutable $today): string
-    {
-        $viewed = [$year, $month];
-        $now = [$today->year, $today->month];
-
-        if ($viewed < $now) {
-            return 'past';
-        }
-
-        return $viewed === $now ? 'current' : 'future';
     }
 }

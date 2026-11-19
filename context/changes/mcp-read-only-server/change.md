@@ -1,7 +1,7 @@
 ---
 change_id: mcp-read-only-server
 title: MCP server for asking Claude about the budget, read-only first
-status: plan_reviewed
+status: implementing
 created: 2026-11-19
 updated: 2026-11-19
 archived_at: null

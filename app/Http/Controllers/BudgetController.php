@@ -9,10 +9,10 @@ use App\Http\Requests\SelectBudgetYearRequest;
 use App\Http\Requests\StoreBudgetRequest;
 use App\Models\Budget;
 use App\Models\BudgetLine;
-use App\Models\User;
 use App\Support\AppDay;
 use App\Support\BudgetCollectedAtYearStart;
 use App\Support\BudgetDeficitWarning;
+use App\Support\BudgetForYear;
 use App\Support\BudgetPlanSummary;
 use App\Support\BudgetViewedMonth;
 use App\Support\CategoryAppearance;
@@ -35,7 +35,7 @@ class BudgetController extends Controller
     {
         $user = $request->user();
         $selectedYear = SelectedBudgetYear::resolve($request);
-        $budget = $this->findBudgetForYear($user, $selectedYear);
+        $budget = $selectedYear === null ? null : BudgetForYear::find($user, $selectedYear);
 
         if ($budget === null) {
             return Inertia::render('Budget', [
@@ -177,15 +177,6 @@ class BudgetController extends Controller
         ]);
 
         return to_route('budget');
-    }
-
-    private function findBudgetForYear(User $user, ?int $year): ?Budget
-    {
-        if ($year === null) {
-            return null;
-        }
-
-        return $user->budgets()->where('year', $year)->first();
     }
 
     /**

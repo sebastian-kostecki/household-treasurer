@@ -62,6 +62,7 @@ Cztery kamienie milowe powstały w dwa tygodnie, a aplikacja nie przeszła jeszc
 | S-44 | e2e-in-ci                       | użytkownik (właściciel repo) widzi czerwone CI, gdy zmiana psuje przepływ w przeglądarce                       | F-09          | MS-07    | done     |
 | S-45 | production-error-tracking       | użytkownik (właściciel) dostaje zgłoszenie wyjątku z produkcji ze stosem wywołań i kontekstem żądania          | —             | MS-08    | blocked  |
 | S-46 | docs-match-code                 | użytkownik i agent czytają słownik i ADR bez zdublowanych numerów i terminów, których nie ma w kodzie          | —             | MS-09    | done     |
+| S-47 | mcp-read-only-server            | użytkownik pyta Claude'a o stan budżetu i dopisuje gotówkę z telefonu                                          | F-08          | —        | in-progress |
 
 ## Streams
 
@@ -72,6 +73,7 @@ Navigation aid — groups items that share a Prerequisites chain. Canonical orde
 | A      | Przełom roku          | `F-08` → `S-39` → `S-40` · `S-41` · `S-43`; `S-42`       | Przy celu „jakość” najpierw decyzja o dniu; `S-40`, `S-41`, `S-43` idą równolegle po `S-39`, który wprowadza `AppDay` (ADR-0103); `S-42` nie czeka na nic. |
 | B      | Siatka testów         | `F-09` → `S-44`                                         | Odświeżony plan wybiera przepływy-bramki; E2E w CI chroni wdrożenia poprawek strumienia A.                                    |
 | C      | Porządek produkcji    | `S-45` · `S-46`                                         | Dwa samodzielne wycinki; `S-45` czeka na wybór dostawcy, `S-46` może iść od razu.                                             |
+| D      | Claude i budżet       | `F-08` → `S-47`                                         | Serwer MCP (ADR-0108); po fazie 1 (wspólne czytniki) idzie równolegle z `S-40` i `S-41`; na produkcję przed ok. 15 grudnia 2026. |
 
 ## Baseline
 
@@ -220,6 +222,18 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Risk:** Zmiana numeru ADR psuje odnośniki w dokumentach i komentarzach kodu; usunięcie terminu z reguł Konta i Kategorii (Cash Expectation) zmienia treść tych reguł, więc to też zmiana słownika według AGENTS.md.
 - **Status:** done
 
+### S-47: Serwer MCP dla budżetu
+
+- **Outcome:** użytkownik pyta Claude'a (Claude Code, claude.ai, Desktop, telefon) o To Spend, plan i wykonanie, salda i ostatnie operacje oraz dopisuje wydatek gotówkowy z telefonu
+- **Change ID:** mcp-read-only-server
+- **PRD refs:** —
+- **Prerequisites:** F-08
+- **Parallel with:** S-40, S-41 po fazie 1 (wspólne czytniki w `app/Support`), S-43, S-44, S-45, S-46
+- **Blockers:** —
+- **Unknowns:** —
+- **Risk:** Publiczny `/mcp` z OAuth to nowa powierzchnia ataku na produkcji (Cloudflare, klucze Passport w `.env.prod`); faza 1 dotyka `DashboardController` i `BudgetController`, które mogą zmieniać S-40 i S-41; narzędzie zapisu wdrażane osobno od zmian w `ManageFinancialOperation`.
+- **Status:** planning
+
 ## Backlog Handoff
 
 | Roadmap ID | Change ID                      | Suggested issue title                                                    | Ready for `/10x-plan` | Notes                                                                 |
@@ -245,7 +259,7 @@ This table is the clean handoff to Jira/Linear or any MCP-backed backlog. Includ
 
 ## Parked
 
-- **Nowe funkcje z `development-directions.md`** (wiersze 7–15 „Na już” i etapy „Potem”: Majątek z walutą, szybsze wprowadzanie, płynność w czasie, analityka) — Why parked: decyzja użytkownika 2026-11-18, funkcja w styczniu z listy tarć (MS-10).
+- **Nowe funkcje z `development-directions.md`** (wiersze 7–15 „Na już” i etapy „Potem”: Majątek z walutą, szybsze wprowadzanie, płynność w czasie, analityka) — Why parked: decyzja użytkownika 2026-11-18, funkcja w styczniu z listy tarć (MS-10). Wyjątek: S-47 (decyzja użytkownika 2026-11-19).
 - **Automatyczne wdrożenie** — Why parked: poza zakresem; M-5 dokłada E2E do CI, wdrożenie zostaje ręczne (`scripts/deploy.sh`).
 - **Year Close i Reserve w kodzie** — Why parked: nigdy niezbudowane; ADR-0104 (S-46) usunął je ze słownika, więc powrót zaczyna się od nowego wpisu w słowniku i nowego ADR.
 - **Pozostałe fazy planu testów** (niezmienniki kwot, backup i restore, `arch()`) — Why parked: F-09 ustawia ich kolejność; w M-5 wchodzi tylko E2E w CI (S-44).
