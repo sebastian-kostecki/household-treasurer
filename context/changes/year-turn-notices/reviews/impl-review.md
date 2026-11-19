@@ -23,7 +23,7 @@
 
 | Check | Result |
 |---|---|
-| Phase 1 greps (ADR 0108 count, glossary, amended ADRs, rule files) | PASS: 1 / 1 / 1 / 3 / 1 / 1 |
+| Phase 1 greps (ADR 0109 count, glossary, amended ADRs, rule files) | PASS: 1 / 1 / 1 / 3 / 1 / 1 |
 | `composer ci:check` on PostgreSQL (`testing_year_turn_notices`) | PASS: exit 0, 1982 passed, 4 skipped |
 | `npm run test` (Vitest) | PASS: 810 passed, 1 skipped |
 | `npm run types:check`, `npm run check:ui` | PASS |
@@ -37,7 +37,7 @@
 - **Impact**: 🏃 LOW — quick decision; fix is obvious and narrowly scoped
 - **Dimension**: Plan Adherence
 - **Location**: tests/Feature/DashboardTest.php:1503-1531
-- **Detail**: The plan said to extend `test_dashboard_orders_notices_by_severity_then_kind`. That test was left unchanged; a new test, `test_dashboard_lists_budget_not_in_execution_notices_last_in_year_order`, was added instead. Its last check, `array_search('month_plan_not_approved', $kinds, true) < count($kinds) - 1`, is true even when the kind is missing, because `false < n` holds. The fixture has a 2026 Budget in execution, so only one budget card appears. As a result, the two-card year-order case named in ADR-0108 and in the plan's Critical Implementation Details (a draft 2026 Budget in December plus a draft or missing 2027 Budget → `[2026 draft, 2027 …]`) is not tested anywhere, and the kitchen sink has no fixture for it either.
+- **Detail**: The plan said to extend `test_dashboard_orders_notices_by_severity_then_kind`. That test was left unchanged; a new test, `test_dashboard_lists_budget_not_in_execution_notices_last_in_year_order`, was added instead. Its last check, `array_search('month_plan_not_approved', $kinds, true) < count($kinds) - 1`, is true even when the kind is missing, because `false < n` holds. The fixture has a 2026 Budget in execution, so only one budget card appears. As a result, the two-card year-order case named in ADR-0109 and in the plan's Critical Implementation Details (a draft 2026 Budget in December plus a draft or missing 2027 Budget → `[2026 draft, 2027 …]`) is not tested anywhere, and the kitchen sink has no fixture for it either.
 - **Fix**: Add a feature test on 2026-12-10 with 2026 and 2027 both drafts (or 2027 missing) that asserts the last two notices are `{2026, draft}` and then `{2027, …}`. Replace the `array_search` check with `!== false` plus a position comparison.
 - **Decision**: FIXED — the assertion now requires `month_plan_not_approved` to be present (`!== false`), and the new `test_dashboard_lists_a_draft_current_year_before_the_next_year_in_december` asserts the exact list `[2026 draft, 2027 missing]`, then `[2026 draft, 2027 draft]` (green on PostgreSQL).
 
@@ -86,7 +86,7 @@
 - **Location**: context/changes/year-turn-notices/plan.md:395, :408-409, :423-424
 - **Detail**: Rows 1.5 (docs confirmed before Phase 2), 2.5, 2.6 (kitchen sink scenarios and the links of the draft and missing cards), 3.6 (sidebar frame and waiting scenario) and 3.7 (rehearsal-clock browser check around the Polish midnight) are unchecked. The epilogue commit set `change.md` to `implemented` anyway. The diff holds no evidence for these checks, and the open questions in F6 and F9 (pill weight in the open menu, card links) can only be settled by them.
 - **Fix**: Run the kitchen sink checks (`/dev/ui/dashboard`, `/dev/ui/sidebar`, light and dark) and the `app:rehearsal-clock` steps from Phase 3, then tick the rows.
-- **Decision**: ACCEPTED — awaits the user: Manual rows 1.5, 2.5, 2.6, 3.6 and 3.7 are the user's checks (kitchen sinks in both themes, the `app:rehearsal-clock` steps), not ticked by the agent. Include the pill weight from F9 in the sidebar check.
+- **Decision**: ACCEPTED — the user accepted all findings on 2026-11-19 and archived the change without running Manual rows 1.5, 2.5, 2.6, 3.6 and 3.7 (kitchen sinks in both themes, `app:rehearsal-clock`); the rows stay unchecked in Progress because the checks were not run. The pill weight from F9 is unchecked too.
 
 ### F6 — Kitchen sink scenarios are not fully realistic
 
@@ -128,8 +128,8 @@
 - **Dimension**: Architecture
 - **Location**: resources/js/lib/budget-year-menu.ts:52; app/Http/Controllers/DashboardController.php:161
 - **Detail**: The menu marks any Budget in execution with a year later than the current year. The Dashboard line names only `currentYear + 1`. A 2028 Budget in execution in 2026 is allowed, because `StartBudgetExecution` only requires a draft. In that case the menu says „od 1.01” for 2028 and the Dashboard says nothing. This is rare and probably acceptable.
-- **Fix**: State in ADR-0108 that the Dashboard line names only the next year, or accept the difference as it is.
-- **Decision**: FIXED — ADR-0108 states that the status line names only the next year, while the menu marks every later year in execution.
+- **Fix**: State in ADR-0109 that the Dashboard line names only the next year, or accept the difference as it is.
+- **Decision**: FIXED — ADR-0109 states that the status line names only the next year, while the menu marks every later year in execution.
 
 ### F9 — Small consistency and accessibility nits
 
@@ -151,7 +151,7 @@
 - **Severity**: 💡 OBSERVATION
 - **Impact**: 🏃 LOW — quick decision; fix is obvious and narrowly scoped
 - **Dimension**: Architecture
-- **Location**: lang/pl/ui.php:228 (`notice_value_import_refused`); ADR-0108
-- **Detail**: „Import nie przyjmie wierszy z :year” reads as "no rows at all". Own transfers and capital movements are accepted in a draft year (`YearTurnTest::test_own_transfer_and_capital_movement_are_accepted_in_a_draft_year`). The glossary entry is precise (income, expense and refund), and the short copy was approved in ADR-0108, so this is a note only.
-- **Fix**: Keep the copy as decided, or narrow it (for example „Import nie przyjmie dochodów ani wydatków z :year”) through an ADR-0108 amendment.
-- **Decision**: ACCEPTED — the copy stays as decided in ADR-0108; the glossary keeps the precise scope (income, expense, refund).
+- **Location**: lang/pl/ui.php:228 (`notice_value_import_refused`); ADR-0109
+- **Detail**: „Import nie przyjmie wierszy z :year” reads as "no rows at all". Own transfers and capital movements are accepted in a draft year (`YearTurnTest::test_own_transfer_and_capital_movement_are_accepted_in_a_draft_year`). The glossary entry is precise (income, expense and refund), and the short copy was approved in ADR-0109, so this is a note only.
+- **Fix**: Keep the copy as decided, or narrow it (for example „Import nie przyjmie dochodów ani wydatków z :year”) through an ADR-0109 amendment.
+- **Decision**: ACCEPTED — the copy stays as decided in ADR-0109; the glossary keeps the precise scope (income, expense, refund).

@@ -40,7 +40,7 @@ This change adds the reminders.
 ## Scope
 
 **In scope:**
-- Glossary, ADR-0108 and amendments to 0032/0050/0098, design-system, rules.
+- Glossary, ADR-0109 and amendments to 0032/0050/0098, design-system, rules.
 - `approve_by` on the month-plan notice.
 - The `budget_not_in_execution` notice with its links.
 - The „od 1.01” year-menu mark.
@@ -66,7 +66,7 @@ The PHP shapes and TS types change in one commit with `assertInertia`. Copy goes
 
 | Phase | What it delivers | Key risk |
 | --- | --- | --- |
-| 1. Glossary and ADR-0108 | Rules written down, user confirms before code | Wording that later code contradicts |
+| 1. Glossary and ADR-0109 | Rules written down, user confirms before code | Wording that later code contradicts |
 | 2. Notices in „Wymaga uwagi” | Deadline in the plan card, the draft/missing Budget card, tests at 22:59:59 / 23:00:00 UTC | Order contract and the 6-card limit |
 | 3. „Od 1 stycznia” | Year-menu mark, Dashboard status line, full gate, rehearsal-clock check | ADR-0098 accessibility contract (marks only in `aria-describedby`) |
 

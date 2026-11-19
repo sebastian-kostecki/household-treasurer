@@ -1,6 +1,6 @@
 # Dashboard notices carry a severity
 
-Amended by ADR-0108: `budget_not_in_execution` is a fourth `warning` kind (the Budget of the current year, or in December of the next year, is a draft or missing), appended last after `collected_not_covered`.
+Amended by ADR-0109: `budget_not_in_execution` is a fourth `warning` kind (the Budget of the current year, or in December of the next year, is a draft or missing), appended last after `collected_not_covered`.
 
 Every Dashboard notice carries `severity`: `exceeded` (a limit or balance is already broken) or `warning` (still within bounds, close to breaking). The server decides it, next to `kind`, in `App\Support\DashboardNotices`; the UI only colours and groups by it. `exceeded` uses the `destructive` token, `warning` the `warning` token (amber). The four kinds from `dashboard-hierarchy.md` are all `exceeded`; no kind emits `warning` yet, and adding one is a domain decision (thresholds, which Categories) recorded in `context/foundation/glossary.md` before code. (Amended by S-07: `month_plan_not_approved` and `month_pace_ahead` emit `warning`, with thresholds in `context/foundation/glossary.md`; the month plan kinds `month_to_spend_negative` and `month_item_over_plan` are `exceeded`.)
 

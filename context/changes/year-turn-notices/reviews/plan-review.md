@@ -36,9 +36,9 @@ Confirmed against the code:
 - **Severity**: ⚠️ WARNING
 - **Impact**: 🔎 MEDIUM — real tradeoff; pause to reason through it
 - **Dimension**: Blind Spots
-- **Location**: Phase 1 (glossary, Budget; ADR-0108 examples), Phase 2 §5 Tests
+- **Location**: Phase 1 (glossary, Budget; ADR-0109 examples), Phase 2 §5 Tests
 - **Detail**: "Card whenever the current year's Budget is a draft" holds in every month. A new user drafting a first Budget sees a fourth draft signal next to the badge, the status line and the draft card. `DashboardTest::test_dashboard_has_no_month_notices_without_a_budget_in_execution` (:1312-1356) asserts `has('dashboardNotices', 1)` with a draft 2026 and will go red, but the plan named only `YearTurnTest:224` as a changed requirement.
-- **Fix A ⭐ Recommended**: Keep the rule (decision 5), name the test as a changed requirement and add a "draft in March" example to ADR-0108.
+- **Fix A ⭐ Recommended**: Keep the rule (decision 5), name the test as a changed requirement and add a "draft in March" example to ADR-0109.
   - Strength: Matches the decision already made; one rule.
   - Tradeoff: First-run Dashboard gets a fourth draft signal.
   - Confidence: HIGH — test and render paths confirmed.

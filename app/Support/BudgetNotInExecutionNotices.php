@@ -13,7 +13,7 @@ class BudgetNotInExecutionNotices
 {
     /**
      * A draft Budget of the current year, and in December a missing or draft Budget of the next year while
-     * the current year has a Budget (ADR-0108). Import refuses rows dated in such a year (ADR-0106).
+     * the current year has a Budget (ADR-0109). Import refuses rows dated in such a year (ADR-0106).
      *
      * @return list<array{kind: 'budget_not_in_execution', severity: 'warning', year: int, state: 'draft'|'missing'}>
      */

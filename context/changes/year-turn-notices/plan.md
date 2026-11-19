@@ -32,14 +32,14 @@ Roadmap slice S-41 (MS-03). Before the year turn the user should see what is com
 - From 1.12.2026 (Polish day), while the 2026 Budget exists and the 2027 Budget is a draft, the last warning card reads „Budżet w szkicu · Budżet 2027 · Import nie przyjmie wierszy z 2027” and opens the Budget screen of 2027. If the 2027 Budget does not exist, the card reads „Brak budżetu · Budżet 2027 · Import nie przyjmie wierszy z 2027” and opens the „Dodaj rok” dialog for 2027. The card disappears once 2027 is in execution.
 - On 2.01.2027 with the 2027 Budget still a draft (forgotten start), the same card shows for 2027 (current year, draft). A missing current-year Budget keeps its existing empty state and gets no card.
 - On 30.12.2026, after „Rozpocznij realizację” of 2027, the year menu shows 2027 with an „od 1.01” mark. The Dashboard line reads „środa, 30 grudnia 2026 · budżet 2026 w realizacji · budżet 2027 od 1 stycznia” (`formatLongDate` includes the weekday, `resources/js/lib/format.ts:140-150`). On 1.01.2027 (Polish day) both marks are gone and 2027 is „bieżący”.
-- The glossary, ADR-0108, design-system.md and the rule files describe all of this before the code lands. `composer ci:check`, Vitest, `npm run check:ui`, `npm run types:check` and Sloppy are green on PostgreSQL.
+- The glossary, ADR-0109, design-system.md and the rule files describe all of this before the code lands. `composer ci:check`, Vitest, `npm run check:ui`, `npm run types:check` and Sloppy are green on PostgreSQL.
 
 Verify with the Feature tests at the Polish midnight boundaries, the kitchen sinks and a browser check with `app:rehearsal-clock`.
 
 ### Key Discoveries:
 
 - New warning kind needs its term and threshold in `context/foundation/glossary.md` before code (`.ai/rules/support.md`, `design-system.md:87`, ADR-0032).
-- Next free ADR number is 0108 (highest in use: `0107-image-tags-and-rollback-without-build.md`).
+- Next free ADR number is 0109 (0108 went to S-43 `years-report-in-early-january`, merged into `development` first).
 - Precedent for a notice change: `context/archive/2026-11-13-collected-coverage/plan.md`. Its Phase 1 was docs only (glossary, ADR, "Amended by" lines in 0032/0050, rule and design-system lists), then a stop for confirmation. Then red tests, then the server, then the front end and the kitchen sink.
 - Year select destinations are `budget | month-plan | reports | reports-trend | reports-years` (`app/Http/Requests/SelectBudgetYearRequest.php:27`). `budget` is the screen with „Rozpocznij realizację”.
 - Freeze time at 22:59:59 / 23:00:00 UTC on 30 November and 31 December, never at 00:00 UTC (`.ai/rules/app-day.md`).
@@ -70,7 +70,7 @@ The year menu derives its mark in `budgetYearMenu` from `shell.budgetYears` and 
 - **Notice order.** `budget_not_in_execution` is appended after `collected_not_covered`, the last of all kinds (decision 7). With two cards (a draft current year in December and a draft or missing next year), they follow year order. This kind does not depend on `$monthReading`, so append it outside the `if ($monthReading !== null)` block. A draft current-year Budget has no month reading at all.
 - **Deadline wording.** "23:59" is the last minute of the Polish App Day of `approve_by`. The server sends only the date. The client formats it with the time from the copy string, so the browser never computes a deadline from a clock.
 
-## Phase 1: Glossary and ADR-0108
+## Phase 1: Glossary and ADR-0109
 
 ### Overview
 
@@ -91,9 +91,9 @@ Write the rules down before any code (AGENTS.md hard rule; `.ai/rules/support.md
   - A Budget in execution of a year later than the current calendar year waits for its year. The year menu marks it „od 1.01”, and the Dashboard status line names the next year's.
 - Polish UI copy for both: „Budżet w szkicu” / „Brak budżetu”, „Import nie przyjmie wierszy z :year”, „od 1.01”, „budżet :year od 1 stycznia”.
 
-#### 2. ADR-0108
+#### 2. ADR-0109
 
-**File**: `context/foundation/adr/0108-year-turn-notices.md` (new)
+**File**: `context/foundation/adr/0109-year-turn-notices.md` (new)
 
 **Intent**: One decision record for the three reminders, in the style of ADR-0090 (rule, examples on dates, "We rejected").
 
@@ -114,7 +114,7 @@ Write the rules down before any code (AGENTS.md hard rule; `.ai/rules/support.md
 
 **Files**: `context/foundation/adr/0032-*.md`, `0050-*.md`, `0098-*.md`
 
-**Intent**: Add the "Amended by ADR-0108: …" line under the title, as earlier ADRs do for 0090 and 0103.
+**Intent**: Add the "Amended by ADR-0109: …" line under the title, as earlier ADRs do for 0090 and 0103.
 
 **Contract**: one sentence each. In 0050, also update the label table: the `month_plan_not_approved` value becomes „zatwierdź do DD.MM, 23:59”, and a new row is added: `budget_not_in_execution` | Budżet w szkicu / Brak budżetu | „Budżet :year” | „Import nie przyjmie wierszy z :year”.
 
@@ -127,7 +127,7 @@ Write the rules down before any code (AGENTS.md hard rule; `.ai/rules/support.md
 **Contract**:
 - `support.md` adds `budget_not_in_execution` to the warning kinds.
 - design-system adds the kind to the alert list, and „od 1.01” to the year menu with the outline style of „bieżący” (`sidebar-border` outline, `sidebar-foreground` text), with no new token.
-- `js-sidebar.md` updates its ADR-0098 sentence to include the mark and ADR-0108.
+- `js-sidebar.md` updates its ADR-0098 sentence to include the mark and ADR-0109.
 - Run `php artisan boost:index-rules` if the rule frontmatter changes (it should not).
 
 #### 5. Roadmap and directions
@@ -145,14 +145,14 @@ Write the rules down before any code (AGENTS.md hard rule; `.ai/rules/support.md
 
 #### Automated Verification:
 
-- ADR file exists and is the only 0108: `ls context/foundation/adr/0108-*.md | wc -l` prints 1
+- ADR file exists and is the only 0109: `ls context/foundation/adr/0109-*.md | wc -l` prints 1
 - Glossary names the new kind and the deadline: `grep -c "budget_not_in_execution" context/foundation/glossary.md` ≥ 1 and `grep -c "23:59" context/foundation/glossary.md` ≥ 1
-- Amended ADRs cite 0108: `grep -l "ADR-0108" context/foundation/adr/0032-*.md context/foundation/adr/0050-*.md context/foundation/adr/0098-*.md | wc -l` prints 3
-- Rule files mention the kind and the mark: `grep -c "budget_not_in_execution" .ai/rules/support.md` ≥ 1 and `grep -c "0108" .ai/rules/js-sidebar.md` ≥ 1
+- Amended ADRs cite 0109: `grep -l "ADR-0109" context/foundation/adr/0032-*.md context/foundation/adr/0050-*.md context/foundation/adr/0098-*.md | wc -l` prints 3
+- Rule files mention the kind and the mark: `grep -c "budget_not_in_execution" .ai/rules/support.md` ≥ 1 and `grep -c "0109" .ai/rules/js-sidebar.md` ≥ 1
 
 #### Manual Verification:
 
-- The user reads the glossary entries and ADR-0108 and confirms the wording before Phase 2 starts
+- The user reads the glossary entries and ADR-0109 and confirms the wording before Phase 2 starts
 
 **Implementation Note**: After this phase, stop for the user's confirmation of the docs before writing any code.
 
@@ -277,7 +277,7 @@ Show that a Budget in execution of a later year waits for its calendar year, the
 
 **Files**: `resources/js/lib/budget-year-menu.ts`, `resources/js/lib/budget-year-menu.test.ts`, `resources/js/components/BudgetYearSwitcher.vue`, `lang/pl/ui.php`
 
-**Intent**: Add the third independent mark to the year menu, derived from the same inputs as „bieżący” and „szkic” (ADR-0098, ADR-0108).
+**Intent**: Add the third independent mark to the year menu, derived from the same inputs as „bieżący” and „szkic” (ADR-0098, ADR-0109).
 
 **Contract**:
 - `BudgetYearMenuEntry` gains `waiting: boolean` = `phase === 'execution' && year > currentYear`.
@@ -381,18 +381,18 @@ None. No schema change, and the prop changes are additive except the new `approv
 
 > Convention: `- [ ]` pending, `- [x]` done. Append ` — <commit sha>` when a step lands. Do not rename step titles. See `references/progress-format.md`.
 
-### Phase 1: Glossary and ADR-0108
+### Phase 1: Glossary and ADR-0109
 
 #### Automated
 
-- [x] 1.1 ADR file exists and is the only 0108 — cc08f0ca
+- [x] 1.1 ADR file exists and is the only 0109 — cc08f0ca
 - [x] 1.2 Glossary names the new kind and the deadline — cc08f0ca
-- [x] 1.3 Amended ADRs cite 0108 — cc08f0ca
+- [x] 1.3 Amended ADRs cite 0109 — cc08f0ca
 - [x] 1.4 Rule files mention the kind and the mark — cc08f0ca
 
 #### Manual
 
-- [ ] 1.5 The user reads the glossary entries and ADR-0108 and confirms the wording before Phase 2 starts
+- [ ] 1.5 The user reads the glossary entries and ADR-0109 and confirms the wording before Phase 2 starts
 
 ### Phase 2: Notices in „Wymaga uwagi”
 

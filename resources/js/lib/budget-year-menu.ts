@@ -10,7 +10,7 @@ export type BudgetYearMenuEntry = {
     current: boolean;
     /** The Budget of the year is a draft. */
     draft: boolean;
-    /** The Budget is in execution and its year is later than the current one (ADR-0108). */
+    /** The Budget is in execution and its year is later than the current one (ADR-0109). */
     waiting: boolean;
 };
 

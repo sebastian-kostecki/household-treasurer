@@ -1,6 +1,6 @@
 # The year menu shows the state of each year
 
-Amended by ADR-0108: a third mark „od 1.01” for a Budget in execution of a year later than the App Day year; a year in execution that is not the current one has no mark only when it is a past year.
+Amended by ADR-0109: a third mark „od 1.01” for a Budget in execution of a year later than the App Day year; a year in execution that is not the current one has no mark only when it is a past year.
 
 ADR-0087 made „Rok budżetu” a menu button with a flat list of years. The list says nothing about a year: the user cannot tell the current calendar year from a draft Budget, and with 2020–2027 the old years crowd the ones in use. The Atrament `Sidebar` card (variant B) answers with state marks, groups, a caption under „Dodaj rok” and a dark menu. This ADR extends ADR-0087; everything it does not mention (empty state, pending state, the shared dialog, `budgetYearMenu` as the one source of logic) stays.
 

@@ -151,7 +151,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Parallel with:** S-40, S-42, S-43, F-09, S-44, S-45, S-46
 - **Blockers:** —
 - **Unknowns:**
-  - ~~Czy miniony miesiąc bez zatwierdzonego planu ma dać się zatwierdzić po północy (zmiana reguły), czy wystarczy ostrzeżenie przed nią?~~ Answered: the warning only, no rule change (ADR-0108).
+  - ~~Czy miniony miesiąc bez zatwierdzonego planu ma dać się zatwierdzić po północy (zmiana reguły), czy wystarczy ostrzeżenie przed nią?~~ Answered: the warning only, no rule change (ADR-0109).
 - **Risk:** Powiadomienia Dashboardu mają własne reguły wagi i progów (F-01); trzy nowe powiadomienia naraz w grudniu nie mogą zasłonić istniejących ostrzeżeń planu miesiąca.
 - **Status:** ready
 
