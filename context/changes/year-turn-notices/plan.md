@@ -385,10 +385,10 @@ None. No schema change, and the prop changes are additive except the new `approv
 
 #### Automated
 
-- [x] 1.1 ADR file exists and is the only 0109 — cc08f0ca
-- [x] 1.2 Glossary names the new kind and the deadline — cc08f0ca
-- [x] 1.3 Amended ADRs cite 0109 — cc08f0ca
-- [x] 1.4 Rule files mention the kind and the mark — cc08f0ca
+- [x] 1.1 ADR file exists and is the only 0109 — aebf1a54
+- [x] 1.2 Glossary names the new kind and the deadline — aebf1a54
+- [x] 1.3 Amended ADRs cite 0109 — aebf1a54
+- [x] 1.4 Rule files mention the kind and the mark — aebf1a54
 
 #### Manual
 
@@ -398,10 +398,10 @@ None. No schema change, and the prop changes are additive except the new `approv
 
 #### Automated
 
-- [x] 2.1 Dashboard and year-turn Feature tests pass on PostgreSQL — c60e1625
-- [x] 2.2 Vitest passes for the presentation and the fixtures — c60e1625
-- [x] 2.3 Types and UI guards pass — c60e1625
-- [x] 2.4 PHP style is clean — c60e1625
+- [x] 2.1 Dashboard and year-turn Feature tests pass on PostgreSQL — c29f9b1d
+- [x] 2.2 Vitest passes for the presentation and the fixtures — c29f9b1d
+- [x] 2.3 Types and UI guards pass — c29f9b1d
+- [x] 2.4 PHP style is clean — c29f9b1d
 
 #### Manual
 
@@ -412,11 +412,11 @@ None. No schema change, and the prop changes are additive except the new `approv
 
 #### Automated
 
-- [x] 3.1 Vitest passes — 9dc85c37
-- [x] 3.2 Full gate passes on PostgreSQL — 9dc85c37
-- [x] 3.3 Sloppy reports no new finding — 9dc85c37
-- [x] 3.4 Types and UI guards pass — 9dc85c37
-- [x] 3.5 App Day guard stays green — 9dc85c37
+- [x] 3.1 Vitest passes — 23a9eb3c
+- [x] 3.2 Full gate passes on PostgreSQL — 23a9eb3c
+- [x] 3.3 Sloppy reports no new finding — 23a9eb3c
+- [x] 3.4 Types and UI guards pass — 23a9eb3c
+- [x] 3.5 App Day guard stays green — 23a9eb3c
 
 #### Manual
 
