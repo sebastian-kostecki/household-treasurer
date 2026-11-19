@@ -1,10 +1,10 @@
 ---
-change_id: image-rollback-tags
-title: Image rollback tags
-status: impl_reviewed
+change_id: years-report-in-early-january
+title: Years report in early january
+status: archived
 created: 2026-11-19
 updated: 2026-11-19
-archived_at: null
+archived_at: 2026-11-19T15:39:53Z
 ---
 
 ## Notes

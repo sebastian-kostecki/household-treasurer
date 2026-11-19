@@ -221,7 +221,14 @@ class YearTurnTest extends TestCase
                 ->where('month_to_spend', null)
                 ->where('month_pace', null)
                 ->where('current_month', null)
-                ->where('dashboardNotices', []),
+                ->where('dashboardNotices', [
+                    [
+                        'kind' => 'budget_not_in_execution',
+                        'severity' => 'warning',
+                        'year' => 2027,
+                        'state' => 'draft',
+                    ],
+                ]),
             );
 
         $this->postExpense('2027-01-02', $this->groceries2027)
@@ -238,6 +245,14 @@ class YearTurnTest extends TestCase
 
         $this->assertDatabaseCount('financial_operations', 2);
         $this->assertSame(37_500, $this->collectedAt($this->car2026, 2027, 2));
+
+        $this->actingAs($this->user)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('dashboardNotices', fn ($notices) => collect($notices)
+                    ->doesntContain(fn ($notice) => $notice['kind'] === 'budget_not_in_execution')),
+            );
     }
 
     public function test_own_transfer_and_capital_movement_are_accepted_in_a_draft_year(): void

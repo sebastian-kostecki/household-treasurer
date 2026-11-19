@@ -10,7 +10,8 @@
         "check:fix": "vp check --fix",
         "check:ui": "node scripts/check-ui-literals.mjs",
         "types:check": "vue-tsc --noEmit",
-        "test": "vp test"
+        "test": "vp test",
+        "e2e:gate": "playwright test --project=gate"
     },
     "dependencies": {
         "@inertiajs/vite": "^3.11.0",

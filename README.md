@@ -135,6 +135,22 @@ CI uruchamia dodatkowo [Sloppy](https://github.com/heyosseus/sloppy) (`vendor/bi
 
 `{user}` to e-mail albo ID. Snapshoty lądują w `storage/app/private/user-snapshots/`.
 
+### Lokalny serwer MCP (odczyt)
+
+Serwer `treasurer` (stdio, ADR-0110) pozwala Claude Code i Claude Desktop pytać o budżet z lokalnej bazy: salda kont, „do wydania” w miesiącu, plan miesiąca i roku, ostatnie operacje, lista kategorii. Działa tylko w `APP_ENV=local` i czyta dane jednego użytkownika, którego wskazuje `MCP_LOCAL_USER` (e-mail albo ID) w `.env`:
+
+```bash
+MCP_LOCAL_USER=ty@example.com
+```
+
+Dodanie do Claude Code przez Sail (`-T` zostawia stdio w spokoju; `<katalog>` to główny checkout z działającym stosem Sail):
+
+```bash
+claude mcp add treasurer --scope local -- docker compose -f <katalog>/compose.yaml exec -T -u sail laravel.test php artisan mcp:start treasurer
+```
+
+Bez Sail: `php artisan mcp:start treasurer` z hosta wymaga `DB_HOST=127.0.0.1` i `DB_PORT=5434` (`FORWARD_DB_PORT`) oraz PHP 8.4.1, bo host nie rozwiąże `DB_HOST=pgsql`. Żeby pytać o dane produkcyjne, przywróć snapshot (`user:restore`) na lokalnego użytkownika i wskaż go w `MCP_LOCAL_USER`. Bez ustawionego użytkownika albo poza środowiskiem `local` serwer odmawia startu.
+
 ## Produkcja
 
 Własny Docker Compose na VPS (aplikacja + PostgreSQL + Traefik jako reverse proxy + worker kolejki). Backupy instancji: Spatie Laravel Backup. Nie używaj obrazu Sail na produkcji. Zobacz [`context/foundation/tech-stack.md`](context/foundation/tech-stack.md).

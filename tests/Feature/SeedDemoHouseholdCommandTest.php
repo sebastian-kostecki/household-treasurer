@@ -6,7 +6,9 @@ use App\Models\Account;
 use App\Models\FinancialOperation;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Artisan;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
 class SeedDemoHouseholdCommandTest extends TestCase
@@ -78,5 +80,39 @@ class SeedDemoHouseholdCommandTest extends TestCase
         $this->assertNotNull($user);
         $this->assertTrue($user->accounts()->exists());
         $this->assertTrue(FinancialOperation::query()->where('user_id', $user->id)->exists());
+    }
+
+    /**
+     * @return array<string, array{string}>
+     */
+    public static function earlyJanuaryMoments(): array
+    {
+        return [
+            '1 stycznia' => ['2027-01-01 10:00:00'],
+            '5 stycznia' => ['2027-01-05 10:00:00'],
+        ];
+    }
+
+    #[DataProvider('earlyJanuaryMoments')]
+    public function test_seed_in_early_january_creates_no_dates_after_today(string $moment): void
+    {
+        $this->travelTo(Carbon::parse($moment, 'UTC'));
+        $user = User::factory()->create(['email' => 'january@example.net']);
+
+        Artisan::call('demo:seed-household', ['user' => $user->email]);
+
+        $today = now()->toDateString();
+
+        foreach ([
+            'operacje' => $user->financialOperations()->selectRaw('min(operation_date) as min_date, max(operation_date) as max_date'),
+            'przelewy własne' => $user->ownTransfers()->selectRaw('min(transfer_date) as min_date, max(transfer_date) as max_date'),
+            'ruchy kapitału' => $user->capitalMovements()->selectRaw('min(movement_date) as min_date, max(movement_date) as max_date'),
+        ] as $label => $query) {
+            $range = $query->first();
+
+            $this->assertNotNull($range->max_date, $label);
+            $this->assertLessThanOrEqual($today, substr((string) $range->max_date, 0, 10), $label.': data po dziś');
+            $this->assertGreaterThanOrEqual('2027-01-01', substr((string) $range->min_date, 0, 10), $label.': data przed rokiem seedu');
+        }
     }
 }

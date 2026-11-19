@@ -12,9 +12,11 @@
 import { test, expect, type Page } from '@playwright/test';
 import {
     expectSelectedBudgetYear,
+    newestExecutionBudgetYear,
     selectBudgetYear,
 } from './support/budget-year';
 import { assignCategoryToGroup } from './support/categories';
+import { withCleanup } from './support/cleanup';
 
 async function addExpense(
     page: Page,
@@ -52,11 +54,11 @@ async function deleteExpense(page: Page, description: string) {
     await expect(page.getByText(description, { exact: true })).toBeHidden();
 }
 
-// The month plan opens the selected budget year (the oldest one by default),
-// and an expense dated today lands in the budget of the current year.
+// The month plan opens the selected budget year (the oldest one by default);
+// the test picks the newest Budget that is not a draft.
 async function openCurrentMonthPlan(page: Page) {
     await page.goto('/month-plan');
-    const year = new Date().getFullYear();
+    const year = await newestExecutionBudgetYear(page);
     await selectBudgetYear(page, year);
     await expectSelectedBudgetYear(page, year);
     await page.goto('/month-plan');
@@ -80,122 +82,149 @@ function planRow(page: Page, name: string) {
         .filter({ has: page.getByText(name, { exact: true }) });
 }
 
-test('a collapsed month plan group keeps the over-plan signal and opens again', async ({
-    page,
-}) => {
-    // The test walks Categories, Operations and the plan through the UI, so it
-    // needs more than the default 30 s on a slow local server.
-    test.setTimeout(120_000);
-    const stamp = Date.now();
-    const group = `E2E grupa planu ${stamp}`;
-    const category = `E2E kategoria grupy ${stamp}`;
-    const description = `E2E wydatek grupy ${stamp}`;
-    let expenseBooked = false;
-    let categoryCreated = false;
-    let groupCreated = false;
+test(
+    'a collapsed month plan group keeps the over-plan signal and opens again',
+    { tag: '@gate' },
+    async ({ page }) => {
+        const pageErrors: Error[] = [];
+        page.on('pageerror', (error) => pageErrors.push(error));
 
-    try {
-        // Setup: an expense group with an own running Category (plan 0) in it.
-        await page.goto('/categories');
-        await page.getByRole('button', { name: 'Dodaj grupę' }).click();
-        const groupDialog = page.getByRole('dialog');
-        await groupDialog.getByLabel('Nazwa grupy').fill(group);
-        await groupDialog.getByRole('button', { name: 'Zapisz' }).click();
-        await expect(groupBlock(page, group)).toBeVisible();
-        groupCreated = true;
+        // The test walks Categories, Operations and the plan through the UI, so it
+        // needs more than the default 30 s on a slow local server.
+        test.setTimeout(120_000);
+        const stamp = Date.now();
+        const group = `E2E grupa planu ${stamp}`;
+        const category = `E2E kategoria grupy ${stamp}`;
+        const description = `E2E wydatek grupy ${stamp}`;
+        let expenseBooked = false;
+        let categoryCreated = false;
+        let groupCreated = false;
 
-        await page
-            .getByRole('button', { name: 'Dodaj kategorię', exact: true })
-            .click();
-        const categoryDialog = page.getByRole('dialog');
-        await categoryDialog.getByLabel('Nazwa').fill(category);
-        await categoryDialog.getByRole('button', { name: 'Zapisz' }).click();
-        await expect(categoryDialog).toHaveCount(0);
-        categoryCreated = true;
+        await withCleanup(
+            async () => {
+                // Setup: an expense group with an own running Category (plan 0) in it.
+                await page.goto('/categories');
+                await page.getByRole('button', { name: 'Dodaj grupę' }).click();
+                const groupDialog = page.getByRole('dialog');
+                await groupDialog.getByLabel('Nazwa grupy').fill(group);
+                await groupDialog
+                    .getByRole('button', { name: 'Zapisz' })
+                    .click();
+                await expect(groupBlock(page, group)).toBeVisible();
+                groupCreated = true;
 
-        await assignCategoryToGroup(
-            page,
-            categoryRow(page, category),
-            category,
-            group,
+                await page
+                    .getByRole('button', {
+                        name: 'Dodaj kategorię',
+                        exact: true,
+                    })
+                    .click();
+                const categoryDialog = page.getByRole('dialog');
+                await categoryDialog.getByLabel('Nazwa').fill(category);
+                await categoryDialog
+                    .getByRole('button', { name: 'Zapisz' })
+                    .click();
+                await expect(categoryDialog).toHaveCount(0);
+                categoryCreated = true;
+
+                await assignCategoryToGroup(
+                    page,
+                    categoryRow(page, category),
+                    category,
+                    group,
+                );
+                await expect(
+                    groupBlock(page, group).locator('[data-category-row]'),
+                ).toContainText(category);
+
+                // A 100,00 expense on a Category planned at 0 is over plan.
+                await addExpense(page, category, '100,00', description);
+                expenseBooked = true;
+
+                await openCurrentMonthPlan(page);
+                const groupRow = page
+                    .locator('[data-group-row]')
+                    .filter({ has: page.getByText(group, { exact: true }) });
+                await expect(groupRow).toBeVisible();
+                await expect(
+                    groupRow.locator('[data-group-actual]'),
+                ).toContainText('100,00');
+                await expect(
+                    groupRow.locator('[data-group-over-plan]'),
+                ).toHaveText('ponad plan');
+                await expect(planRow(page, category)).toBeVisible();
+                // A row in a group is indented under the group row.
+                await expect(planRow(page, category)).toHaveClass(
+                    /month-plan-row-nested/,
+                );
+
+                // Collapsed: the Category row goes, the signal stays on the group row.
+                await groupRow
+                    .getByRole('button', { name: `Zwiń grupę ${group}` })
+                    .click();
+                await expect(planRow(page, category)).toBeHidden();
+                await expect(
+                    groupRow.locator('[data-group-over-plan]'),
+                ).toBeVisible();
+                await expect(
+                    groupRow.locator('[data-group-actual]'),
+                ).toContainText('100,00');
+
+                // Expanded: the Category row is back.
+                await groupRow
+                    .getByRole('button', { name: `Rozwiń grupę ${group}` })
+                    .click();
+                await expect(planRow(page, category)).toBeVisible();
+            },
+            async () => {
+                if (expenseBooked) {
+                    await deleteExpense(page, description);
+                }
+
+                await page.goto('/categories');
+
+                if (categoryCreated) {
+                    // The expense joined the Category to a Budget in execution, so the
+                    // list no longer allows deleting it; archiving takes it off the lists.
+                    await categoryRow(page, category)
+                        .getByRole('button', {
+                            name: `Więcej działań kategorii ${category}`,
+                        })
+                        .click();
+                    await page
+                        .getByRole('menuitem', { name: 'Archiwizuj' })
+                        .click();
+                    await page
+                        .getByRole('dialog')
+                        .getByRole('button', { name: 'Archiwizuj' })
+                        .click();
+                    await expect(page.getByRole('dialog')).toHaveCount(0);
+                }
+
+                if (groupCreated) {
+                    // A success toast can sit over the menu button of the group.
+                    await page.mouse.move(0, 0);
+                    await expect(
+                        page.locator('[data-sonner-toast]'),
+                    ).toHaveCount(0);
+
+                    await groupBlock(page, group)
+                        .getByRole('button', {
+                            name: `Więcej działań grupy ${group}`,
+                        })
+                        .click();
+                    await page
+                        .getByRole('menuitem', { name: 'Usuń grupę' })
+                        .click();
+                    await page
+                        .getByRole('dialog')
+                        .getByRole('button', { name: 'Usuń grupę' })
+                        .click();
+                    await expect(groupBlock(page, group)).toHaveCount(0);
+                }
+            },
         );
-        await expect(
-            groupBlock(page, group).locator('[data-category-row]'),
-        ).toContainText(category);
 
-        // A 100,00 expense on a Category planned at 0 is over plan.
-        await addExpense(page, category, '100,00', description);
-        expenseBooked = true;
-
-        await openCurrentMonthPlan(page);
-        const groupRow = page
-            .locator('[data-group-row]')
-            .filter({ has: page.getByText(group, { exact: true }) });
-        await expect(groupRow).toBeVisible();
-        await expect(groupRow.locator('[data-group-actual]')).toContainText(
-            '100,00',
-        );
-        await expect(groupRow.locator('[data-group-over-plan]')).toHaveText(
-            'ponad plan',
-        );
-        await expect(planRow(page, category)).toBeVisible();
-        // A row in a group is indented under the group row.
-        await expect(planRow(page, category)).toHaveClass(
-            /month-plan-row-nested/,
-        );
-
-        // Collapsed: the Category row goes, the signal stays on the group row.
-        await groupRow
-            .getByRole('button', { name: `Zwiń grupę ${group}` })
-            .click();
-        await expect(planRow(page, category)).toBeHidden();
-        await expect(groupRow.locator('[data-group-over-plan]')).toBeVisible();
-        await expect(groupRow.locator('[data-group-actual]')).toContainText(
-            '100,00',
-        );
-
-        // Expanded: the Category row is back.
-        await groupRow
-            .getByRole('button', { name: `Rozwiń grupę ${group}` })
-            .click();
-        await expect(planRow(page, category)).toBeVisible();
-    } finally {
-        if (expenseBooked) {
-            await deleteExpense(page, description);
-        }
-
-        await page.goto('/categories');
-
-        if (categoryCreated) {
-            // The expense joined the Category to a Budget in execution, so the
-            // list no longer allows deleting it; archiving takes it off the lists.
-            await categoryRow(page, category)
-                .getByRole('button', {
-                    name: `Więcej działań kategorii ${category}`,
-                })
-                .click();
-            await page.getByRole('menuitem', { name: 'Archiwizuj' }).click();
-            await page
-                .getByRole('dialog')
-                .getByRole('button', { name: 'Archiwizuj' })
-                .click();
-            await expect(page.getByRole('dialog')).toHaveCount(0);
-        }
-
-        if (groupCreated) {
-            // A success toast can sit over the menu button of the group.
-            await page.mouse.move(0, 0);
-            await expect(page.locator('[data-sonner-toast]')).toHaveCount(0);
-
-            await groupBlock(page, group)
-                .getByRole('button', { name: `Więcej działań grupy ${group}` })
-                .click();
-            await page.getByRole('menuitem', { name: 'Usuń grupę' }).click();
-            await page
-                .getByRole('dialog')
-                .getByRole('button', { name: 'Usuń grupę' })
-                .click();
-            await expect(groupBlock(page, group)).toHaveCount(0);
-        }
-    }
-});
+        expect(pageErrors).toEqual([]);
+    },
+);

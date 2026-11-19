@@ -29,7 +29,7 @@ use App\Models\CategoryGroup;
  * @phpstan-type YearsFastest array{id: int, name: string, icon: string, color: string, growth_tenths: int, first_year: int}
  * @phpstan-type YearsSection array{entries: list<YearsCategory|YearsGroup>, total: YearsCells, first_year: int|null, average_yearly_growth_tenths: int|null, fastest_growing: YearsFastest|null}
  * @phpstan-type YearsMode array{final_year: int|null, expense: YearsSection, income: YearsSection}
- * @phpstan-type YearsShape array{columns: list<int>, current_year: int|null, cut: array{month: int, day: int}|null, same_day: YearsMode|null, full: YearsMode}
+ * @phpstan-type YearsShape array{columns: list<int>, current_year: int|null, cut: array{month: int, day: int}|null, same_day: YearsMode|null, default_range: 'same_day'|'full', full: YearsMode}
  * @phpstan-type YearsRow array{category: Category, line: BudgetLine|null, amount: int, has_operations: bool, previous: int|null, cells: list<int|null>, opens_panel: bool}
  */
 final class ReportYears
@@ -86,6 +86,7 @@ final class ReportYears
             'current_year' => $this->range->currentYear(),
             'cut' => $this->range->cut(),
             'same_day' => $this->range->currentYear() === null ? null : $this->mode(true),
+            'default_range' => $this->range->opensOnSameDay() ? 'same_day' : 'full',
             'full' => $this->mode(false),
         ];
     }

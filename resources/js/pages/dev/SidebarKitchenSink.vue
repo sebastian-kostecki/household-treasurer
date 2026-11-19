@@ -225,6 +225,23 @@ const yearFrames: YearFrame[] = [
         open: true,
     },
     {
+        key: 'years-next-waiting',
+        label: 'Następny rok w realizacji czeka na 1 stycznia',
+        budgetYears: executionYears(2025, 2026, 2027),
+        budgetYear: 2027,
+        currentYear: frameCurrentYear,
+        pending: false,
+    },
+    {
+        key: 'years-next-waiting-open',
+        label: 'Następny rok czeka na 1 stycznia, otwarte menu',
+        budgetYears: executionYears(2025, 2026, 2027),
+        budgetYear: 2026,
+        currentYear: frameCurrentYear,
+        pending: false,
+        open: true,
+    },
+    {
         key: 'years-empty',
         label: 'Bez budżetu',
         budgetYears: executionYears(),

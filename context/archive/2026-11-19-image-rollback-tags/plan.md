@@ -308,10 +308,10 @@ Brak migracji bazy. Pierwsze wdrożenie po zmianie wymaga `git pull --ff-only or
 
 #### Manual
 
-- [ ] 3.3 Na halina175 `scripts/deploy.sh` loguje tag `legacy-…`, tag SHA i sprzątanie, a `docker image ls` pokazuje `prod`, `<sha>` i `legacy-…`
-- [ ] 3.4 `scripts/rollback.sh` wypisuje tagi z `← prod` przy bieżącym SHA
-- [ ] 3.5 `scripts/rollback.sh legacy-<data>` przechodzi blokadę, a `/up` zwraca 200 na starym obrazie
-- [ ] 3.6 `scripts/rollback.sh <sha>` wraca na nowy obraz, a `/up` zwraca 200
+- [x] 3.3 Na halina175 `scripts/deploy.sh` loguje tag `legacy-…`, tag SHA i sprzątanie, a `docker image ls` pokazuje `prod`, `<sha>` i `legacy-…`
+- [x] 3.4 `scripts/rollback.sh` wypisuje tagi z `← prod` przy bieżącym SHA
+- [x] 3.5 `scripts/rollback.sh legacy-<data>` przechodzi blokadę, a `/up` zwraca 200 na starym obrazie
+- [x] 3.6 `scripts/rollback.sh <sha>` wraca na nowy obraz, a `/up` zwraca 200
 - [ ] 3.7 Kolejne wdrożenie zostawia najwyżej 3 tagi poza `prod`
 
-> 3.3–3.7 czekają na merge do `main` i pierwsze `scripts/deploy.sh` na halina175 (przegląd implementacji 2026-11-19, F1): gałąź nie była jeszcze na `origin`, więc próba na produkcji nie mogła się odbyć.
+> 3.3–3.6 sprawdzone na halina175 2026-11-19 po PR #274 (`main` @ `205fabdf`): `deploy.sh` zalogował `legacy-20261117` przed buildem, tag `205fabdf` po nim i sprzątanie (`Total reclaimed space: 0B`, tylko 2 tagi); `docker image ls` pokazał `prod`, `205fabdf`, `legacy-20261117`; lista `rollback.sh` miała `← prod` przy `205fabdf`; `rollback.sh legacy-20261117` przeszedł blokadę migracji, kontener działał na `8005b962…`, `/up` 200; `rollback.sh 205fabdf` wrócił na `cd96bf1a…`, `/up` 200. 3.7 czeka na następne wdrożenie z `main`.

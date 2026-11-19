@@ -41,6 +41,7 @@ export type UiTranslations = {
         shortcuts_hint: string;
         year_current: string;
         year_draft: string;
+        year_waiting: string;
         years_recent: string;
         years_older: string;
         add_year_source: string;

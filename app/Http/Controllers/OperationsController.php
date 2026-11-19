@@ -15,6 +15,7 @@ use App\Support\CategoryAppearance;
 use App\Support\CategoryList\CategoryChoiceOptions;
 use App\Support\CsvImport\OwnTransferImportSnapshots;
 use App\Support\EntryToSpendInputs;
+use App\Support\FinancialOperationRows;
 use App\Support\HandEntryMonthRemainingInputs;
 use App\Support\OperationsDaySums;
 use App\Support\OperationsFilterOptions;
@@ -34,32 +35,20 @@ class OperationsController extends Controller
         $filters = $request->filters();
         $suppressedSections = $filters->suppressedSections();
 
-        $operationsQuery = $filters->apply($user->financialOperations());
+        $operationsQuery = FinancialOperationRows::query($user, $filters);
 
         if (in_array(OperationsListSection::FinancialOperations, $suppressedSections, true)) {
             $operationsQuery->whereRaw('0 = 1');
         }
 
         $operations = $operationsQuery
-            ->with(['account:id,name,type,bank,sheet_year', 'budgetLine:id,category_id,archived_at'])
-            ->orderByDesc('operation_date')
-            ->orderByDesc('id')
             ->paginate(self::OPERATIONS_PER_PAGE, pageName: 'operations_page')
             ->withQueryString()
             ->through(fn (FinancialOperation $operation): array => [
-                'id' => $operation->id,
-                'operation_date' => $operation->operation_date->toDateString(),
-                'description' => $operation->description,
-                'counterparty' => $operation->counterparty,
+                ...FinancialOperationRows::row($operation),
                 'raw_statement_description' => $operation->raw_statement_description,
-                'type' => $operation->type->value,
-                'amount_minor_units' => $operation->amount_minor_units,
-                'account_id' => $operation->account_id,
-                'category_id' => $operation->budgetLine->category_id,
-                'category_label' => $operation->budgetLine->category->name,
                 'category_icon' => $operation->budgetLine->category->icon,
                 'category_color' => $operation->budgetLine->category->color,
-                'category_archived' => $operation->budgetLine->isArchived() || $operation->budgetLine->category->isArchived(),
                 'sheet_operation' => $operation->account->isSheetAccount(),
                 ...AccountIdentity::prefixedRowFields($operation->account, 'account'),
             ]);

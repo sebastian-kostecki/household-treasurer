@@ -73,6 +73,15 @@ return [
             'replace_placeholders' => true,
         ],
 
+        // Remote MCP calls (App\Http\Middleware\LogMcpCall): always info, whatever LOG_LEVEL says.
+        'mcp' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/mcp.log'),
+            'level' => 'info',
+            'max_files' => 14,
+            'replace_placeholders' => true,
+        ],
+
         'monthly' => [
             'driver' => 'monthly',
             'path' => storage_path('logs/laravel.log'),

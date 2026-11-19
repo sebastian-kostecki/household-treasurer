@@ -134,6 +134,13 @@ export function formatDate(date: Date | string): string {
 }
 
 /**
+ * Format a 'YYYY-MM-DD' date as DD.MM, e.g. the deadline "30.11".
+ */
+export function formatDayMonth(date: string): string {
+    return formatDate(date).slice(0, 5);
+}
+
+/**
  * Format a date as a full Polish date with weekday and year,
  * e.g. "czwartek, 5 listopada 2026".
  */

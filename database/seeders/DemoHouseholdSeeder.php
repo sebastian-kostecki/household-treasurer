@@ -329,7 +329,7 @@ class DemoHouseholdSeeder extends Seeder
         $date = now()->subDays($daysAgo)->startOfDay();
 
         if ($date->year !== $year) {
-            return sprintf('%d-01-15', $year);
+            return now()->toDateString();
         }
 
         return $date->toDateString();

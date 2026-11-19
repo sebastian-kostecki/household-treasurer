@@ -96,6 +96,19 @@ Pół roku później Mikrus aktualizuje hosta LXC i Docker przestaje startować 
 - **Approval**: człowiek wykonuje wszystko, co dotyka halina175: `scripts/deploy.sh`, `migrate:rollback`, `backup:restore`, `user:restore`, `budget:load-sheet`, zmiany `.env.prod`, zmiany w `kostecki-dev-infra` na serwerze, operacje na buckecie R2 i w panelu Cloudflare. Agent może bez nadzoru: testy lokalne i w CI, commity i PR-y, `curl -I https://budget.kostecki.dev/up`, odczyt logów tylko do odczytu (jeśli człowiek udostępni SSH).
 - **Logs**: runtime: `ssh halina175 'bash -s' <<'EOF'` z `cd /srv/apps/household-treasurer && docker compose --env-file .env.prod -f docker-compose.prod.yml logs --tail=200 app </dev/null` oraz `tail -n 200 storage/logs/laravel.log`. Stan procesów: `… exec -T app supervisorctl status </dev/null` (oczekiwane `php-fpm`, `nginx`, `queue`, `scheduler` = RUNNING). Pipeline: `gh run list` / `gh run view --log-failed`. Dostępność: historia checków na Healthchecks.io (`site-budget`), alerty na ntfy.
 
+## MCP endpoint
+
+The public MCP endpoint (ADR-0110) lets Claude on the web, Desktop and the phone read the budget through OAuth.
+
+- **Paths:** `/mcp` (Streamable HTTP), `/oauth/*` (authorize, token, register) and `/.well-known/oauth-*` (discovery). Everything else stays behind the normal session login.
+- **Caller:** the connector request comes from Anthropic's servers, not from the user's device. Their egress range is `160.79.104.0/21`; do not allow-list it, only make sure nothing blocks it.
+- **Cloudflare (human, panel):** for `budget.kostecki.dev` a WAF skip rule for the three path groups above (managed rules, and Super Bot Fight where the plan allows it) and a cache bypass for the same paths. Bot Fight Mode on the free plan cannot be skipped by path and must be off, otherwise Claude's requests get a challenge.
+- **Secrets:** `PASSPORT_PRIVATE_KEY` and `PASSPORT_PUBLIC_KEY` live in `.env.prod` (multi-line PEM as one line with `\n`), never in `storage/`: a key file written by `deploy.sh` would be root-owned and unreadable by PHP-FPM, and `storage/` is outside the backup set. Without the keys every `/mcp` request answers 500, even without a token. **Rotation:** new keys invalidate every issued token, so each client signs in again; run `scripts/deploy.sh` afterwards (rebuilds the config cache).
+- **Write switch:** `MCP_WRITE_ENABLED` in `.env.prod` (default `false`) registers the cash operation tool; the read tools never depend on it. `scripts/deploy.sh` caches the config, so every change of the switch (on, or off in an emergency) takes effect only after `scripts/artisan.sh config:cache`.
+- **Logs:** one line per remote call in `storage/logs/mcp-*.log` (channel `mcp`, `info`, 14 days, independent of `LOG_LEVEL=error`): user id, JSON-RPC method, tool name, HTTP status, duration. Never arguments, amounts or descriptions.
+- **Housekeeping:** the scheduler runs `passport:purge` hourly and `app:prune-oauth-clients` daily (clients older than 7 days with no live token; dynamic client registration is open, so unused clients are removed).
+- **Rollback:** the Passport tables are new, so `scripts/artisan.sh migrate:rollback --force` for them comes before `scripts/rollback.sh <tag>` (see README "Wdrożenie i przywracanie").
+
 ## Risk Register
 
 | Risk | Source | Likelihood | Impact | Mitigation |

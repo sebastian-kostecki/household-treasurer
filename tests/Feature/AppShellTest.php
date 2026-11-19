@@ -52,6 +52,7 @@ class AppShellTest extends TestCase
                 ->where('translations.shell.search_and_go', 'Szukaj i przejdź')
                 ->where('translations.shell.year_current', 'bieżący')
                 ->where('translations.shell.year_draft', 'szkic')
+                ->where('translations.shell.year_waiting', 'od 1.01')
                 ->where('translations.shell.years_recent', 'Ostatnie')
                 ->where('translations.shell.years_older', 'Starsze')
                 ->where('translations.shell.add_year_source', 'szkic z planem roku :year')

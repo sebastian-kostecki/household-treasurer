@@ -1,0 +1,331 @@
+{
+    "format": 1,
+    "cases": [
+        {
+            "name": "ADR-0079 example: Mieszkanie with a rent and an electricity bill over its rate",
+            "groups": [{ "id": 1, "name": "Mieszkanie", "sort_order": 0 }],
+            "rows": [
+                {
+                    "category_id": 10,
+                    "group_id": 1,
+                    "sort_order": 0,
+                    "is_archived": false,
+                    "is_idle_even_annual": false,
+                    "plan_minor_units": 250000,
+                    "actual_minor_units": 250000,
+                    "is_over_plan": false
+                },
+                {
+                    "category_id": 11,
+                    "group_id": 1,
+                    "sort_order": 1,
+                    "is_archived": false,
+                    "is_idle_even_annual": false,
+                    "plan_minor_units": 15000,
+                    "actual_minor_units": 60000,
+                    "is_over_plan": true
+                }
+            ],
+            "expected": [
+                {
+                    "group_id": 1,
+                    "category_count": 2,
+                    "plan_minor_units": 265000,
+                    "actual_minor_units": 310000,
+                    "over_plan": true,
+                    "category_ids": [10, 11]
+                }
+            ]
+        },
+        {
+            "name": "a group with every row within its plan has no over-plan signal",
+            "groups": [{ "id": 1, "name": "G1", "sort_order": 0 }],
+            "rows": [
+                {
+                    "category_id": 10,
+                    "group_id": 1,
+                    "sort_order": 0,
+                    "is_archived": false,
+                    "is_idle_even_annual": false,
+                    "plan_minor_units": 100000,
+                    "actual_minor_units": 40000,
+                    "is_over_plan": false
+                },
+                {
+                    "category_id": 11,
+                    "group_id": 1,
+                    "sort_order": 1,
+                    "is_archived": false,
+                    "is_idle_even_annual": false,
+                    "plan_minor_units": 50000,
+                    "actual_minor_units": 50000,
+                    "is_over_plan": false
+                }
+            ],
+            "expected": [
+                {
+                    "group_id": 1,
+                    "category_count": 2,
+                    "plan_minor_units": 150000,
+                    "actual_minor_units": 90000,
+                    "over_plan": false,
+                    "category_ids": [10, 11]
+                }
+            ]
+        },
+        {
+            "name": "archived and idle Even Annual rows are in no group",
+            "groups": [
+                { "id": 1, "name": "G1", "sort_order": 0 },
+                { "id": 2, "name": "G2", "sort_order": 1 }
+            ],
+            "rows": [
+                {
+                    "category_id": 10,
+                    "group_id": 1,
+                    "sort_order": 0,
+                    "is_archived": false,
+                    "is_idle_even_annual": false,
+                    "plan_minor_units": 100000,
+                    "actual_minor_units": 20000,
+                    "is_over_plan": false
+                },
+                {
+                    "category_id": 11,
+                    "group_id": 1,
+                    "sort_order": 1,
+                    "is_archived": true,
+                    "is_idle_even_annual": false,
+                    "plan_minor_units": 70000,
+                    "actual_minor_units": 5000,
+                    "is_over_plan": false
+                },
+                {
+                    "category_id": 12,
+                    "group_id": 1,
+                    "sort_order": 2,
+                    "is_archived": false,
+                    "is_idle_even_annual": true,
+                    "plan_minor_units": 0,
+                    "actual_minor_units": 0,
+                    "is_over_plan": false
+                },
+                {
+                    "category_id": 13,
+                    "group_id": 2,
+                    "sort_order": 0,
+                    "is_archived": true,
+                    "is_idle_even_annual": false,
+                    "plan_minor_units": 30000,
+                    "actual_minor_units": 0,
+                    "is_over_plan": false
+                },
+                {
+                    "category_id": 14,
+                    "group_id": 2,
+                    "sort_order": 1,
+                    "is_archived": false,
+                    "is_idle_even_annual": true,
+                    "plan_minor_units": 0,
+                    "actual_minor_units": 0,
+                    "is_over_plan": false
+                }
+            ],
+            "expected": [
+                {
+                    "group_id": 1,
+                    "category_count": 1,
+                    "plan_minor_units": 100000,
+                    "actual_minor_units": 20000,
+                    "over_plan": false,
+                    "category_ids": [10]
+                }
+            ]
+        },
+        {
+            "name": "an income group sums its rows with no over-plan signal",
+            "groups": [{ "id": 3, "name": "Dochody", "sort_order": 0 }],
+            "rows": [
+                {
+                    "category_id": 20,
+                    "group_id": 3,
+                    "sort_order": 0,
+                    "is_archived": false,
+                    "is_idle_even_annual": false,
+                    "plan_minor_units": 800000,
+                    "actual_minor_units": 0,
+                    "is_over_plan": false
+                },
+                {
+                    "category_id": 21,
+                    "group_id": 3,
+                    "sort_order": 1,
+                    "is_archived": false,
+                    "is_idle_even_annual": false,
+                    "plan_minor_units": 200000,
+                    "actual_minor_units": 150000,
+                    "is_over_plan": false
+                }
+            ],
+            "expected": [
+                {
+                    "group_id": 3,
+                    "category_count": 2,
+                    "plan_minor_units": 1000000,
+                    "actual_minor_units": 150000,
+                    "over_plan": false,
+                    "category_ids": [20, 21]
+                }
+            ]
+        },
+        {
+            "name": "rows without a group or with an unknown group stay out of every group",
+            "groups": [{ "id": 1, "name": "G1", "sort_order": 0 }],
+            "rows": [
+                {
+                    "category_id": 10,
+                    "group_id": null,
+                    "sort_order": 0,
+                    "is_archived": false,
+                    "is_idle_even_annual": false,
+                    "plan_minor_units": 100,
+                    "actual_minor_units": 100,
+                    "is_over_plan": false
+                },
+                {
+                    "category_id": 11,
+                    "group_id": 99,
+                    "sort_order": 1,
+                    "is_archived": false,
+                    "is_idle_even_annual": false,
+                    "plan_minor_units": 200,
+                    "actual_minor_units": 200,
+                    "is_over_plan": false
+                },
+                {
+                    "category_id": 12,
+                    "group_id": 1,
+                    "sort_order": 2,
+                    "is_archived": false,
+                    "is_idle_even_annual": false,
+                    "plan_minor_units": 300,
+                    "actual_minor_units": 400,
+                    "is_over_plan": true
+                }
+            ],
+            "expected": [
+                {
+                    "group_id": 1,
+                    "category_count": 1,
+                    "plan_minor_units": 300,
+                    "actual_minor_units": 400,
+                    "over_plan": true,
+                    "category_ids": [12]
+                }
+            ]
+        },
+        {
+            "name": "groups follow sort_order then list position, rows follow sort_order then list position",
+            "groups": [
+                { "id": 1, "name": "G1", "sort_order": 2 },
+                { "id": 2, "name": "G2", "sort_order": 1 },
+                { "id": 3, "name": "G3", "sort_order": 1 }
+            ],
+            "rows": [
+                {
+                    "category_id": 10,
+                    "group_id": 1,
+                    "sort_order": 0,
+                    "is_archived": false,
+                    "is_idle_even_annual": false,
+                    "plan_minor_units": 1,
+                    "actual_minor_units": 1,
+                    "is_over_plan": false
+                },
+                {
+                    "category_id": 11,
+                    "group_id": 2,
+                    "sort_order": 5,
+                    "is_archived": false,
+                    "is_idle_even_annual": false,
+                    "plan_minor_units": 2,
+                    "actual_minor_units": 2,
+                    "is_over_plan": false
+                },
+                {
+                    "category_id": 12,
+                    "group_id": 2,
+                    "sort_order": 5,
+                    "is_archived": false,
+                    "is_idle_even_annual": false,
+                    "plan_minor_units": 4,
+                    "actual_minor_units": 4,
+                    "is_over_plan": false
+                },
+                {
+                    "category_id": 13,
+                    "group_id": 2,
+                    "sort_order": 1,
+                    "is_archived": false,
+                    "is_idle_even_annual": false,
+                    "plan_minor_units": 8,
+                    "actual_minor_units": 8,
+                    "is_over_plan": false
+                },
+                {
+                    "category_id": 14,
+                    "group_id": 3,
+                    "sort_order": 0,
+                    "is_archived": false,
+                    "is_idle_even_annual": false,
+                    "plan_minor_units": 16,
+                    "actual_minor_units": 16,
+                    "is_over_plan": false
+                }
+            ],
+            "expected": [
+                {
+                    "group_id": 2,
+                    "category_count": 3,
+                    "plan_minor_units": 14,
+                    "actual_minor_units": 14,
+                    "over_plan": false,
+                    "category_ids": [13, 11, 12]
+                },
+                {
+                    "group_id": 3,
+                    "category_count": 1,
+                    "plan_minor_units": 16,
+                    "actual_minor_units": 16,
+                    "over_plan": false,
+                    "category_ids": [14]
+                },
+                {
+                    "group_id": 1,
+                    "category_count": 1,
+                    "plan_minor_units": 1,
+                    "actual_minor_units": 1,
+                    "over_plan": false,
+                    "category_ids": [10]
+                }
+            ]
+        },
+        {
+            "name": "a section without groups has no entries",
+            "groups": [],
+            "rows": [
+                {
+                    "category_id": 10,
+                    "group_id": null,
+                    "sort_order": 0,
+                    "is_archived": false,
+                    "is_idle_even_annual": false,
+                    "plan_minor_units": 100,
+                    "actual_minor_units": 50,
+                    "is_over_plan": false
+                }
+            ],
+            "expected": []
+        }
+    ]
+}

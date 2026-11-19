@@ -7,17 +7,17 @@ use App\Models\Account;
 use App\Models\Budget;
 use App\Models\BudgetLine;
 use App\Models\TermDeposit;
-use App\Models\User;
 use App\Support\AccountIdentity;
 use App\Support\AppDay;
+use App\Support\BudgetForYear;
 use App\Support\BudgetPlanSummary;
 use App\Support\CategoryAppearance;
 use App\Support\CategoryExecutionMetrics;
 use App\Support\CategoryRhythms;
 use App\Support\CollectedCoverage;
+use App\Support\CurrentMonthReading;
 use App\Support\DashboardNotices;
 use App\Support\MonthPace;
-use App\Support\MonthToSpend;
 use App\Support\ShellState;
 use App\Support\SpendableLiquidity;
 use App\Support\TotalFunds;
@@ -34,7 +34,8 @@ class DashboardController extends Controller
         $user = $request->user();
         $today = AppDay::today();
         $currentYear = $today->year;
-        $budget = $this->findBudgetForYear($user, $currentYear);
+        $budget = BudgetForYear::find($user, $currentYear);
+        $nextYearBudget = BudgetForYear::find($user, $currentYear + 1);
 
         $allAccounts = $user->accounts()
             ->withoutSheetAccounts()
@@ -92,8 +93,10 @@ class DashboardController extends Controller
             $incomeTotals = $planSummary['income'];
             $expenseTotals = $planSummary['expense'];
 
-            if ($budget->isExecution()) {
-                $currentMonth = $today->month;
+            $reading = CurrentMonthReading::forUser($user, $today);
+
+            if ($reading !== null) {
+                $currentMonth = $reading->month;
                 $rhythms = CategoryRhythms::forCategoryIds($visibleExpenseCategories->pluck('category_id'));
 
                 $incomeCategories = $visibleCategories
@@ -106,14 +109,14 @@ class DashboardController extends Controller
                     ->map(fn (BudgetLine $category): array => $this->categoryPayload($category, $budget, $rhythms, $currentMonth))
                     ->all();
 
-                $monthToSpendReading = MonthToSpend::forMonth($budget, $currentMonth, $today);
+                $monthToSpendReading = $reading->monthToSpend;
                 $monthPace = MonthPace::forMonth($monthToSpendReading, $budget->year, $currentMonth, $today);
                 $collectedCoverage = CollectedCoverage::forMonth(
                     $monthToSpendReading,
                     $visibleExpenseCategories,
                     $spendableLiquidityMinorUnits,
                 );
-                $summary = $monthToSpendReading->summary();
+                $summary = $reading->summary();
 
                 if ($summary['state'] !== 'none') {
                     $monthToSpend = [
@@ -126,6 +129,7 @@ class DashboardController extends Controller
 
         $dashboardNotices = DashboardNotices::forDashboard(
             $budget,
+            $nextYearBudget,
             $allAccounts,
             $allTermDeposits,
             $monthToSpendReading,
@@ -155,6 +159,7 @@ class DashboardController extends Controller
             'expenseTotals' => $expenseTotals,
             'year_elapsed_as_of' => $yearElapsedAsOf,
             'year_elapsed_percent' => $yearElapsedPercent,
+            'waiting_budget_year' => $nextYearBudget?->isExecution() === true ? $nextYearBudget->year : null,
         ]);
     }
 
@@ -173,15 +178,6 @@ class DashboardController extends Controller
         }
 
         return to_route('dashboard');
-    }
-
-    private function findBudgetForYear(User $user, ?int $year): ?Budget
-    {
-        if ($year === null) {
-            return null;
-        }
-
-        return $user->budgets()->where('year', $year)->first();
     }
 
     /**

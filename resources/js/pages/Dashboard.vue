@@ -70,11 +70,16 @@ const budgetStateLabel = computed(() => {
 });
 
 const metaLine = computed(() => {
+    const state =
+        props.waiting_budget_year === null
+            ? budgetStateLabel.value
+            : `${budgetStateLabel.value} · ${t.dashboard.meta_budget_waiting.replace(':year', String(props.waiting_budget_year))}`;
+
     if (props.year_elapsed_as_of === null) {
-        return budgetStateLabel.value;
+        return state;
     }
 
-    return `${formatLongDate(props.year_elapsed_as_of)} · ${budgetStateLabel.value}`;
+    return `${formatLongDate(props.year_elapsed_as_of)} · ${state}`;
 });
 
 function onYearSelectionStart(): void {

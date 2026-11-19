@@ -28,6 +28,13 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'mcp' => [
+        // E-mail or id of the user the local stdio MCP server acts for (local environment only).
+        'local_user' => env('MCP_LOCAL_USER'),
+        // Registers the cash operation write tool on the MCP server (ADR-0110); read tools never depend on it.
+        'write_enabled' => env('MCP_WRITE_ENABLED', false),
+    ],
+
     'slack' => [
         'notifications' => [
             'bot_user_oauth_token' => env('SLACK_BOT_USER_OAUTH_TOKEN'),
