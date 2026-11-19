@@ -131,7 +131,7 @@ Notatki z rozmowy, żeby nie wyprowadzać ich drugi raz. Każda wymaga kształto
 
 - Otwarte, z rekomendacją agenta: dzień płatności i wpływu jako pole na kategorii, podpowiedziane z historii operacji i zatwierdzane raz; reszta planu wydatków bieżących rozłożona równo na dni do końca miesiąca; horyzont do końca bieżącego miesiąca, a po zatwierdzeniu planu następnego także ten następny; kafelek na Dashboardzie i sekcja w planie miesiąca, bez nowej pozycji w menu.
 - Próg ostrzeżenia: przy sumie wszystkich kont próg „minimum < 0” rzadko zadziała; rekomendacja to minimum poniżej sumy „zebranych”, spójnie z Collected Coverage (ADR-0090).
-- Proponowana kolejność wycinków: decyzje (słownik i ADR, bo „Forecast” i „due date” są _Avoid_) → „zapłacone / czeka” i pesymistyczne minimum bez dat → dzień na kategorii i oś czasu z dniem minimum → ostrzeżenie na Dashboardzie → horyzont na następny miesiąc.
+- Proponowana kolejność wycinków: decyzje (słownik i ADR, bo „Forecast” jest _Avoid_ przy Current Plan, a nowy termin wymaga wpisu) → „zapłacone / czeka” i pesymistyczne minimum bez dat → dzień na kategorii i oś czasu z dniem minimum → ostrzeżenie na Dashboardzie → horyzont na następny miesiąc.
 - Proponowane „Done when”: przez pełny miesiąc na produkcji minimum z prognozy porównane z faktycznym najniższym saldem, z różnicą akceptowalną dla użytkownika.
 
 ### Pomysły z innych aplikacji
@@ -142,7 +142,7 @@ Notatki z rozmowy, żeby nie wyprowadzać ich drugi raz. Każda wymaga kształto
 
 ### Rok 2027
 
-- Podsumowanie roku („2026 w liczbach”: plan, wykonanie, odkładanie, największe zmiany) razem z decyzją, czy Year Close powstaje, czy znika ze słownika.
+- Podsumowanie roku („2026 w liczbach”: plan, wykonanie, odkładanie, największe zmiany) razem z decyzją, czy Year Close powstaje, czy znika ze słownika. Decyzja zapadła 2026-11-19 (ADR-0104): Year Close znika ze słownika, a podsumowanie roku, jeśli powstanie, jest odczytem z nowym ADR.
 - Plan roczny z historii: propozycja kwoty na kategorię ze średniej i trendu oraz „co jeśli” (np. czynsz +10%). Wartość raz w roku.
 
 ## Otwarte pytania
