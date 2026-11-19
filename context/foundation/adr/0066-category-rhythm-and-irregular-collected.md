@@ -63,3 +63,5 @@ We rejected:
 - „odkładam” for the rate (two different „odkładam”, in the plan and in the Summary);
 - the Fixed Charge Proposal as a copy of the plan (identical to Running);
 - a fund with transfers to a separate account (PRD v1, ADR-0033; PRD v3: the money stays on the main account).
+
+Amended by ADR-0104: the ADR-0030 point (Earmark) no longer holds, as Earmark left the glossary.

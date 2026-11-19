@@ -61,7 +61,7 @@ Cztery kamienie milowe powstały w dwa tygodnie, a aplikacja nie przeszła jeszc
 | S-43 | years-report-in-early-january   | użytkownik widzi w „Latach” i w roku do roku sensowny odczyt w pierwszych dniach stycznia                     | F-08          | MS-05    | proposed |
 | S-44 | e2e-in-ci                       | użytkownik (właściciel repo) widzi czerwone CI, gdy zmiana psuje przepływ w przeglądarce                       | F-09          | MS-07    | proposed |
 | S-45 | production-error-tracking       | użytkownik (właściciel) dostaje zgłoszenie wyjątku z produkcji ze stosem wywołań i kontekstem żądania          | —             | MS-08    | blocked  |
-| S-46 | docs-match-code                 | użytkownik i agent czytają słownik i ADR bez zdublowanych numerów i terminów, których nie ma w kodzie          | —             | MS-09    | ready    |
+| S-46 | docs-match-code                 | użytkownik i agent czytają słownik i ADR bez zdublowanych numerów i terminów, których nie ma w kodzie          | —             | MS-09    | done     |
 
 ## Streams
 
@@ -218,7 +218,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Unknowns:**
   - Oznaczyć terminy jako „nie w kodzie”, czy usunąć? Year Close łączy się z „podsumowaniem roku” z `development-directions.md` (sekcja „Rok 2027”). — Owner: user. Block: no.
 - **Risk:** Zmiana numeru ADR psuje odnośniki w dokumentach i komentarzach kodu; usunięcie terminu z reguł Konta i Kategorii (Cash Expectation) zmienia treść tych reguł, więc to też zmiana słownika według AGENTS.md.
-- **Status:** ready
+- **Status:** done
 
 ## Backlog Handoff
 
@@ -247,7 +247,7 @@ This table is the clean handoff to Jira/Linear or any MCP-backed backlog. Includ
 
 - **Nowe funkcje z `development-directions.md`** (wiersze 7–15 „Na już” i etapy „Potem”: Majątek z walutą, szybsze wprowadzanie, płynność w czasie, analityka) — Why parked: decyzja użytkownika 2026-11-18, funkcja w styczniu z listy tarć (MS-10).
 - **Automatyczne wdrożenie** — Why parked: poza zakresem; M-5 dokłada E2E do CI, wdrożenie zostaje ręczne (`scripts/deploy.sh`).
-- **Year Close i Reserve w kodzie** — Why parked: niezaimplementowane na `main` (AGENTS.md); S-46 porządkuje tylko ich opis w słowniku.
+- **Year Close i Reserve w kodzie** — Why parked: nigdy niezbudowane; ADR-0104 (S-46) usunął je ze słownika, więc powrót zaczyna się od nowego wpisu w słowniku i nowego ADR.
 - **Pozostałe fazy planu testów** (niezmienniki kwot, backup i restore, `arch()`) — Why parked: F-09 ustawia ich kolejność; w M-5 wchodzi tylko E2E w CI (S-44).
 - **Pozostałe karty Atramentu czekające na `/10x-ui`** — Why parked: kamień jakości nie zmienia widoków poza tym, czego wymagają luki przełomu.
 - **Plan na grupie, liczniki mediów, nazwane cele oszczędnościowe** — Why parked: PRD v3 §Non-Goals.
@@ -300,4 +300,5 @@ This table is the clean handoff to Jira/Linear or any MCP-backed backlog. Includ
 - **S-34: użytkownik może otworzyć Raporty → „Lata” i porównać każdą kategorię i grupę w latach 2020–2026, licząc każdy rok do tego samego dnia albo w pełnych latach, ze zmianą od 2020 i mini-wykresem, dla wydatków i przychodów** — Archived 2026-11-14 → `context/archive/2026-11-14-report-categories-across-years/`. Lesson: —.
 - **S-35: użytkownik może zobaczyć raport roku jako listę kategorii od największych z paskiem udziału i różnicą do poprzedniego roku, przełączyć na grupy i otworzyć panel jednej kategorii z kwotą 2026 i 2025, różnicą, udziałem, miesiącami roku i przejściem do Operacji** — Archived 2026-11-14 → `context/archive/2026-11-14-report-ranking-and-category-panel/`. Lesson: —.
 - **S-36: użytkownik może kliknąć kategorię w tabeli „Lata” i zobaczyć w panelu kategorii Raportu zakładkę „Lata” z jej latami 2020–2026** — Archived 2026-11-14 → `context/archive/2026-11-14-report-panel-years-tab/`. Lesson: —.
+- **S-46: użytkownik i agent czytają słownik i ADR bez pułapek: dwa ADR 0008 mają osobne numery z poprawionymi odnośnikami, a Year Close, Reserve, Earmark, Agenda i Cash Expectation są w słowniku oznaczone jako „nie w kodzie” albo usunięte** — Archived 2026-11-19 → `context/archive/2026-11-19-docs-match-code/`. Lesson: —.
 - **F-09: (foundation) `test-plan.md` odpowiada stanowi repo: faza 1 zamknięta z odnośnikiem do archiwum, fazy 2–5 bez odwołań do porzuconego M-2, z miejscem na testy przełomu roku i z listą przepływów E2E, które są bramką CI.** — Archived 2026-11-19 → `context/archive/2026-11-19-test-plan-refresh/`. Lesson: —.

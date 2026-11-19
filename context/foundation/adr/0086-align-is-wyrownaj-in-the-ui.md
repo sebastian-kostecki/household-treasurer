@@ -10,3 +10,5 @@ We rejected:
 
 - „Zakończ” kept with a clearer body (the verb itself reads as closing the Category or the year);
 - „Zamknij” (collides with Year Close and with closing a dialog).
+
+Amended by ADR-0104: Year Close left the glossary, so "Zakończ" is no longer on the _Avoid_ list of Year Close and "Zamknij" no longer collides with it; "Zakończ" stays on the _Avoid_ list of Align.

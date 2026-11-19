@@ -4,3 +4,5 @@ An unpaid Cash Expectation does not change Execution, Available Limit, or Planne
 
 We rejected earmarking (budget reserves, out of MVP) and the Financial Operation rule that the year must already be in execution (that would block next-year Agenda rows).
 Amended by ADR-0063: the date year no longer has to equal the Category’s Budget year; the year of the date must have a Budget (draft or execution) and the Category joins it as a Budget Line. The block on deleting and on changing the type stays.
+
+Superseded by ADR-0104: never built; Cash Expectation left the glossary.

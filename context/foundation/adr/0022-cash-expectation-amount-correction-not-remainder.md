@@ -3,3 +3,5 @@
 Hand-entry settlement already prefills an editable Financial Operation. If the User changes the amount, that save is still one Financial Operation and the Cash Expectation is still destroyed in full: the difference is a correction of the expectation, not a partial-pay verb and not a remaining balance on the same record. There is no extra mismatch warning (Available Limit and Negative Balance Warning already run on that Financial Operation). Nothing is auto-created for a leftover; if money is still expected, that is a new Cash Expectation. Attach and Import stay on the exact-amount Settlement candidate rule; to consume a Cash Expectation when the real Financial Operation has a different amount, the User edits the Cash Expectation to that amount first.
 
 We rejected a remaining-balance / installment verb (debt ledger, out of this map), blocking or warning on amount mismatch, force-attach despite a different amount, and auto-creating a remainder Cash Expectation.
+
+Superseded by ADR-0104: never built; Cash Expectation and Settlement candidate left the glossary.
