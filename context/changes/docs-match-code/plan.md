@@ -317,10 +317,10 @@ Brak migracji. Po scaleniu do `development` w głównym checkoucie zmień S-46 w
 
 #### Automated
 
-- [ ] 1.1 Przed zmianą numeru test nie przechodzi i wymienia oba pliki 0008
-- [ ] 1.2 Po zmianie numeru ten sam test przechodzi
-- [ ] 1.3 Pint bez uwag dla pliku testu
-- [ ] 1.4 grep 0008 zwraca tylko adr/0013 i nazwę pliku snapshotów
+- [x] 1.1 Przed zmianą numeru test nie przechodzi i wymienia oba pliki 0008
+- [x] 1.2 Po zmianie numeru ten sam test przechodzi
+- [x] 1.3 Pint bez uwag dla pliku testu
+- [x] 1.4 grep 0008 zwraca tylko adr/0013 i nazwę pliku snapshotów
 
 #### Manual
 

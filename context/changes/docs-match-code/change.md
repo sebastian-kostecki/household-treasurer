@@ -1,7 +1,7 @@
 ---
 change_id: docs-match-code
 title: Docs match code
-status: planned
+status: implementing
 created: 2026-11-19
 updated: 2026-11-19
 ---
