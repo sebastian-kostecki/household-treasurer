@@ -33,7 +33,7 @@ Wiersz stycznia pokazuje notatkę „Budżet 2027 jest szkicem. Dochód, wydatek
 - odmowa zapisu z datą i rokiem w `FinancialOperationImportValidator`;
 - funkcje `lib/import-*` i nowy powód `import_block_budget_year_not_in_execution`;
 - notatka wiersza z odnośnikiem, teksty w `lang/pl/ui.php`, scenariusz przełomu w `/dev/import-preview`;
-- `_known_gap` jako zwykły test oraz ADR-0103.
+- `_known_gap` jako zwykły test oraz ADR-0106.
 
 **Out of scope:**
 - zapis częściowy i start realizacji z podglądu;
@@ -49,7 +49,7 @@ Wiersz stycznia pokazuje notatkę „Budżet 2027 jest szkicem. Dochód, wydatek
 
 | Phase | What it delivers | Key risk |
 | --- | --- | --- |
-| 1. Serwer: stan roku i odmowa z datą | Prop `budgetYearStates`, komunikat z datą i rokiem, testy zamiast `_known_gap`, ADR-0103 | Kontrola fazy w walidatorze nie może zablokować przelewu własnego ani zmienić ręcznego wpisu |
+| 1. Serwer: stan roku i odmowa z datą | Prop `budgetYearStates`, komunikat z datą i rokiem, testy zamiast `_known_gap`, ADR-0106 | Kontrola fazy w walidatorze nie może zablokować przelewu własnego ani zmienić ręcznego wpisu |
 | 2. Klient: logika blokady | Funkcje stanu roku wiersza i nowy powód, Vitest najpierw | Kolejność powodów: nowy musi wyprzedzać „niekompletne” |
 | 3. Klient: widok i kitchen sink | Notatka z odnośnikiem, teksty, scenariusz przełomu, check:ui, ręczny przebieg | Odnośnik wewnątrz formularza Importu nie może wysłać Importu |
 

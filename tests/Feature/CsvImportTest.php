@@ -683,7 +683,7 @@ CSV;
     /**
      * The set stays atomic (FR-IMP-20): the preview reports the state of each year, a store that
      * includes a row from a draft year is refused as a whole with the row date and year, and the
-     * December rows are stored once January is left out (ADR-0103).
+     * December rows are stored once January is left out (ADR-0106).
      */
     public function test_statement_across_the_year_turn_saves_december_and_names_the_draft_year_for_january(): void
     {

@@ -67,7 +67,7 @@ Serwer liczy stan roku dla każdego roku obecnego w wierszach podglądu (realiza
 
 ### Overview
 
-Podgląd dostaje prop `budgetYearStates`, a zapis dochodu, wydatku, zwrotu albo odsetek w roku bez realizacji jest odrzucony w całości komunikatem z datą wiersza i rokiem. Decyzja trafia do ADR-0103.
+Podgląd dostaje prop `budgetYearStates`, a zapis dochodu, wydatku, zwrotu albo odsetek w roku bez realizacji jest odrzucony w całości komunikatem z datą wiersza i rokiem. Decyzja trafia do ADR-0106.
 
 ### Changes Required:
 
@@ -115,7 +115,7 @@ Rok wczytany z arkusza (zawsze Budżet w realizacji, `LoadBudgetSheet.php:58-61`
 
 #### 5. ADR
 
-**File**: `context/foundation/adr/0103-import-row-in-a-year-without-budget-in-execution.md` (nowy)
+**File**: `context/foundation/adr/0106-import-row-in-a-year-without-budget-in-execution.md` (nowy)
 
 **Intent**: Zapisuje decyzję: zestaw Importu zostaje atomowy; rok bez Budżetu w realizacji jest wskazany w podglądzie per wiersz i zależnie od typu (dochód, wydatek, zwrot, odsetki), a nie jako wiersz niepoprawny; akcja to odnośnik do Budżetu, nie start realizacji; serwerowy komunikat podaje datę i rok. Odrzucone: zapis częściowy, start w podglądzie, nowy `ImportRowInvalidReason`.
 
