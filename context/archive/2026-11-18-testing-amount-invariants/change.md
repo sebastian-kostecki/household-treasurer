@@ -1,10 +1,10 @@
 ---
 change_id: testing-amount-invariants
 title: Niezmienniki kwot — parzystość „do wydania” PHP↔TS i zgodność sum raportu
-status: impl_reviewed
+status: archived
 created: 2026-11-18
-updated: 2026-11-18
-archived_at: null
+updated: 2026-11-19
+archived_at: 2026-11-19T08:04:15Z
 ---
 
 ## Notes
