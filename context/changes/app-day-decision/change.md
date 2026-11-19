@@ -1,9 +1,9 @@
 ---
 change_id: app-day-decision
 title: Jeden dzień aplikacji (App Day w Europe/Warsaw)
-status: planned
+status: implementing
 created: 2026-11-18
-updated: 2026-11-18
+updated: 2026-11-19
 archived_at: null
 ---
 
