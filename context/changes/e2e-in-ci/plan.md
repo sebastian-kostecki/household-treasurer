@@ -436,20 +436,20 @@ Brak migracji danych. Zmiana seedera dotyczy tylko nowych seedów i nie rusza is
 
 #### Automated
 
-- [x] 2.1 Każdy z czterech speców przechodzi lokalnie na bazie `e2e_e2e_in_ci`
-- [x] 2.2 Celowe zepsucie przepływu czerwieni każdy z czterech speców, a po cofnięciu spec jest zielony
-- [x] 2.3 `throw` w `onMounted` strony przepływu czerwieni spec przez asercję `pageerror`
-- [x] 2.4 Brak `new Date().getFullYear()` w czterech specach-bramkach
-- [x] 2.5 `npx vp check` przechodzi dla zmienionych plików TS
+- [x] 2.1 Każdy z czterech speców przechodzi lokalnie na bazie `e2e_e2e_in_ci` — 4785356
+- [x] 2.2 Celowe zepsucie przepływu czerwieni każdy z czterech speców, a po cofnięciu spec jest zielony — 4785356
+- [x] 2.3 `throw` w `onMounted` strony przepływu czerwieni spec przez asercję `pageerror` — 4785356
+- [x] 2.4 Brak `new Date().getFullYear()` w czterech specach-bramkach — 4785356
+- [x] 2.5 `npx vp check` przechodzi dla zmienionych plików TS — 4785356
 
 ### Phase 3: Spec zatwierdzenia Importu
 
 #### Automated
 
-- [ ] 3.1 `import-approve.spec.ts` przechodzi lokalnie
-- [ ] 3.2 Celowe zepsucie zatwierdzenia czerwieni spec, a po cofnięciu jest zielony
-- [ ] 3.3 Po przebiegu w bazie nie ma operacji ze stampem przebiegu
-- [ ] 3.4 `npx vp check` przechodzi dla nowego speca
+- [x] 3.1 `import-approve.spec.ts` przechodzi lokalnie
+- [x] 3.2 Celowe zepsucie zatwierdzenia czerwieni spec, a po cofnięciu jest zielony
+- [x] 3.3 Po przebiegu w bazie nie ma operacji ze stampem przebiegu
+- [x] 3.4 `npx vp check` przechodzi dla nowego speca
 
 #### Manual
 

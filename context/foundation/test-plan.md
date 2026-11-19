@@ -127,7 +127,7 @@ phase lands; before that, the gate is `planned`.
 | lint + format (`vp check`, Pint), typecheck (`vue-tsc`, PHPStan poziom 7 (Larastan 3.15)), Sloppy | local + CI | required | dryf składni i typów, wzorce zapytań w pętli |
 | unit + integration na PostgreSQL (`composer ci:check`) | local (Sail) + CI | required | regresje logiki i odczytów |
 | testy integralności Importu i benchmark trafności podpowiedzi | local + CI | required (§3 Phase 1 `complete`) | duplikaty i zgubione wiersze, spadek trafności |
-| e2e speców-bramek: `seed`, `import-other-format-without-header`, `month-plan-groups`, `irregular-collected` i nowy spec zatwierdzenia Importu (nazwę nada S-44) | CI na pushu i PR do `development` | required after §3 Phase 2; w CI `retries: 0` i trace przy porażce (`retain-on-failure`); pozostałe specy lokalnie. Spec staje się bramką dopiero po spełnieniu §6.3: sprawdza brak `pageerror` i bierze rok budżetu z aplikacji, nie z zegara runnera (dziś `month-plan-groups`, `irregular-collected` i `import-other-format-without-header` biorą go z `new Date().getFullYear()`, a dwa pierwsze nie sprawdzają `pageerror`) | zepsuty przepływ w przeglądarce |
+| e2e speców-bramek: `seed`, `import-other-format-without-header`, `month-plan-groups`, `irregular-collected` i `import-approve` (zatwierdzenie Importu) | CI na pushu i PR do `development` | required after §3 Phase 2; w CI `retries: 0` i trace przy porażce (`retain-on-failure`); pozostałe specy lokalnie. Spec staje się bramką dopiero po spełnieniu §6.3: sprawdza brak `pageerror` i bierze rok budżetu z aplikacji, nie z zegara runnera (dziś `month-plan-groups`, `irregular-collected` i `import-other-format-without-header` biorą go z `new Date().getFullYear()`, a dwa pierwsze nie sprawdzają `pageerror`) | zepsuty przepływ w przeglądarce |
 | testy przełomu roku (granice 22:59:59/23:00 UTC, strażnik zegara w domenowym JS) | local + CI | required od zarchiwizowania zmiany S-39 (`one-app-day`), rozszerzane przez S-40…S-43; wyjątek od zasady „bramka z etapem §3” (§3, akapit kolejności) | różne „dziś” serwera i przeglądarki |
 | wierność Importu (krotki po zapisie) | local + CI | required after §3 Phase 3 | zapis inny niż plik |
 | round-trip backup/restore i strażnik kompletności snapshotu | local + CI | required after §3 Phase 4 (kod wyjścia przy nieudanym zapisie jest już w `composer ci:check`) | niekompletny backup, stratny restore starszych wersji |
@@ -189,7 +189,7 @@ the relevant rollout phase ships; before that, the sub-section reads
 - **Run**: według `context/foundation/test-stack.md`.
 - Nowy spec-bramka: celowe zepsucie przepływu musi go zaczerwienić. Bez `waitForTimeout` i bez `test.skip` przy braku danych.
 - Lista speców-bramek: §5.
-- Spec zatwierdzenia Importu: TBD — see §3 Phase 2.
+- Spec zatwierdzenia Importu (`tests/e2e/import-approve.spec.ts`): stempel w opisach to `Date.now().toString(36)` (base 36, bo 13–19 cyfr z rzędu Import wycina jako numer karty, Luhn); data wierszy `<rok>-01-01`, rok z menu roku; kategoria wybierana jawnie, także gdy aplikacja ją podpowiada; jedno konto (`eKonto`) i nietypowe kwoty (`-12,37`, `-3,41`), żeby wiersze nie wyglądały na parę przelewu własnego (wykrywanie par ±3 dni); sprzątanie w `finally`, wiersz po wierszu (menu „Więcej akcji” → „Usuń”), tylko istniejących, z asercją zniknięcia.
 
 ### 6.4 Adding a test for a new route or Inertia page
 

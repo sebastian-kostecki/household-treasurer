@@ -21,3 +21,7 @@ Worktree: .claude/worktrees/e2e-in-ci (gałąź worktree-e2e-in-ci, przestawiona
 - `import-other-format-without-header`: `v-model="hasHeader"` → `:model-value="hasHeader"` w `ImportColumnMapping.vue` — spec czerwony.
 - `pageerror`: sam `throw` w `onMounted` NIE czerwieni specu, bo Vue łapie błąd hooka i loguje go przez `console.error` (brak `pageerror`). Dowód asercji: `setTimeout(() => { throw … })` w `onMounted` w `Operations.vue` — `seed` czerwony na `expect(pageErrors).toEqual([])`.
 - Zamyka punkt `context/archive/2026-11-10-category-rhythm/follow-ups/review-fixes.md:6` (stamp base36 zamiast `Date.now()` — flake Luhna).
+
+### Faza 3 — celowe zepsucie (cofnięte przed commitem)
+
+- `import-approve`: `rows[${row.index}][category_id]` → `[category_idx]` w `ImportPreviewRow.vue` — serwer nie dostaje kategorii, brak przekierowania na `/operations`, spec czerwony (`toHaveURL`). Po cofnięciu zielony, w bazie 0 operacji ze stampem.
