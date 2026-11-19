@@ -7,6 +7,7 @@ use App\Enums\CategoryType;
 use App\Models\Budget;
 use App\Models\BudgetLine;
 use App\Models\User;
+use App\Support\AppDay;
 use App\Support\BudgetMonthExecutionIndex;
 use App\Support\CategoryList\CategoryChoiceOptions;
 use App\Support\CategoryRhythms;
@@ -32,7 +33,7 @@ class ImportMonthRemainingContext
      */
     public static function forUser(User $user, ?CarbonImmutable $today = null): array
     {
-        $today ??= CarbonImmutable::today('UTC');
+        $today ??= AppDay::today();
 
         $budgets = $user->budgets()
             ->where('phase', BudgetPhase::Execution)

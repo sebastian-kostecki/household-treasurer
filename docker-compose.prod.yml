@@ -7,6 +7,8 @@ services:
                 WWWGROUP: ${WWWGROUP:-1000}
                 VITE_APP_NAME: ${VITE_APP_NAME:-Domowy Skarbnik}
                 POSTGRES_VERSION: 18
+                GIT_REVISION: ${GIT_REVISION:-}
+                DEPLOYED_AT: ${DEPLOYED_AT:-}
         image: household-treasurer-app:prod
         container_name: treasurer-app
         restart: unless-stopped

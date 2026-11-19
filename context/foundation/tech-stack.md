@@ -67,11 +67,11 @@ Sail nie jest obrazem produkcyjnym.
 
 ## 6. Produkcja: Docker na VPS
 
-Produkcja to własny `Dockerfile` i `compose` (aplikacja + PostgreSQL + Caddy jako TLS reverse proxy + worker kolejki). Nie używamy obrazu Sail.
+Produkcja to własny `docker/8.5/Dockerfile.prod` i `docker-compose.prod.yml`: kontener aplikacji (supervisord: php-fpm, nginx, `queue:work`, `schedule:work`) i PostgreSQL 18. Nie używamy obrazu Sail. Wdrożenie: `scripts/deploy.sh` z gałęzi `main`.
 
-Hosting: pojedynczy VPS (rekomendacja: **Hetzner**) z Docker Compose. Backupy: zrzuty PostgreSQL poza VPS (storage Hetzner albo inny off-site).
+Hosting: VPS **Mikrus** (`halina175`), współdzielony z innymi aplikacjami `kostecki.dev`. Ruch przechodzi przez Cloudflare (proxy) do **Traefika** z repo `kostecki-dev-infra`, który kieruje `budget.kostecki.dev` na kontener aplikacji. Backupy: archiwa Spatie co noc na drugi dysk VPS (`/storage`), raz w tygodniu restic wysyła je do Cloudflare R2 (EU). Monitoring: Healthchecks.io.
 
-Laravel Cloud, Forge i PaaS zostają jako alternatywa, jeśli utrzymanie VPS przestanie się opłacać. Stack aplikacji się wtedy nie zmienia — zmienia się tylko sposób uruchomienia kontenerów.
+Porównanie platform, rejestr ryzyk i opis operacji: `context/foundation/infrastructure.md`. Ścieżka ewakuacji to Render (Frankfurt, PostgreSQL 18). Stack aplikacji się wtedy nie zmienia — zmienia się tylko sposób uruchomienia kontenerów.
 
 ## 7. Uzasadnienie wyborów
 
@@ -83,7 +83,7 @@ Laravel Cloud, Forge i PaaS zostają jako alternatywa, jeśli utrzymanie VPS prz
 | JS          | TypeScript                | czysty JavaScript                    | Default starter kitu; kontrakt props Inertia i formatowanie kwot jest wtedy jawny.                                                                                              |
 | Redis       | brak w MVP                | Redis od dnia zerowego               | Jeden użytkownik naraz na instancję, brak real-time, brak ciężkich jobów. Kolejka w Postgresie wystarcza na maile.                                                              |
 | Poczta prod | Resend (SMTP)             | własny MTA, Mailgun jako wymóg       | Transakcyjne maile bez utrzymywania serwera poczty. SMTP w `.env` pozwala zmienić dostawcę.                                                                                     |
-| Hosting     | VPS + Docker Compose      | Laravel Cloud, Forge jako wymóg      | Zgodne z decyzją „na Dockerze”. Hetzner jest tani i przewidywalny na MVP.                                                                                                       |
+| Hosting     | VPS + Docker Compose      | Render, Railway, Laravel Cloud, Fly.io | Zgodne z decyzją „na Dockerze”. Mikrus dzielony z innymi aplikacjami kosztuje prawie nic, a PaaS $6–47/mies. Szczegóły: `infrastructure.md`.                                    |
 | API         | brak                      | osobne REST API                      | Inertia pokrywa UI. API byłoby drugim kontraktem bez konsumenta.                                                                                                                |
 
 ## 8. Świadomie odłożone

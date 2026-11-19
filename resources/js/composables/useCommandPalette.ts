@@ -2,6 +2,7 @@ import { router, useHttp, usePage } from '@inertiajs/vue3';
 import { nextTick, ref, watch } from 'vue';
 import { useCreateBudgetDialog } from '@/composables/useCreateBudgetDialog';
 import { requestOperationsIntent } from '@/composables/useOperationsIntent';
+import { appDayYear } from '@/lib/app-day';
 import { budgetYearMenu } from '@/lib/budget-year-menu';
 import { categoryOperationsQuery } from '@/lib/dashboard-categories';
 import type {
@@ -129,7 +130,7 @@ export function useCommandPalette(views: NavItem[]) {
         return budgetYearMenu(
             shell.budgetYears,
             shell.budgetYear,
-            new Date().getFullYear(),
+            appDayYear(shell.today),
         ).createYear;
     }
 

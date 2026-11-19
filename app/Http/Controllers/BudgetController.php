@@ -10,6 +10,7 @@ use App\Http\Requests\StoreBudgetRequest;
 use App\Models\Budget;
 use App\Models\BudgetLine;
 use App\Models\User;
+use App\Support\AppDay;
 use App\Support\BudgetCollectedAtYearStart;
 use App\Support\BudgetDeficitWarning;
 use App\Support\BudgetPlanSummary;
@@ -20,7 +21,6 @@ use App\Support\CategoryList\CategoryTypeChange;
 use App\Support\CategoryRhythms;
 use App\Support\SelectedBudgetYear;
 use App\Support\YearElapsed;
-use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -60,7 +60,7 @@ class BudgetController extends Controller
             ->get();
 
         $showArchived = $request->boolean('show_archived');
-        $today = CarbonImmutable::today('UTC');
+        $today = AppDay::today();
 
         $categories = $showArchived
             ? $allCategories

@@ -9,9 +9,9 @@ use App\Models\FinancialOperation;
 use App\Models\MonthPlan;
 use App\Models\MonthPlanItem;
 use App\Models\User;
+use App\Support\AppDay;
 use App\Support\MonthSummary;
 use App\Support\MonthToSpend;
-use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -149,7 +149,7 @@ class MonthSummaryTest extends TestCase
 
     private function toSpend(int $month): MonthToSpend
     {
-        return MonthToSpend::forMonth($this->budget->fresh(), $month, CarbonImmutable::today('UTC'));
+        return MonthToSpend::forMonth($this->budget->fresh(), $month, AppDay::today());
     }
 
     public function test_the_totals_stay_plain_sums_and_the_month_result_uses_the_actual_bill_of_an_irregular_category(): void

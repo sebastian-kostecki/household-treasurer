@@ -5,12 +5,13 @@ namespace App\Actions;
 use App\Enums\BudgetPhase;
 use App\Models\BudgetLine;
 use App\Models\Category;
+use App\Support\AppDay;
 use Illuminate\Support\Facades\DB;
 
 /**
  * Global archive of a list Category (ADR-0063, "Global archive"): the Category
  * leaves the choice, its Budget Line in the Budget in execution of the current
- * calendar year is archived, its lines in drafts are removed, and the lines of
+ * calendar year (App Day) is archived, its lines in drafts are removed, and the lines of
  * every other Budget stay as they were.
  */
 class ArchiveCategory
@@ -27,7 +28,7 @@ class ArchiveCategory
                 ->whereNull('archived_at')
                 ->whereIn('budget_id', $category->user->budgets()
                     ->where('phase', BudgetPhase::Execution)
-                    ->where('year', $now->year)
+                    ->where('year', AppDay::of($now)->year)
                     ->select('id'))
                 ->update(['archived_at' => $now]);
 

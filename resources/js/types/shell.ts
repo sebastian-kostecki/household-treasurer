@@ -15,6 +15,7 @@ export type ShellState = {
     budgetYear: number | null;
     budgetYears: BudgetYearEntry[];
     activeCategoryCount: number;
+    today: string;
     firstRun: FirstRunState;
 };
 

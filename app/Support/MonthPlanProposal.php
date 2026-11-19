@@ -181,7 +181,7 @@ class MonthPlanProposal
         $amounts = [];
 
         foreach ($categories as $category) {
-            if ($category->archived_at !== null && $category->archived_at->lessThan($firstDay)) {
+            if ($category->archived_at !== null && AppDay::of($category->archived_at)->lessThan($firstDay)) {
                 continue;
             }
 

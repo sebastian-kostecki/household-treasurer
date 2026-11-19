@@ -146,7 +146,7 @@ describe('formatLongDate', () => {
 });
 
 describe('formatDayLabel', () => {
-    const today = new Date('2026-11-05T12:00:00');
+    const today = '2026-11-05';
 
     it('omits the year within the current year', () => {
         expect(formatDayLabel('2026-11-04', today)).toBe('środa, 4 listopada');

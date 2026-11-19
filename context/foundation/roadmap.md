@@ -54,7 +54,7 @@ Cztery kamienie milowe powstały w dwa tygodnie, a aplikacja nie przeszła jeszc
 | ---- | ------------------------------- | ------------------------------------------------------------------------------------------------------------- | ------------- | -------- | -------- |
 | F-08 | app-day-decision                | (foundation) ADR i słownik ustalają jeden „dzień aplikacji” dla serwera i przeglądarki w miejsce „dziś w UTC”  | —             | MS-01    | done     |
 | F-09 | test-plan-refresh               | (foundation) plan testów odpowiada stanowi repo i wskazuje przepływy E2E, które są bramką CI                   | —             | MS-06    | done     |
-| S-39 | one-app-day                     | użytkownik widzi ten sam dzień i rok w menu roku, na Dashboardzie i w domyślnej dacie dialogów wokół północy   | F-08          | MS-01    | ready    |
+| S-39 | one-app-day                     | użytkownik widzi ten sam dzień i rok w menu roku, na Dashboardzie i w domyślnej dacie dialogów wokół północy   | F-08          | MS-01    | done |
 | S-40 | session-year-follows-year-turn  | użytkownik po przełomie otwiera aplikację w nowym roku bez ręcznej zmiany roku                                 | F-08, S-39    | MS-02    | proposed |
 | S-41 | year-turn-notices               | użytkownik widzi przed przełomem, co czeka: plan grudnia, Budżet następnego roku i Import przy szkicu          | F-08, S-39    | MS-03    | proposed |
 | S-42 | import-across-draft-year        | użytkownik importuje wyciąg z przełomu przy szkicu nowego roku i wie, co zrobić z wierszami nowego roku        | —             | MS-04    | done     |
@@ -127,7 +127,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** Dotyka każdego dialogu z domyślną datą i współdzielonego props sidebara; poprawka sprawdzona tylko w jednym dialogu zostawi resztę na zegarze przeglądarki, więc dowód wymaga zegara próby po stronie serwera i przeglądarki jak w year-turn-rehearsal.
-- **Status:** ready
+- **Status:** done
 
 ### S-40: Rok w sesji po przełomie
 
@@ -304,4 +304,5 @@ This table is the clean handoff to Jira/Linear or any MCP-backed backlog. Includ
 - **F-09: (foundation) `test-plan.md` odpowiada stanowi repo: faza 1 zamknięta z odnośnikiem do archiwum, fazy 2–5 bez odwołań do porzuconego M-2, z miejscem na testy przełomu roku i z listą przepływów E2E, które są bramką CI.** — Archived 2026-11-19 → `context/archive/2026-11-19-test-plan-refresh/`. Lesson: —.
 - **S-42: użytkownik importuje wyciąg z 29.12–02.01, gdy 2027 jest szkicem, zapisuje wiersze grudnia, a przy wierszach stycznia widzi, że trzeba rozpocząć realizację Budżetu 2027; test `_known_gap` z `CsvImportTest` przechodzi jako zwykły test** — Archived 2026-11-19 → `context/archive/2026-11-18-import-across-draft-year/`. Lesson: —.
 - **F-08: (foundation) nowy ADR ustala, który dzień kalendarzowy jest „dziś” dla aplikacji i że przeglądarka bierze ten sam dzień co serwer (ADR-0103, App Day w Europe/Warsaw), a słownik i starsze ADR przestają mówić „dziś w UTC” na własną rękę.** — Archived 2026-11-19 → `context/archive/2026-11-18-app-day-decision/`. Lesson: —. Wpis i status dopisane przez `/10x-roadmap` 2026-11-19, bo zamknięcie zmiany nie zaktualizowało roadmapy.
+- **S-39: użytkownik o 00:30 1 stycznia (i o każdej porze wokół północy) widzi w menu roku, na Dashboardzie i jako domyślną datę w dialogach operacji, rachunku, lokaty, ruchu kapitału i uzgodnienia salda ten sam dzień i rok** — Archived 2026-11-19 → `context/archive/2026-11-19-one-app-day/`. Lesson: —.
 - **S-44: użytkownik (właściciel repo) widzi czerwone CI na pushu i PR do `development`, gdy zmiana psuje przepływ, który odświeżony plan testów wskazał jako bramkę** — Archived 2026-11-19 → `context/archive/2026-11-19-e2e-in-ci/`. Lesson: —.

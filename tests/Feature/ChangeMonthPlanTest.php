@@ -11,12 +11,12 @@ use App\Models\Category;
 use App\Models\MonthPlan;
 use App\Models\MonthPlanItem;
 use App\Models\User;
+use App\Support\AppDay;
 use App\Support\CategoryRhythms;
 use App\Support\InvariantViolation;
 use App\Support\IrregularCollected;
 use App\Support\MonthPlanProposal;
 use App\Support\PastMonthPlanRefused;
-use Carbon\CarbonImmutable;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Exceptions;
@@ -83,7 +83,7 @@ class ChangeMonthPlanTest extends TestCase
             $this->budget,
             6,
             [],
-            CarbonImmutable::today('UTC'),
+            AppDay::today(),
             -30_000,
         );
 
@@ -102,7 +102,7 @@ class ChangeMonthPlanTest extends TestCase
 
         $this->change(6, [$this->food->category_id => 180_000]);
 
-        $reading = MonthPlanProposal::forBudget($this->budget, CarbonImmutable::today('UTC'))->reading(7);
+        $reading = MonthPlanProposal::forBudget($this->budget, AppDay::today())->reading(7);
 
         $this->assertSame('proposal', $reading->state);
         $this->assertSame(180_000, $reading->amounts[$this->food->id]);
@@ -393,7 +393,7 @@ class ChangeMonthPlanTest extends TestCase
             $this->budget,
             $month,
             $amounts,
-            CarbonImmutable::today('UTC'),
+            AppDay::today(),
         );
     }
 

@@ -18,6 +18,7 @@ import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
 import { useShell, useTranslations } from '@/composables/useTranslations';
 import { activeCountForm } from '@/lib/category-list';
+import { appDayYear } from '@/lib/app-day';
 import { createBudgetSummary } from '@/lib/create-budget-summary';
 
 type FormBinding = InstanceType<typeof Form>['$props'];
@@ -52,7 +53,7 @@ const emit = defineEmits<{
 
 const shell = useShell();
 const t = useTranslations();
-const currentYear = new Date().getFullYear();
+const currentYear = computed(() => appDayYear(shell.value.today));
 
 const defaultYear = computed(() => {
     if (props.initialYear !== undefined) {
@@ -63,7 +64,9 @@ const defaultYear = computed(() => {
         return props.suggestedYear;
     }
 
-    return shell.value.budgetYears.length > 0 ? currentYear + 1 : currentYear;
+    return shell.value.budgetYears.length > 0
+        ? currentYear.value + 1
+        : currentYear.value;
 });
 
 const targetYear = ref(defaultYear.value);

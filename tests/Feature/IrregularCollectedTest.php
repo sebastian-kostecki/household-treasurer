@@ -1,5 +1,6 @@
 <?php
 
+use App\Actions\ArchiveCategory;
 use App\Enums\BudgetPhase;
 use App\Enums\FinancialOperationType;
 use App\Models\Budget;
@@ -168,6 +169,16 @@ test('an archived line has a rate of 0 in unapproved months after the archive, a
     $line->update(['archived_at' => null]);
 
     expect(collectedAt($line, 2026, 7))->toBe(90_000);
+});
+
+test('a line archived after Polish midnight stops collecting from the next month', function () {
+    $budget = collectedBudget(User::factory()->create(), 2027);
+    $line = collectedLine($budget, 180_000);
+
+    $this->travelTo('2027-01-31 23:30:00');
+    app(ArchiveCategory::class)->handle($line->category);
+
+    expect(collectedAt($line->fresh(), 2027, 3))->toBe(30_000);
 });
 
 test('an approved month without an item for the category has a rate of 0', function () {
