@@ -15,6 +15,7 @@ use App\Support\CategoryRhythms;
 use App\Support\InvariantViolation;
 use App\Support\IrregularCollected;
 use App\Support\MonthPlanProposal;
+use App\Support\PastMonthPlanRefused;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -205,10 +206,14 @@ class ChangeMonthPlanTest extends TestCase
 
     public function test_it_rejects_a_past_approved_month(): void
     {
+        Exceptions::fake();
         $plan = $this->approvedPlan(5, [$this->food->id => 100]);
 
         $this->assertItemsError(fn () => $this->change(5, [$this->food->category_id => 1]));
         $this->assertItem($plan, $this->food, 100, 100);
+        Exceptions::assertReported(fn (PastMonthPlanRefused $refusal): bool => $refusal->context()['action'] === 'change'
+            && $refusal->context()['month'] === 5
+            && $refusal->context()['server_today'] === '2026-06-15');
     }
 
     public function test_it_rejects_a_month_without_an_approved_plan(): void

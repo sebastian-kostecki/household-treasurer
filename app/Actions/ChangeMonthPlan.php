@@ -6,6 +6,7 @@ use App\Models\Budget;
 use App\Models\MonthPlan;
 use App\Models\MonthPlanItem;
 use App\Support\BudgetLineResolver;
+use App\Support\PastMonthPlanRefused;
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\UniqueConstraintViolationException;
@@ -36,6 +37,8 @@ class ChangeMonthPlan
         }
 
         if ([$budget->year, $month] < [$today->year, $today->month]) {
+            report(new PastMonthPlanRefused('change', $budget->id, $budget->year, $month, $today));
+
             throw $this->invalid(__('A past month plan cannot be changed.'));
         }
 

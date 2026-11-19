@@ -20,9 +20,11 @@ use App\Models\User;
 use App\Support\CategoryRhythms;
 use App\Support\IrregularCollected;
 use App\Support\MonthPlanProposal;
+use App\Support\PastMonthPlanRefused;
 use App\Support\ReportYearsRange;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Exceptions;
 use Illuminate\Testing\TestResponse;
 use Illuminate\Validation\ValidationException;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -143,6 +145,7 @@ class YearTurnTest extends TestCase
         app(StartBudgetExecution::class)->handle($this->budget2027);
 
         $this->travelTo('2027-01-01 00:00:00');
+        Exceptions::fake();
         $proposal = MonthPlanProposal::forBudget($this->budget2026, CarbonImmutable::today('UTC'));
 
         $this->assertSame('none', $proposal->reading(12)->state);
@@ -153,6 +156,14 @@ class YearTurnTest extends TestCase
         } catch (ValidationException $exception) {
             $this->assertSame([__('A past month cannot be approved.')], $exception->errors()['items']);
         }
+
+        Exceptions::assertReported(fn (PastMonthPlanRefused $refusal): bool => $refusal->context() === [
+            'action' => 'approve',
+            'budget_id' => $this->budget2026->id,
+            'budget_year' => 2026,
+            'month' => 12,
+            'server_today' => '2027-01-01',
+        ]);
 
         $this->assertDatabaseCount('month_plans', 0);
 
