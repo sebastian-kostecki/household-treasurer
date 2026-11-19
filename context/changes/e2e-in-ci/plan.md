@@ -453,7 +453,7 @@ Brak migracji danych. Zmiana seedera dotyczy tylko nowych seedów i nie rusza is
 
 #### Manual
 
-- [ ] 3.5 Trace albo raport HTML pokazuje podgląd, toast i oba wiersze po przeładowaniu
+- [x] 3.5 Trace albo raport HTML pokazuje podgląd, toast i oba wiersze po przeładowaniu — sprawdzone w trace (tekst toastu i oba wiersze w snapshotach po przeładowaniu)
 
 ### Phase 4: Tryb CI Playwrighta
 
