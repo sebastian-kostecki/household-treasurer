@@ -9,7 +9,7 @@ tags: [research, codebase, mcp, laravel-mcp, auth, passport, sanctum, app-day, d
 status: complete
 last_updated: 2026-11-19
 last_updated_by: Claude Opus 5.5 (session of the user Sebastian Kostecki)
-last_updated_note: "Scope extended during research: the write path for cash operations (user request 2026-11-19)"
+last_updated_note: "User decisions 1 and 1a: the whole change (stages 1-3, incl. cash write) goes with M-5"
 ---
 
 # Research: MCP server for asking Claude about the budget
@@ -233,6 +233,8 @@ Newer releases exist: laravel/mcp v1.2.0 (2026-11-10, Origin header validation o
 ## Decisions for the user
 
 1. **Timing:** start stage 1 now (alongside M-5) or put the whole change on the January friction-list choice (MS-10), as the roadmap parks new features? Roadmap stays unchanged either way.
+   - **User decision 2026-11-19:** „chciałbym tutaj razem z M-5 wdrożyć” — the change goes with M-5, not in January. Whether the roadmap gets a slice for it is open (this research does not edit `roadmap.md`).
+   - **User decision 2026-11-19 (1a, scope in M-5):** all three stages in M-5 — local read server, production endpoint with OAuth, and the cash operation write tool. This supersedes the "M-5 split" in the Summary and the stage timing in the Recommendation (stage order 1 → 2 → 3 stays). Consequences for the plan: decision 6 leans to extraction (no reason to duplicate until January), `laravel/mcp` goes to `require` within M-5, and production changes (Passport tables and keys, Cloudflare rules, the entry-validation refactor) land in the same window as S-40, S-41 and S-43, so the plan needs a deploy order and a cut-off date before 31 December.
 2. **Auth for the remote endpoint:** Passport OAuth directly (recommended; the only documented path to the phone for an individual account), or a Sanctum token first? A one-minute check informs it: does Customize > Connectors > Add custom connector on claude.ai show a "Request headers" section for this account?
 3. **Dependencies:** approve `laravel/mcp` in `require-dev` now (stage 1, instead of relying on Boost's transitive copy) and in `require` plus `laravel/passport` later (stage 2), each with an ADR.
 4. **Month Category Group sums:** port the ADR-0079 rule to PHP for the MCP answer (with a parity test against `month-plan-groups.ts` and an ADR amendment), or answer month questions per Category only and give Category Groups for the year only (`BudgetPlanSummary::groupsOfType`)?
