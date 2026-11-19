@@ -55,7 +55,7 @@ Cztery kamienie milowe powstały w dwa tygodnie, a aplikacja nie przeszła jeszc
 | F-08 | app-day-decision                | (foundation) ADR i słownik ustalają jeden „dzień aplikacji” dla serwera i przeglądarki w miejsce „dziś w UTC”  | —             | MS-01    | done     |
 | F-09 | test-plan-refresh               | (foundation) plan testów odpowiada stanowi repo i wskazuje przepływy E2E, które są bramką CI                   | —             | MS-06    | done     |
 | S-39 | one-app-day                     | użytkownik widzi ten sam dzień i rok w menu roku, na Dashboardzie i w domyślnej dacie dialogów wokół północy   | F-08          | MS-01    | done |
-| S-40 | session-year-follows-year-turn  | użytkownik po przełomie otwiera aplikację w nowym roku bez ręcznej zmiany roku                                 | F-08, S-39    | MS-02    | planning |
+| S-40 | session-year-follows-year-turn  | użytkownik po przełomie otwiera aplikację w nowym roku bez ręcznej zmiany roku                                 | F-08, S-39    | MS-02    | in-progress |
 | S-41 | year-turn-notices               | użytkownik widzi przed przełomem, co czeka: plan grudnia, Budżet następnego roku i Import przy szkicu          | F-08, S-39    | MS-03    | done     |
 | S-42 | import-across-draft-year        | użytkownik importuje wyciąg z przełomu przy szkicu nowego roku i wie, co zrobić z wierszami nowego roku        | —             | MS-04    | done     |
 | S-43 | years-report-in-early-january   | użytkownik widzi w „Latach” i w roku do roku sensowny odczyt w pierwszych dniach stycznia                     | F-08, S-39    | MS-05    | done     |
@@ -143,7 +143,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Unknowns:**
   - Czy przeskakuje tylko rok, który był bieżący przed przełomem, czy także rok wybrany ręcznie do przeglądania (np. 2023)? — Owner: user. Block: no.
 - **Risk:** Zmienia ADR-0075 (rok z sesji ma pierwszeństwo); za szeroka reguła wyrzuci użytkownika z roku, który świadomie przegląda.
-- **Status:** planning
+- **Status:** in-progress
 
 ### S-41: Przypomnienia przed przełomem
 

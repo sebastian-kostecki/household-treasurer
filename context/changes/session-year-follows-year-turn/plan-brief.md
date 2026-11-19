@@ -60,6 +60,7 @@ The year menu and Budget creation write `budget_year` plus `budget_year_chosen_i
 - The task was taken from the roadmap entry S-40 because the change was opened without an intent.
 - The fix matters only before the first turn on production: deploy before 31 December 2026 (roadmap open question 2).
 - A User reconciling December at 00:05 in 2026 lands in 2027 and switches back once; accepted with the silent switch.
+- The rehearsal's T3 symptom came from a 2026 chosen after the T2 re-login (App Day 2027), which rule A keeps; a repeated rehearsal must choose the year before 23:00 UTC to see the switch (plan-review F1).
 
 ## Success Criteria (Summary)
 

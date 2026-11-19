@@ -9,7 +9,7 @@ Roadmap S-40 (MS-02, rehearsal gap 3): a User who chose 2026 in the year menu in
 - `SelectedBudgetYear::resolve` (`app/Support/SelectedBudgetYear.php:11-36`) returns the session `budget_year` whenever the User has a Budget for it, unconditionally. Only without one does it fall back to `defaultYear` with `AppDay::today()->year` (ADR-0075, ADR-0103).
 - Its callers are the Budget, Month Plan, Reports and command palette controllers, plus `ShellState::forRequest` (`app/Support/ShellState.php:30`, prop `shell.budgetYear`). One rule therefore covers every view that has a year menu. The Dashboard always reads the current calendar year (ADR-0031) and is not affected.
 - `budget_year` is written only on an explicit choice: `BudgetController::selectYear` (`app/Http/Controllers/BudgetController.php:153`, the year menu) and `BudgetController::store` (`:121`, a new Budget). `destroy` forgets it (`:137-139`). The session does not record *when* the year was chosen. Without that, "2026 is left over from December" cannot be told apart from "in January I deliberately went back to 2026".
-- Sessions expire after 120 minutes of inactivity in local and production (`.env.example:31`, `.env.prod.example:30`, `database` driver). "Remember me" re-authenticates into a fresh, empty session. The gap therefore bites only a session kept alive across Polish midnight, which is what the rehearsal hit at T3. The morning after already opens 2027 (`SelectedBudgetYearTest::test_january_without_a_session_year_selects_the_new_year_whatever_its_phase`).
+- Sessions expire after 120 minutes of inactivity in local and production (`.env.example:31`, `.env.prod.example:30`, `database` driver). "Remember me" re-authenticates into a fresh, empty session. The gap therefore bites only a session kept alive across Polish midnight with a year chosen before it. The rehearsal's T3 (`context/archive/2026-11-18-year-turn-rehearsal/rehearsal.md:29`) shows the symptom, but its 2026 was chosen after the clock jump at T2 had logged the User out (`rehearsal.md:28`), i.e. at 31.12 23:30 UTC or later, App Day 1 January 2027. Under rule A that choice is a choice in 2027 and stands, so the T2/T3 steps repeated as they are will still show 2026; the rehearsal has to choose the year before 23:00 UTC to see the switch. The morning after already opens 2027 (`SelectedBudgetYearTest::test_january_without_a_session_year_selects_the_new_year_whatever_its_phase`).
 - The gap is pinned green by `SelectedBudgetYearTest::test_session_year_of_the_old_year_stays_selected_in_january_known_gap` (`tests/Feature/SelectedBudgetYearTest.php:76-83`). `context/foundation/test-plan.md:180` says S-40 rewrites it to the required behaviour (2027 in January) and drops the `_known_gap` suffix, as a change of requirement, not assertion tuning.
 - The glossary entry Budget (`context/foundation/glossary.md:32`) states the rule "Without a choice in the session the app opens …", and README „Przełom roku” (`README.md:339`) tells the User to switch the year by hand after the turn. Both change with this plan.
 
@@ -54,7 +54,7 @@ Record the decision before code: the new rule for the session year in the glossa
 
 **Intent**: Record rule A, the silent switch, the session marker and the handling of sessions without it, with examples on the boundaries, so S-40 has its decision before code.
 
-**Contract**: Same shape as ADR-0103/0109 (title, context paragraph naming rehearsal gap 3 and the 120-minute session, Rule, Examples, Relation to earlier ADRs, Consequences, „We rejected”). Rule: a choice of year in the session records the App Day year in which it was made; the session year S chosen in year C is not a choice once the App Day year is later than C and S equals C, and the order of ADR-0075 applies; every other choice stands. Examples: 2026 chosen 31.12 23:40 PL → 2027 at 00:00 PL (31.12 23:00:00 UTC), still 2026 at 22:59:59 UTC; 2023 chosen in December stays in January; 2027 chosen or created in December stays; 2026 chosen again on 1 January stays; a session year without a recorded choice year stands. Silent: no notice. Rejected: B (every choice made before the turn expires, which throws the User out of a year browsed at midnight); a rule without a marker, e.g. "a session year earlier than the current one is ignored" (which forbids going back to 2026 in January); a one-time toast (a side effect in a reading called several times per request, plus new UI copy); a shorter session or clearing sessions at the turn.
+**Contract**: Same shape as ADR-0103/0109 (title, context paragraph naming rehearsal gap 3 and the 120-minute session, Rule, Examples, Relation to earlier ADRs, Consequences, „We rejected”). Rule: a choice of year in the session records the App Day year in which it was made; the session year S chosen in year C is not a choice once the App Day year is later than C and S equals C, and the order of ADR-0075 applies; every other choice stands. Examples: 2026 chosen 31.12 23:40 PL → 2027 at 00:00 PL (31.12 23:00:00 UTC), still 2026 at 22:59:59 UTC; 2023 chosen in December stays in January; 2027 chosen or created in December stays; 2026 chosen again on 1 January stays; 2026 chosen at 31.12 23:30 UTC (App Day 1 January, as after the re-login at rehearsal T2) counts as a choice in 2027 and stays; a session year without a recorded choice year stands. Silent: no notice. Rejected: B (every choice made before the turn expires, which throws the User out of a year browsed at midnight); a rule without a marker, e.g. "a session year earlier than the current one is ignored" (which forbids going back to 2026 in January); a one-time toast (a side effect in a reading called several times per request, plus new UI copy); a shorter session or clearing sessions at the turn.
 
 #### 2. ADR-0075 superseded in part
 
@@ -114,13 +114,13 @@ Turn the known gap into a failing test, add the boundary cases, then make `Selec
 
 **Intent**: Prove the rule end to end through the year menu route and the shell prop, the way the User hit it in the rehearsal.
 
-**Contract**: `test_the_year_chosen_in_the_menu_in_december_gives_way_to_the_new_year_after_polish_midnight`: two Budgets (2026 execution, 2027 started), `travelTo('2026-12-31 22:30:00')`, POST `budget.select-year` with 2026, GET `budget` → `assertInertia` `shell.budgetYear` 2026; `travelTo('2026-12-31 23:00:00')`, GET `budget` → `shell.budgetYear` 2027; POST `budget.select-year` with 2026 again, GET `budget` → 2026.
+**Contract**: `test_the_year_chosen_in_the_menu_in_december_gives_way_to_the_new_year_after_polish_midnight`: two Budgets from `givenTwoBudgets()` (2026 execution, 2027 draft: the default year ignores the phase), `travelTo('2026-12-31 22:59:59')`, POST `budget.select-year` with 2026, GET `budget` → `assertInertia` `shell.budgetYear` 2026; `travelTo('2026-12-31 23:00:00')`, GET `budget` → `shell.budgetYear` 2027; POST `budget.select-year` with 2026 again, GET `budget` → 2026.
 
 **File**: `tests/Feature/BudgetTest.php`
 
 **Intent**: Pin that a choice and a new Budget record the choice year, and that deleting the Budget of the session year forgets both keys.
 
-**Contract**: Extend `test_user_can_select_budget_year_in_shell` (`:384`) with `assertSessionHas('budget_year_chosen_in', <App Day year>)`. Add the same assertion where `store` is tested, and `assertSessionMissing` for both keys where `destroy` of the session year is tested (add a test if none covers it).
+**Contract**: Extend `test_user_can_select_budget_year_in_shell` (`:384`) with `assertSessionHas('budget_year_chosen_in', <App Day year>)`. Add the same assertion to `test_user_can_create_draft_budget_for_a_year_without_one` (`:34`). No test covers `destroy` of the session year today, so add `test_deleting_the_budget_of_the_session_year_forgets_the_choice`: `withSession(['budget_year' => 2026, 'budget_year_chosen_in' => 2026])`, delete the 2026 Budget, `assertSessionMissing` for both keys.
 
 #### 2. Record and read the choice year
 
@@ -145,7 +145,7 @@ Turn the known gap into a failing test, add the boundary cases, then make `Selec
 
 **Intent**: The procedure no longer tells the User to switch the year by hand.
 
-**Contract**: Replace "Rok wybrany w sesji (2026) zostaje po przełomie: przełącz go ręcznie w menu na N+1." with Polish text saying that from 00:00 Polish time a year N chosen during year N gives way to N+1 on its own, while a different year chosen for browsing stays (ADR-0111). Add a line under „Co sprawdzić 1–2 stycznia” if it fits: Budget opens N+1 without changing the year.
+**Contract**: Replace "Rok wybrany w sesji (2026) zostaje po przełomie: przełącz go ręcznie w menu na N+1." with Polish text saying that from 00:00 Polish time a year N chosen during year N gives way to N+1 on its own, while a different year chosen for browsing stays (ADR-0111). Add a line under „Co sprawdzić 1–2 stycznia” if it fits: Budget opens N+1 without changing the year. In „Próba przed przełomem” add that to see the switch the year is chosen before 23:00 UTC on 31.12; a year chosen after it (e.g. after the re-login forced by the clock jump) is a choice in N+1 and stays.
 
 **File**: `context/foundation/test-plan.md` (line 180)
 
@@ -168,8 +168,9 @@ Turn the known gap into a failing test, add the boundary cases, then make `Selec
 
 #### Manual Verification:
 
-- With `app:rehearsal-clock "2026-12-31 22:30"` on the worktree preview (`context/foundation/agents/worktree-preview.md`), choose 2026 in the year menu, then `app:rehearsal-clock "2026-12-31 23:05"`: Budget and Month Plan open 2027 without a toast, and the menu shows 2027
-- In a second session (private window) opened at the same 22:30 clock, choose 2023 (a past Budget on the preview data); after the clock moves to 23:05 it still opens 2023
+- Preparation (worktree preview, `context/foundation/agents/worktree-preview.md`): the preview seed has only a 2026 Budget. Run `app:rehearsal-clock "2026-12-31 22:30"` in the worktree container (the `docker run … --entrypoint php sail-8.5/app artisan …` form from AGENTS.md; `docker compose exec` would set the main checkout's clock), log in again (a jump over 2 h logs out), and create Budgets 2027 and 2023 on the Budget screen. Creating a Budget writes the session year, so choose the tested year after the creations.
+- In the year menu choose 2026, then `app:rehearsal-clock "2026-12-31 23:05"` (same container form): Budget and Month Plan open 2027 without a toast, and the menu shows 2027
+- In a second session (private window) logged in at the same 22:30 clock, choose 2023; after the clock moves to 23:05 it still opens 2023
 - README „Przełom roku” reads correctly in Polish
 
 **Implementation Note**: After completing this phase and all automated verification passes, pause here for manual confirmation from the human that the manual testing was successful before proceeding to the next phase.
@@ -190,10 +191,10 @@ Turn the known gap into a failing test, add the boundary cases, then make `Selec
 
 ### Manual Testing Steps:
 
-1. Worktree preview with `app:rehearsal-clock "2026-12-31 22:30"`, log in, pick 2026 in the year menu, open Budget.
+1. Worktree preview, `app:rehearsal-clock "2026-12-31 22:30"` run in the worktree container, log in again, create Budgets 2027 and 2023, then pick 2026 in the year menu and open Budget. The rehearsal clock stands still: every step below moves it explicitly.
 2. `app:rehearsal-clock "2026-12-31 23:05"`, reload Budget: 2027, no toast; open Month Plan and Reports: 2027.
 3. Pick 2026 again: it stays on further visits.
-4. In a second session (private window) started at step 1, pick 2023 before the clock moves; after step 2 it still opens 2023. (Do not move the rehearsal clock backwards: it refuses a moment older than the session time.)
+4. In a second session (private window) logged in at step 1, pick 2023 before the clock moves; after step 2 it still opens 2023. (The command refuses a moment earlier than the real now minus the 120-minute session lifetime; it does not compare with the previous rehearsal moment.)
 
 ## Migration Notes
 
@@ -216,8 +217,8 @@ No database migration. Live sessions without `budget_year_chosen_in` keep today'
 
 #### Automated
 
-- [ ] 1.1 ADR file `context/foundation/adr/0111-session-year-follows-the-year-turn.md` exists and no other ADR uses number 0111
-- [ ] 1.2 Glossary entry Budget cites ADR-0111
+- [x] 1.1 ADR file `context/foundation/adr/0111-session-year-follows-the-year-turn.md` exists and no other ADR uses number 0111
+- [x] 1.2 Glossary entry Budget cites ADR-0111
 
 #### Manual
 
