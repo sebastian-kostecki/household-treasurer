@@ -1,10 +1,10 @@
 ---
 change_id: session-year-follows-year-turn
 title: Session year follows year turn
-status: impl_reviewed
+status: archived
 created: 2026-11-19
 updated: 2026-11-19
-archived_at: null
+archived_at: 2026-11-19T21:52:02Z
 ---
 
 ## Notes
