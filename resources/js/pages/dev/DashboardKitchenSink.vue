@@ -23,11 +23,11 @@ const switchStates = [
 const stateMatrix = [
     {
         state: 'default',
-        where: 'Scenariusze default, zero-amounts, negative, many-categories (ponad 5 kategorii w grupie), income-over-100, overrun („przekroczono” obok procentu i w sumach, grupa wydatków ponad 100%), all-notice-kinds (9 rodzajów, „Pokaż wszystkie”), december-before-turn, next-year-missing i forgotten-start (karta „Budżet 2027”), deposits-only, month-start, month-end, pace-unknown i no-month-plan (3 miary) poniżej. Oba stany Switcha „Postęp roku”: sekcja year-mark-switch.',
+        where: 'Scenariusze default, zero-amounts, negative, many-categories (ponad 5 kategorii w grupie), income-over-100, overrun („przekroczono” obok procentu i w sumach, grupa wydatków ponad 100%), all-notice-kinds (9 rodzajów, „Pokaż wszystkie”), december-before-turn, next-year-missing i forgotten-start (karta „Budżet 2027”), december-draft-turn (dwie karty: „Budżet 2026” i „Budżet 2027”), next-year-waiting („budżet 2027 od 1 stycznia” w linii stanu), deposits-only, month-start, month-end, pace-unknown i no-month-plan (3 miary) poniżej. Oba stany Switcha „Postęp roku”: sekcja year-mark-switch.',
     },
     {
         state: 'empty',
-        where: 'Scenariusze empty-new-user, no-budget, draft i no-categories poniżej.',
+        where: 'Scenariusze empty-new-user, no-budget, draft (karta „Budżet 2026”) i no-categories poniżej.',
     },
     {
         state: 'loading',

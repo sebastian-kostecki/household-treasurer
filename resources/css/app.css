@@ -646,10 +646,7 @@
         @apply inline-flex h-4 items-center rounded-full px-1.5 font-sans text-[11px]/4 font-medium;
     }
 
-    .sidebar-year-state-current {
-        @apply border-sidebar-border text-sidebar-foreground border;
-    }
-
+    .sidebar-year-state-current,
     .sidebar-year-state-waiting {
         @apply border-sidebar-border text-sidebar-foreground border;
     }

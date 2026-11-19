@@ -176,7 +176,7 @@ The deadline in the month-plan card and the new `budget_not_in_execution` card, 
 
 **Contract**:
 - `forDashboard(?Budget $budget, ?Budget $nextYearBudget, …)`: the new parameter goes right after `$budget` and is required, with no default, so "not passed" can never read as "no Budget next year". The controller is the only caller.
-- The new kind is built in a private helper `budgetNotInExecutionNotices(?Budget $budget, ?Budget $nextYearBudget, CarbonImmutable $today): list<array{…}>`, merged at the end of `forDashboard`. `forDashboard` is already ~196 lines in the Sloppy baseline (SL101, `.sloppy-baseline.json:51-54`), so do not grow it inline.
+- The new kind is built in a private helper `budgetNotInExecutionNotices(?Budget $budget, ?Budget $nextYearBudget, CarbonImmutable $today): list<array{…}>`, merged at the end of `forDashboard`. *Addendum (impl review F3): built as the class `App\Support\BudgetNotInExecutionNotices::for()` instead, same signature and merge point; `.ai/rules/support.md` covers its path.* `forDashboard` is already ~196 lines in the Sloppy baseline (SL101, `.sloppy-baseline.json:51-54`), so do not grow it inline.
 - The docblock shape gains `approve_by: string` ('YYYY-MM-DD', the last day of `$today`'s month) on `month_plan_not_approved`, and a new member `{kind: 'budget_not_in_execution', severity: 'warning', year: int, state: 'draft'|'missing'}`.
 - The order contract stays: severity first, then kind. The new kind comes after `collected_not_covered`, and two items follow year order.
 

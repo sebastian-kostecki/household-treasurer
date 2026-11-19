@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\BudgetPhase;
 use App\Enums\CategoryType;
 use App\Models\Account;
 use App\Models\Budget;
@@ -158,7 +157,7 @@ class DashboardController extends Controller
             'expenseTotals' => $expenseTotals,
             'year_elapsed_as_of' => $yearElapsedAsOf,
             'year_elapsed_percent' => $yearElapsedPercent,
-            'waiting_budget_year' => $nextYearBudget?->phase === BudgetPhase::Execution ? $nextYearBudget->year : null,
+            'waiting_budget_year' => $nextYearBudget?->isExecution() === true ? $nextYearBudget->year : null,
         ]);
     }
 

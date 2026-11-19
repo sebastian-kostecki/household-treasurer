@@ -25,6 +25,7 @@ test('scenario keys are unique and cover the state matrix', () => {
             'next-year-missing',
             'next-year-waiting',
             'forgotten-start',
+            'december-draft-turn',
             'deposits-only',
             'month-start',
             'month-end',
@@ -82,6 +83,28 @@ test('month pace scenarios hit their edges', () => {
 test('liquidity caption has both states: with and without the collected total', () => {
     expect(scenario('all-notice-kinds').collected_minor_units).toBe(60_000);
     expect(scenario('no-month-plan').collected_minor_units).toBeNull();
+});
+
+test('a draft current year has its card; in December the next year follows it', () => {
+    expect(scenario('draft').dashboardNotices).toEqual([
+        expect.objectContaining({ year: 2026, state: 'draft' }),
+    ]);
+    expect(
+        scenario('december-draft-turn').dashboardNotices.map(
+            (notice) => 'year' in notice && notice.year,
+        ),
+    ).toEqual([2026, 2027]);
+});
+
+test('December scenarios read a December day', () => {
+    for (const key of [
+        'december-before-turn',
+        'next-year-missing',
+        'next-year-waiting',
+    ]) {
+        expect(scenario(key).year_elapsed_as_of?.slice(0, 7)).toBe('2026-12');
+        expect(scenario(key).current_month).toBe(12);
+    }
 });
 
 test('next-year-waiting names the waiting Budget year and the others do not', () => {

@@ -1522,11 +1522,45 @@ class DashboardTest extends TestCase
                     $notices = collect($notices);
                     $kinds = $notices->pluck('kind')->all();
 
+                    $planPosition = array_search('month_plan_not_approved', $kinds, true);
+
                     return $kinds[0] === 'negative_account'
                         && $notices->last()['kind'] === 'budget_not_in_execution'
                         && $notices->last()['year'] === 2027
-                        && array_search('month_plan_not_approved', $kinds, true) < count($kinds) - 1;
+                        && $planPosition !== false
+                        && $planPosition < count($kinds) - 1;
                 }),
+            );
+    }
+
+    public function test_dashboard_lists_a_draft_current_year_before_the_next_year_in_december(): void
+    {
+        $this->travelTo('2026-12-10 09:00:00');
+
+        $user = User::factory()->create();
+        Account::factory()->for($user)->create(['opening_date' => '2026-01-01']);
+        Budget::factory()->for($user)->create(['year' => 2026]);
+
+        $this->actingAs($user)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('dashboardNotices', [
+                    ['kind' => 'budget_not_in_execution', 'severity' => 'warning', 'year' => 2026, 'state' => 'draft'],
+                    ['kind' => 'budget_not_in_execution', 'severity' => 'warning', 'year' => 2027, 'state' => 'missing'],
+                ]),
+            );
+
+        Budget::factory()->for($user)->create(['year' => 2027]);
+
+        $this->actingAs($user)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('dashboardNotices', [
+                    ['kind' => 'budget_not_in_execution', 'severity' => 'warning', 'year' => 2026, 'state' => 'draft'],
+                    ['kind' => 'budget_not_in_execution', 'severity' => 'warning', 'year' => 2027, 'state' => 'draft'],
+                ]),
             );
     }
 

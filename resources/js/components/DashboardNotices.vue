@@ -1,20 +1,16 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
-import { AlertTriangle, CalendarDays, OctagonX } from '@lucide/vue';
+import { AlertTriangle, OctagonX } from '@lucide/vue';
 import { computed, onUnmounted, ref } from 'vue';
-import type { Component } from 'vue';
-import AccountAvatar from '@/components/AccountAvatar.vue';
+import DashboardNoticeCardBody from '@/components/DashboardNoticeCardBody.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Spinner } from '@/components/ui/spinner';
 import { useCreateBudgetDialog } from '@/composables/useCreateBudgetDialog';
 import { useTranslations } from '@/composables/useTranslations';
 import {
     listenForBudgetYearSelectionFailure,
     notifyBudgetYearSelectionFailed,
 } from '@/lib/budget-year-selection';
-import { formatMoney } from '@/lib/format';
-import { noticePresentation } from '@/lib/dashboard-notice-presentation';
 import BudgetController from '@/actions/App/Http/Controllers/BudgetController';
 import { operations as operationsRoute } from '@/routes';
 import { index as termDepositsIndex } from '@/routes/term-deposits';
@@ -38,16 +34,16 @@ const hiddenNoticeCount = computed(() =>
 );
 
 const createBudgetDialog = useCreateBudgetDialog();
-const monthPlanRequestPending = ref(false);
+const selectYearRequestPending = ref(false);
 
-function onMonthPlanRequestFailed(): void {
+function onSelectYearRequestFailed(): void {
     notifyBudgetYearSelectionFailed(t.dashboard.select_year_failed);
 }
 
 // <Link> exposes no HTTP/network error callbacks, only validation `error`.
 onUnmounted(
     listenForBudgetYearSelectionFailure(
-        () => monthPlanRequestPending.value,
+        () => selectYearRequestPending.value,
         t.dashboard.select_year_failed,
     ),
 );
@@ -75,10 +71,12 @@ const warningCount = computed(
 );
 
 function isNoticePending(notice: DashboardNotice): boolean {
-    return isSelectYearNotice(notice) && monthPlanRequestPending.value;
+    return isSelectYearNotice(notice) && selectYearRequestPending.value;
 }
 
-function isMissingBudgetNotice(notice: DashboardNotice): boolean {
+function isMissingBudgetNotice(
+    notice: DashboardNotice,
+): notice is Extract<DashboardNotice, { kind: 'budget_not_in_execution' }> {
     return (
         notice.kind === 'budget_not_in_execution' && notice.state === 'missing'
     );
@@ -90,27 +88,6 @@ function isSelectYearNotice(notice: DashboardNotice): boolean {
         isMonthNotice(notice) ||
         (notice.kind === 'budget_not_in_execution' && notice.state === 'draft')
     );
-}
-
-function openMissingBudget(notice: DashboardNotice): void {
-    if (notice.kind === 'budget_not_in_execution') {
-        createBudgetDialog.openForYear(notice.year);
-    }
-}
-
-// `select-year` needs an existing Budget (422), so a missing year is a button
-// that opens the "Dodaj rok" dialog instead of a link.
-function cardAttributes(notice: DashboardNotice): Record<string, unknown> {
-    if (isMissingBudgetNotice(notice)) {
-        return { type: 'button' };
-    }
-
-    return {
-        href: noticeHref(notice),
-        data: noticeData(notice),
-        as: isSelectYearNotice(notice) ? 'button' : 'a',
-        disabled: isNoticePending(notice) ? true : undefined,
-    };
 }
 
 function noticeData(
@@ -125,10 +102,6 @@ function noticeData(
     }
 
     return undefined;
-}
-
-function cardComponent(notice: DashboardNotice): Component | string {
-    return isMissingBudgetNotice(notice) ? 'button' : Link;
 }
 
 function isMonthNotice(notice: DashboardNotice): notice is Extract<
@@ -147,75 +120,6 @@ function isMonthNotice(notice: DashboardNotice): notice is Extract<
         notice.kind === 'month_pace_ahead' ||
         notice.kind === 'collected_not_covered'
     );
-}
-
-function monthName(month: number): string {
-    return t.budget[`month_name_${month}`] ?? '';
-}
-
-function noticeLabel(notice: DashboardNotice): string {
-    return t.dashboard[`notice_label_${noticePresentation(notice).labelKey}`];
-}
-
-function noticeIdentity(notice: DashboardNotice): string {
-    const identity = noticePresentation(notice).identity;
-
-    if (identity.type === 'year') {
-        return t.dashboard.notice_identity_budget_year.replace(
-            ':year',
-            String(identity.year),
-        );
-    }
-
-    return identity.type === 'month'
-        ? capitalized(monthName(identity.month))
-        : identity.name;
-}
-
-function noticeAvatar(notice: DashboardNotice) {
-    const identity = noticePresentation(notice).identity;
-
-    return identity.type === 'account' ? identity.avatar : null;
-}
-
-function noticeValue(notice: DashboardNotice): string | null {
-    const value = noticePresentation(notice).value;
-
-    if (value === null) {
-        return null;
-    }
-
-    if (value.type === 'money') {
-        return formatMoney(value.minorUnits);
-    }
-
-    if (value.type === 'approve_by') {
-        return t.dashboard.notice_value_approve_by.replace(
-            ':date',
-            `${value.date.slice(8, 10)}.${value.date.slice(5, 7)}`,
-        );
-    }
-
-    if (value.type === 'import_refused') {
-        return t.dashboard.notice_value_import_refused.replace(
-            ':year',
-            String(value.year),
-        );
-    }
-
-    if (value.type === 'collected_shortfall') {
-        return t.dashboard.notice_value_collected_shortfall
-            .replace(':shortfall', formatMoney(value.shortfallMinorUnits))
-            .replace(':collected', formatMoney(value.collectedMinorUnits));
-    }
-
-    return t.dashboard.notice_value_pace
-        .replace(':percent', String(value.percent))
-        .replace(':days_percent', String(value.daysPercent));
-}
-
-function capitalized(text: string): string {
-    return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
 const showCollapse = computed(
@@ -334,81 +238,46 @@ function noticeKey(notice: DashboardNotice): string {
         </div>
 
         <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            <component
-                :is="cardComponent(notice)"
-                v-for="notice in visibleNotices"
-                :key="noticeKey(notice)"
-                v-bind="cardAttributes(notice)"
-                class="dashboard-notice"
-                :aria-busy="isNoticePending(notice) ? 'true' : undefined"
-                @click="
-                    isMissingBudgetNotice(notice)
-                        ? openMissingBudget(notice)
-                        : null
-                "
-                @start="monthPlanRequestPending = isSelectYearNotice(notice)"
-                @error="
-                    isSelectYearNotice(notice)
-                        ? onMonthPlanRequestFailed()
-                        : null
-                "
-                @finish="monthPlanRequestPending = false"
-            >
-                <span
-                    class="dashboard-notice-icon"
-                    :class="`dashboard-notice-icon-${notice.severity}`"
+            <template v-for="notice in visibleNotices" :key="noticeKey(notice)">
+                <!-- `select-year` needs an existing Budget (422), so a missing
+                     year opens the "Dodaj rok" dialog instead of a link. -->
+                <button
+                    v-if="isMissingBudgetNotice(notice)"
+                    type="button"
+                    class="dashboard-notice"
+                    aria-haspopup="dialog"
+                    :disabled="selectYearRequestPending"
+                    @click="createBudgetDialog.openForYear(notice.year)"
                 >
-                    <Spinner v-if="isNoticePending(notice)" class="size-3.5" />
-                    <CalendarDays
-                        v-else-if="isMonthNotice(notice)"
-                        class="size-3.5"
-                        aria-hidden="true"
+                    <DashboardNoticeCardBody
+                        :notice="notice"
+                        :pending="false"
                     />
-                    <OctagonX
-                        v-else-if="notice.severity === 'exceeded'"
-                        class="size-3.5"
-                        aria-hidden="true"
-                    />
-                    <AlertTriangle v-else class="size-3.5" aria-hidden="true" />
-                </span>
-
-                <span class="dashboard-notice-body">
-                    <span
-                        class="dashboard-notice-kind meta text-muted-foreground"
-                    >
-                        {{ noticeLabel(notice) }}
-                    </span>
-                    <span class="dashboard-notice-identity">
-                        <template
-                            v-for="avatar in [noticeAvatar(notice)]"
-                            :key="noticeKey(notice)"
-                        >
-                            <AccountAvatar
-                                v-if="avatar"
-                                size="xs"
-                                :type="avatar.type"
-                                :bank="avatar.bank"
-                                :mark_url="avatar.mark_url"
-                            />
-                        </template>
-                        <span class="truncate">{{
-                            noticeIdentity(notice)
-                        }}</span>
-                    </span>
-                </span>
-
-                <span
-                    v-if="noticeValue(notice) !== null"
-                    class="dashboard-notice-value amount"
-                    :class="
-                        notice.severity === 'exceeded'
-                            ? 'text-destructive'
-                            : 'text-warning'
+                </button>
+                <Link
+                    v-else
+                    :href="noticeHref(notice)"
+                    :data="noticeData(notice)"
+                    :as="isSelectYearNotice(notice) ? 'button' : 'a'"
+                    :disabled="isNoticePending(notice) ? true : undefined"
+                    class="dashboard-notice"
+                    :aria-busy="isNoticePending(notice) ? 'true' : undefined"
+                    @start="
+                        selectYearRequestPending = isSelectYearNotice(notice)
                     "
+                    @error="
+                        isSelectYearNotice(notice)
+                            ? onSelectYearRequestFailed()
+                            : null
+                    "
+                    @finish="selectYearRequestPending = false"
                 >
-                    {{ noticeValue(notice) }}
-                </span>
-            </component>
+                    <DashboardNoticeCardBody
+                        :notice="notice"
+                        :pending="isNoticePending(notice)"
+                    />
+                </Link>
+            </template>
         </div>
 
         <div v-if="showExpander || showCollapse">
