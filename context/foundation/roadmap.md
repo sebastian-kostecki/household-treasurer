@@ -62,7 +62,7 @@ Cztery kamienie milowe powstały w dwa tygodnie, a aplikacja nie przeszła jeszc
 | S-44 | e2e-in-ci                       | użytkownik (właściciel repo) widzi czerwone CI, gdy zmiana psuje przepływ w przeglądarce                       | F-09          | MS-07    | done     |
 | S-45 | production-error-tracking       | użytkownik (właściciel) dostaje zgłoszenie wyjątku z produkcji ze stosem wywołań i kontekstem żądania          | —             | MS-08    | blocked  |
 | S-46 | docs-match-code                 | użytkownik i agent czytają słownik i ADR bez zdublowanych numerów i terminów, których nie ma w kodzie          | —             | MS-09    | done     |
-| S-47 | mcp-read-only-server            | użytkownik pyta Claude'a o stan budżetu i dopisuje gotówkę z telefonu                                          | F-08          | —        | in-progress |
+| S-47 | mcp-read-only-server            | użytkownik pyta Claude'a o stan budżetu i dopisuje gotówkę z telefonu                                          | F-08          | —        | done |
 | S-48 | production-smoke-tests          | użytkownik (właściciel) sprawdza na produkcji, że wdrożone zmiany M-5 działają na jego prawdziwych danych      | S-47          | —        | proposed |
 
 ## Streams
@@ -232,7 +232,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** Publiczny `/mcp` z OAuth to nowa powierzchnia ataku na produkcji (Cloudflare, klucze Passport w `.env.prod`); faza 1 dotyka `DashboardController` i `BudgetController`, które mogą zmieniać S-40 i S-41; narzędzie zapisu wdrażane osobno od zmian w `ManageFinancialOperation`.
-- **Status:** in-progress
+- **Status:** done
 
 ### S-48: Testy na produkcji
 
@@ -334,3 +334,4 @@ This table is the clean handoff to Jira/Linear or any MCP-backed backlog. Includ
 - **S-44: użytkownik (właściciel repo) widzi czerwone CI na pushu i PR do `development`, gdy zmiana psuje przepływ, który odświeżony plan testów wskazał jako bramkę** — Archived 2026-11-19 → `context/archive/2026-11-19-e2e-in-ci/`. Lesson: —.
 - **S-43: użytkownik 1–N stycznia widzi w „Latach” i w raporcie rok do roku odczyt, który porównuje coś więcej niż jeden dzień poprzednich lat, a wynik rok do roku na 1 stycznia jest sprawdzony** — Archived 2026-11-19 → `context/archive/2026-11-19-years-report-in-early-january/`. Lesson: —.
 - **S-41: użytkownik widzi w grudniu w „Wymaga uwagi”, że plan grudnia czeka na zatwierdzenie i po północy nie da się go już zatwierdzić, czy Budżet następnego roku jest szkicem (Import nie przyjmie jego wierszy), a po uruchomieniu menu roku i Dashboard mówią, że Budżet czeka na rok kalendarzowy** — Archived 2026-11-19 → `context/archive/2026-11-19-year-turn-notices/`. Lesson: —.
+- **S-47: użytkownik pyta Claude'a (Claude Code, claude.ai, Desktop, telefon) o To Spend, plan i wykonanie, salda i ostatnie operacje oraz dopisuje wydatek gotówkowy z telefonu** — Archived 2026-11-19 → `context/archive/2026-11-19-mcp-read-only-server/`. Lesson: —.
