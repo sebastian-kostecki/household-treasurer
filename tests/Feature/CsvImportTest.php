@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Actions\StartBudgetExecution;
 use App\Enums\Bank;
 use App\Enums\CapitalMovementDirection;
 use App\Enums\FinancialOperationType;
@@ -16,6 +17,7 @@ use App\Models\OwnTransfer;
 use App\Models\TermDeposit;
 use App\Models\User;
 use App\Support\AccountIdentity;
+use App\Support\CsvImport\CsvImportParser;
 use App\Support\CsvImport\ImportIdentityDigest;
 use App\Support\CsvImport\ImportMonthRemainingContext;
 use App\Support\CsvImport\ImportRowFields;
@@ -24,7 +26,9 @@ use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Exceptions;
 use Inertia\Testing\AssertableInertia as Assert;
+use InvalidArgumentException;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Tests\TestCase;
@@ -674,6 +678,181 @@ CSV;
             ->assertSessionHasErrors('rows');
 
         $this->assertDatabaseCount('financial_operations', 0);
+    }
+
+    /**
+     * The set stays atomic (FR-IMP-20): the preview reports the state of each year, a store that
+     * includes a row from a draft year is refused as a whole with the row date and year, and the
+     * December rows are stored once January is left out (ADR-0106).
+     */
+    public function test_statement_across_the_year_turn_saves_december_and_names_the_draft_year_for_january(): void
+    {
+        $this->travelTo('2027-01-02 09:00');
+
+        [$user, $account, , $expenseCategory] = $this->createImportFixture();
+        Budget::factory()->for($user)->create(['year' => 2027]);
+        $this->previewCsv($user, $account, "date,description,amount\n2026-12-29,Zakupy grudzień,45.50\n2027-01-02,Zakupy styczeń,30.00");
+
+        $this->actingAs($user)
+            ->get(route('operations.import.preview'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('budgetYearStates.2026', 'execution')
+                ->where('budgetYearStates.2027', 'draft')
+                ->where('rows.0.valid', true)
+                ->where('rows.1.valid', true),
+            );
+
+        $this->actingAs($user)
+            ->from(route('operations.import.preview'))
+            ->post(route('operations.import.store'), [
+                'duplicate_warning_acknowledged' => true,
+                'rows' => $this->turnStatementRows($expenseCategory->category_id, [0, 1]),
+            ])
+            ->assertSessionHasErrors([
+                'rows' => __('Row :date: the :year budget is a draft. Start its execution to import income, expenses and refunds from :year.', ['date' => '02.01.2027', 'year' => 2027]),
+            ]);
+
+        $this->assertDatabaseCount('financial_operations', 0);
+
+        $this->actingAs($user)
+            ->post(route('operations.import.store'), [
+                'duplicate_warning_acknowledged' => true,
+                'rows' => $this->turnStatementRows($expenseCategory->category_id, [0]),
+            ])
+            ->assertSessionHasNoErrors();
+
+        $this->assertDatabaseCount('financial_operations', 1);
+        $operation = FinancialOperation::query()->sole();
+        $this->assertSame('2026-12-29', $operation->operation_date->toDateString());
+        $this->assertSame(4550, $operation->amount_minor_units);
+    }
+
+    public function test_import_preview_marks_a_year_without_a_budget_as_missing_and_store_names_it(): void
+    {
+        $this->travelTo('2026-06-01');
+
+        [$user, $account, , $expenseCategory] = $this->createImportFixture(['opening_date' => '2025-01-01']);
+        $this->previewCsv($user, $account, "date,description,amount\n2025-12-30,Zakupy,45.50");
+
+        $this->actingAs($user)
+            ->get(route('operations.import.preview'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page->where('budgetYearStates.2025', 'missing'));
+
+        $this->actingAs($user)
+            ->from(route('operations.import.preview'))
+            ->post(route('operations.import.store'), [
+                'duplicate_warning_acknowledged' => true,
+                'rows' => $this->turnStatementRows($expenseCategory->category_id, [0]),
+            ])
+            ->assertSessionHasErrors([
+                'rows' => __('Row :date: there is no :year budget. Create it and start its execution to import income, expenses and refunds from :year.', ['date' => '30.12.2025', 'year' => 2025]),
+            ]);
+
+        $this->assertDatabaseCount('financial_operations', 0);
+    }
+
+    public function test_empty_import_preview_sends_the_budget_year_states_as_an_empty_list(): void
+    {
+        [$user, $account] = $this->createImportFixture();
+        $this->previewCsv($user, $account, "date,description,amount\n31.02.2026,Zakupy,45.50");
+
+        $this->actingAs($user)
+            ->get(route('operations.import.preview'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('rows', [])
+                ->where('budgetYearStates', []),
+            );
+    }
+
+    public function test_own_transfer_row_in_a_draft_year_is_imported(): void
+    {
+        $this->travelTo('2027-01-02 09:00');
+
+        [$user, $account] = $this->createImportFixture();
+        Budget::factory()->for($user)->create(['year' => 2027]);
+        $otherAccount = Account::factory()->for($user)->create([
+            'opening_date' => '2026-01-01',
+            'opening_balance_minor_units' => 0,
+            'current_balance_minor_units' => 0,
+        ]);
+        $this->previewCsv($user, $account, "date,description,amount\n2027-01-02,To savings,-100.00");
+
+        $this->actingAs($user)
+            ->post(route('operations.import.store'), [
+                'duplicate_warning_acknowledged' => true,
+                'rows' => [[
+                    'index' => 0,
+                    'selected' => true,
+                    'type' => 'own_transfer',
+                    'other_account_id' => $otherAccount->id,
+                ]],
+            ])
+            ->assertSessionHasNoErrors();
+
+        $this->assertDatabaseCount('own_transfers', 1);
+    }
+
+    public function test_capital_movement_with_interest_in_a_draft_year_is_refused_as_a_whole(): void
+    {
+        $this->travelTo('2027-01-02 09:00');
+
+        [$user, $account, $incomeCategory] = $this->createImportFixture();
+        Budget::factory()->for($user)->create(['year' => 2027]);
+        $termDeposit = TermDeposit::factory()->for($user)->create([
+            'opening_date' => '2026-01-01',
+            'opening_balance_minor_units' => 200000,
+            'current_balance_minor_units' => 200000,
+        ]);
+        $this->previewCsv($user, $account, "date,description,amount\n2027-01-02,Maturity return,150.00");
+
+        $this->actingAs($user)
+            ->from(route('operations.import.preview'))
+            ->post(route('operations.import.store'), [
+                'duplicate_warning_acknowledged' => true,
+                'rows' => [[
+                    'index' => 0,
+                    'selected' => true,
+                    'type' => 'capital_movement',
+                    'term_deposit_id' => $termDeposit->id,
+                    'interest_amount_minor_units' => 2500,
+                    'interest_category_id' => $incomeCategory->category_id,
+                ]],
+            ])
+            ->assertSessionHasErrors([
+                'rows' => __('Row :date: the :year budget is a draft. Start its execution to import income, expenses and refunds from :year.', ['date' => '02.01.2027', 'year' => 2027]),
+            ]);
+
+        $this->assertDatabaseCount('financial_operations', 0);
+        $this->assertDatabaseCount('capital_movements', 0);
+    }
+
+    public function test_statement_across_the_year_turn_is_imported_into_the_lines_of_both_years_once_the_new_year_is_started(): void
+    {
+        $this->travelTo('2027-01-02 09:00');
+
+        [$user, $account, , $expenseCategory] = $this->createImportFixture();
+        $budget2027 = Budget::factory()->for($user)->create(['year' => 2027]);
+        $line2027 = BudgetLine::factory()->for($budget2027)->expense()->create([
+            'category_id' => $expenseCategory->category_id,
+            'planned_amount_minor_units' => 500000,
+        ]);
+        app(StartBudgetExecution::class)->handle($budget2027);
+        $this->previewCsv($user, $account, "date,description,amount\n2026-12-29,Zakupy grudzień,45.50\n2027-01-02,Zakupy styczeń,30.00");
+
+        $this->actingAs($user)
+            ->post(route('operations.import.store'), [
+                'duplicate_warning_acknowledged' => true,
+                'rows' => $this->turnStatementRows($expenseCategory->category_id, [0, 1]),
+            ])
+            ->assertSessionHasNoErrors();
+
+        $this->assertDatabaseCount('financial_operations', 2);
+        $this->assertSame(4550, $expenseCategory->refresh()->execution_minor_units);
+        $this->assertSame(3000, $line2027->refresh()->execution_minor_units);
+        $this->assertSame('2027-01-02', FinancialOperation::query()->where('budget_line_id', $line2027->id)->sole()->operation_date->toDateString());
     }
 
     public function test_import_rejects_csv_with_more_than_five_thousand_rows(): void
@@ -2151,6 +2330,34 @@ CSV;
                 'amount_column' => 2,
             ])
             ->assertSessionHasErrors('file');
+    }
+
+    public function test_an_unexpected_parser_error_is_reported_instead_of_shown_as_a_file_error(): void
+    {
+        $this->travelTo('2025-01-10');
+        Exceptions::fake();
+
+        [$user, $account] = $this->createImportFixture([
+            'opening_date' => '2025-01-01',
+        ]);
+        $this->mock(CsvImportParser::class)
+            ->shouldReceive('parse')
+            ->andThrow(new InvalidArgumentException('Undefined offset in the column mapping.'));
+
+        $this->actingAs($user)
+            ->post(route('operations.import.preview.store'), [
+                'file' => UploadedFile::fake()->createWithContent('statement.csv', "Data,Opis,Kwota\n2025-01-09,Sklep,-10.00\n"),
+                'account_id' => $account->id,
+                'import_format' => 'other',
+                'has_header' => true,
+                'date_column' => 0,
+                'description_column' => 1,
+                'amount_layout' => 'signed',
+                'amount_column' => 2,
+            ])
+            ->assertInternalServerError();
+
+        Exceptions::assertReported(fn (InvalidArgumentException $exception): bool => $exception->getMessage() === 'Undefined offset in the column mapping.');
     }
 
     public function test_bnp_paribas_import_rejects_xlsx_without_expected_header(): void
@@ -4187,6 +4394,20 @@ CSV);
         ]);
 
         return [$user, $account, $incomeCategory, $expenseCategory];
+    }
+
+    /**
+     * @param  list<int>  $indexes
+     * @return list<array{index: int, selected: bool, type: string, category_id: int}>
+     */
+    private function turnStatementRows(int $categoryId, array $indexes): array
+    {
+        return array_map(fn (int $index): array => [
+            'index' => $index,
+            'selected' => true,
+            'type' => 'expense',
+            'category_id' => $categoryId,
+        ], $indexes);
     }
 
     private function previewCsv(User $user, Account $account, string $csv): void

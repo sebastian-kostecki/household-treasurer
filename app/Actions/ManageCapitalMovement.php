@@ -7,6 +7,7 @@ use App\Models\Account;
 use App\Models\CapitalMovement;
 use App\Models\TermDeposit;
 use App\Models\User;
+use App\Support\InvariantViolation;
 use Illuminate\Support\Facades\DB;
 
 class ManageCapitalMovement
@@ -120,27 +121,33 @@ class ManageCapitalMovement
     {
         return Account::query()
             ->whereBelongsTo($user)
-            ->findOrFail($accountId);
+            ->find($accountId)
+            ?? throw new InvariantViolation('A capital movement refers to an Account the user does not have.', [
+                'user_id' => $user->id,
+                'account_id' => $accountId,
+            ]);
     }
 
     private function resolveTermDeposit(User $user, int $termDepositId): TermDeposit
     {
         return TermDeposit::query()
             ->whereBelongsTo($user)
-            ->findOrFail($termDepositId);
+            ->find($termDepositId)
+            ?? throw new InvariantViolation('A capital movement refers to a Term Deposit the user does not have.', [
+                'user_id' => $user->id,
+                'term_deposit_id' => $termDepositId,
+            ]);
     }
 
     private function applyAccountBalanceChange(Account $account, int $deltaMinorUnits): void
     {
-        $account->update([
-            'current_balance_minor_units' => $account->current_balance_minor_units + $deltaMinorUnits,
-        ]);
+        // One SQL `balance = balance + delta`: a read-then-write of the loaded value would overwrite
+        // an expense, import or second transfer saved on the same Account in between.
+        $account->increment('current_balance_minor_units', $deltaMinorUnits);
     }
 
     private function applyTermDepositBalanceChange(TermDeposit $termDeposit, int $deltaMinorUnits): void
     {
-        $termDeposit->update([
-            'current_balance_minor_units' => $termDeposit->current_balance_minor_units + $deltaMinorUnits,
-        ]);
+        $termDeposit->increment('current_balance_minor_units', $deltaMinorUnits);
     }
 }

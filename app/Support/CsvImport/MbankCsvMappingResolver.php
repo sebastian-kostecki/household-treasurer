@@ -2,8 +2,6 @@
 
 namespace App\Support\CsvImport;
 
-use InvalidArgumentException;
-
 class MbankCsvMappingResolver
 {
     private const DATE_HEADER = 'data operacji';
@@ -67,7 +65,7 @@ class MbankCsvMappingResolver
             ];
         }
 
-        throw new InvalidArgumentException(__('The mBank export header was not found in the file.'));
+        throw new ImportFileRejected(__('The mBank export header was not found in the file.'));
     }
 
     /**

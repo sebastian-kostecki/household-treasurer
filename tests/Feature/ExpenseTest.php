@@ -16,7 +16,8 @@ use App\Models\User;
 use App\Support\CsvImport\ImportMonthRemainingContext;
 use App\Support\EntryToSpendInputs;
 use App\Support\HandEntryMonthRemainingInputs;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
+use App\Support\InvariantViolation;
+use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
@@ -690,7 +691,10 @@ class ExpenseTest extends TestCase
                 'category_id' => $holidays->category_id,
             ]);
             $this->fail('Expected the write to refuse a Category archived on the list.');
-        } catch (ModelNotFoundException) {
+        } catch (InvariantViolation $exception) {
+            $this->assertTrue(app(ExceptionHandler::class)->shouldReport($exception));
+            $this->assertSame($holidays->id, $exception->context()['budget_line_id']);
+            $this->assertSame($holidays->category_id, $exception->context()['category_id']);
             $this->assertDatabaseCount('financial_operations', 0);
             $this->assertSame(0, $holidays->fresh()->execution_minor_units);
         }

@@ -46,3 +46,5 @@ We rejected:
 - moving the flags from the newest Budget onto the list in S-18 (it would change To Spend of the current month).
 
 Amended by ADR-0066: the Rhythm is an attribute of the list Category with a history, not a flag on the Budget Line; the Paced / One-off flag and the Month Item Kind stay on the Budget Line only until S-24 moves their readers, and the January Proposal clause on Month Item Kind is void.
+
+Amended by ADR-0104: Cash Expectation left the glossary, so it no longer points at a Category (Model), no longer joins a Budget at first use (Joining Budget Lines) and no longer blocks deleting or changing the type of a Category (Type and deletion); the point on ADR-0030 (Earmark, Align after Year Close) no longer holds, as Year Close, Reserve and Earmark left the glossary.

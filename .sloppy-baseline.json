@@ -3,7 +3,7 @@
     "tool": "sloppy",
     "generated_at": "2026-11-09T12:45:26+00:00",
     "score": 88,
-    "total": 25,
+    "total": 24,
     "entries": [
         {
             "id": "f5078d95d640409a",
@@ -148,14 +148,6 @@
             "fingerprint": "DashboardNotices::forDashboard:$termDeposit->bank",
             "count": 1,
             "message": "DashboardNotices::forDashboard() reads $termDeposit->bank inside a loop over a collection with no visible eager loading."
-        },
-        {
-            "id": "2803bf7c3e808fc7",
-            "rule": "SL204",
-            "file": "app/Actions/ApproveMonthPlan.php",
-            "fingerprint": "ApproveMonthPlan::handle:MonthPlanItem.query.create",
-            "count": 1,
-            "message": "ApproveMonthPlan::handle() writes to MonthPlanItem inside a loop (query()->create())."
         },
         {
             "id": "9f6695c4068c2d1d",

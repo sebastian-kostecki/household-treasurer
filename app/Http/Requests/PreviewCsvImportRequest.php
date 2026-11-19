@@ -5,11 +5,11 @@ namespace App\Http\Requests;
 use App\Enums\ImportFormat;
 use App\Support\CsvImport\BnpParibasXlsxParser;
 use App\Support\CsvImport\CsvImportParser;
+use App\Support\CsvImport\ImportFileRejected;
 use App\Support\CsvImport\MbankCsvMappingResolver;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
-use InvalidArgumentException;
 
 /**
  * @phpstan-import-type CsvImportMapping from CsvImportParser
@@ -93,14 +93,14 @@ class PreviewCsvImportRequest extends FormRequest
                     $path = $this->file('file')?->getRealPath();
 
                     if (! is_string($path)) {
-                        throw new InvalidArgumentException(__('The uploaded file could not be read.'));
+                        throw new ImportFileRejected(__('The uploaded file could not be read.'));
                     }
 
                     app(BnpParibasXlsxParser::class)->parse($path);
                 } else {
                     $this->parsedImport();
                 }
-            } catch (InvalidArgumentException $exception) {
+            } catch (ImportFileRejected $exception) {
                 $validator->errors()->add('file', $exception->getMessage());
             }
         });
@@ -130,7 +130,7 @@ class PreviewCsvImportRequest extends FormRequest
         $contents = $this->file('file')?->get();
 
         if (! is_string($contents)) {
-            throw new InvalidArgumentException(__('The uploaded file could not be read.'));
+            throw new ImportFileRejected(__('The uploaded file could not be read.'));
         }
 
         if ($this->importFormat() === ImportFormat::Mbank) {

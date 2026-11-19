@@ -2,7 +2,7 @@
 project: 'Household Treasurer'
 status: draft
 created: 2026-11-17
-updated: 2026-11-17
+updated: 2026-11-18
 after_milestone: M-4
 after_version: 1.5.1
 ---
@@ -40,7 +40,7 @@ Lista kandydatów na dalszy rozwój aplikacji, zebrana w rozmowie z 2026-11-17, 
 
 ## Decyzje użytkownika (2026-11-17)
 
-Zapadły w trakcie wywiadu o M-5, który użytkownik przerwał na czwartym pytaniu, a potem poprosił o rekomendację z pominięciem tej rozmowy. **M-5 nie został wybrany.** Decyzje obowiązują dla kierunku „Płynność w czasie”, jeśli do niego wróci:
+Zapadły w trakcie wywiadu o M-5, który użytkownik przerwał na czwartym pytaniu, a potem poprosił o rekomendację z pominięciem tej rozmowy. **M-5 nie został wtedy wybrany** (2026-11-18 użytkownik wybrał kamień jakości, patrz niżej). Decyzje obowiązują dla kierunku „Płynność w czasie”, jeśli do niego wróci:
 
 1. Główny odczyt to najniższy punkt salda przed kolejnym wpływem („czy starczy i ile zostanie w najgorszym dniu”), a nie lista rachunków, kalendarz ani jedna liczba „wolne środki”.
 2. Krzywa liczy sumę wszystkich kont, czyli płynność dysponowalną, bez nowych ustawień na koncie. Odrzucone: suma wybranych kont, jedno konto główne, każde konto osobno.
@@ -50,6 +50,7 @@ Wcześniejsze wypowiedzi użytkownika, które zawężają wybór:
 - Ma w domu walutę obcą, której aplikacja nie widzi; sam zapytał o wielowalutowość i sekcję „Majątek”.
 - Zapytał o obsługę „tylko klawiaturą” i o pomysły z YNAB.
 - Poprosił o „pomniejsze poprawki” na teraz i większe etapy na potem.
+- 2026-11-18: wybrał kamień jakości bez nowej funkcji (M-5 „Pierwszy pełny cykl na produkcji”); funkcja w styczniu z listy tarć.
 
 ## Rekomendacja agenta
 
@@ -65,12 +66,12 @@ Kolejność to rekomendacja agenta. Wiersze 1–6 to terminy i zabezpieczenia; z
 
 | #   | Co                                               | Po co                                                                                      | Koszt            | Status  |
 | --- | ------------------------------------------------ | ------------------------------------------------------------------------------------------ | ---------------- | ------- |
-| 1   | Próba przełomu roku 2026→2027 na kopii produkcji | pierwszy przełom na prawdziwych danych: szkic 2027 w wykonanie, „zebrane” na nowy rok, plan stycznia z grudnia; termin 31 grudnia | mały             | otwarte |
-| 2   | Odświeżenie planu testów                         | plan z 6 listopada nie odpowiada stanowi repo                                              | mały             | otwarte |
-| 3   | E2E w CI                                         | testy istnieją, CI ich nie uruchamia                                                       | mały             | otwarte |
-| 4   | Śledzenie błędów na produkcji                    | dziś tylko log plikowy                                                                     | mały do średniego | otwarte |
-| 5   | Porządek w dokumentach                           | terminy bez kodu w słowniku, zdublowany numer ADR 0008                                     | mały             | otwarte |
-| 6   | Lista tarć                                       | użytkownik zapisuje przez grudzień i styczeń, co go spowalnia; podstawa wyboru etapu       | zerowy           | otwarte |
+| 1   | Próba przełomu roku 2026→2027 na kopii produkcji | pierwszy przełom na prawdziwych danych: szkic 2027 w wykonanie, „zebrane” na nowy rok, plan stycznia z grudnia; termin 31 grudnia | mały             | zrobione (year-turn-rehearsal); procedura w README „Przełom roku” |
+| 2   | Odświeżenie planu testów                         | plan z 6 listopada nie odpowiada stanowi repo                                              | mały             | w roadmapie (M-5, F-09) |
+| 3   | E2E w CI                                         | testy istnieją, CI ich nie uruchamia                                                       | mały             | w roadmapie (M-5, S-44) |
+| 4   | Śledzenie błędów na produkcji                    | dziś tylko log plikowy                                                                     | mały do średniego | w roadmapie (M-5, S-45) |
+| 5   | Porządek w dokumentach                           | terminy bez kodu w słowniku, zdublowany numer ADR 0008                                     | mały             | zrobione (M-5, S-46): ADR-0104, ADR-0105 |
+| 6   | Lista tarć                                       | użytkownik zapisuje przez grudzień i styczeń, co go spowalnia; podstawa wyboru etapu       | zerowy           | w roadmapie (M-5, MS-10) |
 | 7   | Plan roczny 2027 z historii                      | propozycja kwot ze średniej i trendu lat 2019–2026, „co jeśli”; przydaje się tylko przy układaniu roku | średni           | otwarte |
 | 8   | „Zapłacone / czeka” dla stałych opłat            | lista rachunków miesiąca z sumą „czeka” obok salda; bez nowych pól                          | mały             | otwarte |
 | 9   | „Pokryj przekroczenie”                           | jedna akcja „pokryj z kategorii X” zamiast ręcznej zmiany dwóch kwot planu                  | mały             | otwarte |
@@ -81,6 +82,8 @@ Kolejność to rekomendacja agenta. Wiersze 1–6 to terminy i zabezpieczenia; z
 | 14  | Kreator końca miesiąca                           | uzgodnij salda → Import → podsumowanie → plan następnego; klocki istnieją, brakuje ścieżki  | mały             | otwarte |
 | 15  | Tygodniowy e-mail                                | „do wydania”, tempo, rachunki czekające                                                    | mały             | otwarte |
 
+Luki potwierdzone w próbie przełomu (kandydaci na osobne zmiany, szczegóły w `context/archive/2026-11-18-year-turn-rehearsal/rehearsal.md`): menu roku i domyślne daty dialogów używają czasu przeglądarki (1 stycznia 00:00–01:00 PL), rok w sesji zostaje 2026 po przełomie, Raport „Lata” liczy 1 stycznia tylko jeden dzień poprzednich lat, Import przy szkicu roku nie mówi, że trzeba uruchomić jego Budżet. Status: w roadmapie (M-5, F-08 i S-39…S-43).
+
 Komendy startowe: wiersz 1 `/10x-new-research year-turn-rehearsal`, wiersz 2 `/10x-test-plan --refresh`, wiersz 4 `/10x-observability-audit` (wybór dostawcy należy do `/10x-infra-research`).
 
 ## Potem (kolejne etapy)
@@ -90,7 +93,7 @@ Komendy startowe: wiersz 1 `/10x-new-research year-turn-rehearsal`, wiersz 2 `/1
 | 1. Majątek z walutą     | konta, lokaty, waluta po kursie, ręczne aktywa i zobowiązania, historia miesiąc po miesiącu; budżet zostaje w PLN         | jedyny brak oparty na fakcie                                                              | średni            | otwarte |
 | 2. Szybsze wprowadzanie | klawiatura w Operacjach i Planie miesiąca, reguły kontrahenta, auto-akceptacja pewnych podpowiedzi Importu                | najczęstsza czynność; auto-akceptacja wymaga najpierw pomiaru trafności                    | średni            | otwarte |
 | 3. Płynność w czasie    | najniższy punkt salda przed wypłatą dla sumy wszystkich kont (decyzje użytkownika wyżej)                                 | najpierw sprawdzić na liście tarć, czy to realny problem                                   | średni do dużego  | otwarte |
-| 4. Analityka            | podsumowanie roku z decyzją o Year Close, zmiany cen skorygowane o inflację, wykres przepływu, wykrywanie podwyżek        | korzysta z danych 2019–2026, nic nie blokuje                                              | mały do średniego na element | otwarte |
+| 4. Analityka            | podsumowanie roku (odczyt; Year Close odpada, ADR-0104), zmiany cen skorygowane o inflację, wykres przepływu, wykrywanie podwyżek        | korzysta z danych 2019–2026, nic nie blokuje                                              | mały do średniego na element | otwarte |
 | 5. Do rozważenia        | dostęp dla drugiej osoby, liczniki mediów, serwer MCP do odczytu, aplikacja na telefon (PWA), majątek w czasie jako raport | każde wymaga potwierdzenia potrzeby                                                       | różny             | otwarte |
 
 ## Odradzane i odrzucone
@@ -129,7 +132,7 @@ Notatki z rozmowy, żeby nie wyprowadzać ich drugi raz. Każda wymaga kształto
 
 - Otwarte, z rekomendacją agenta: dzień płatności i wpływu jako pole na kategorii, podpowiedziane z historii operacji i zatwierdzane raz; reszta planu wydatków bieżących rozłożona równo na dni do końca miesiąca; horyzont do końca bieżącego miesiąca, a po zatwierdzeniu planu następnego także ten następny; kafelek na Dashboardzie i sekcja w planie miesiąca, bez nowej pozycji w menu.
 - Próg ostrzeżenia: przy sumie wszystkich kont próg „minimum < 0” rzadko zadziała; rekomendacja to minimum poniżej sumy „zebranych”, spójnie z Collected Coverage (ADR-0090).
-- Proponowana kolejność wycinków: decyzje (słownik i ADR, bo „Forecast” i „due date” są _Avoid_) → „zapłacone / czeka” i pesymistyczne minimum bez dat → dzień na kategorii i oś czasu z dniem minimum → ostrzeżenie na Dashboardzie → horyzont na następny miesiąc.
+- Proponowana kolejność wycinków: decyzje (słownik i ADR, bo „Forecast” jest _Avoid_ przy Current Plan, a nowy termin wymaga wpisu) → „zapłacone / czeka” i pesymistyczne minimum bez dat → dzień na kategorii i oś czasu z dniem minimum → ostrzeżenie na Dashboardzie → horyzont na następny miesiąc.
 - Proponowane „Done when”: przez pełny miesiąc na produkcji minimum z prognozy porównane z faktycznym najniższym saldem, z różnicą akceptowalną dla użytkownika.
 
 ### Pomysły z innych aplikacji
@@ -140,13 +143,13 @@ Notatki z rozmowy, żeby nie wyprowadzać ich drugi raz. Każda wymaga kształto
 
 ### Rok 2027
 
-- Podsumowanie roku („2026 w liczbach”: plan, wykonanie, odkładanie, największe zmiany) razem z decyzją, czy Year Close powstaje, czy znika ze słownika.
+- Podsumowanie roku („2026 w liczbach”: plan, wykonanie, odkładanie, największe zmiany) razem z decyzją, czy Year Close powstaje, czy znika ze słownika. Decyzja zapadła 2026-11-19 (ADR-0104): Year Close znika ze słownika, a podsumowanie roku, jeśli powstanie, jest odczytem z nowym ADR.
 - Plan roczny z historii: propozycja kwoty na kategorię ze średniej i trendu oraz „co jeśli” (np. czynsz +10%). Wartość raz w roku.
 
 ## Otwarte pytania
 
-1. Czy następny kamień to jakość („pierwszy pełny cykl”), czy funkcja? — Właściciel: użytkownik.
-2. Które wiersze „Na już” wchodzą w grudzień? — Właściciel: użytkownik.
+1. ~~Czy następny kamień to jakość („pierwszy pełny cykl”), czy funkcja?~~ Rozstrzygnięte 2026-11-18: jakość, M-5 „Pierwszy pełny cykl na produkcji” w `roadmap.md`.
+2. Które wiersze 7–15 „Na już” wchodzą w grudzień? Wiersze 2–6 są w M-5; z 7–15 użytkownik nie wybrał żadnego. — Właściciel: użytkownik.
 3. Ile czasu zajmuje dziś cotygodniowy Import i jaka jest trafność podpowiedzi? — Do zmierzenia; rozstrzyga wagę etapu 2.
 4. Czy zdarza się zejść blisko zera przed wypłatą? — Właściciel: użytkownik; rozstrzyga wagę etapu 3.
 5. Pytania o Majątek i Płynność z sekcji „Szczegóły kierunków”. — Właściciel: użytkownik, przy kształtowaniu.

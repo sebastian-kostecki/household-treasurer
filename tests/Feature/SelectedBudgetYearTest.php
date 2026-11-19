@@ -70,6 +70,20 @@ class SelectedBudgetYearTest extends TestCase
         $this->assertSame(2026, $this->resolveFor([2025, 2026], '2026-06-15', 2024));
     }
 
+    public function test_january_without_a_session_year_selects_the_new_year_whatever_its_phase(): void
+    {
+        $this->assertSame(2027, $this->resolveFor([2026, 2027], '2027-01-05'));
+    }
+
+    /**
+     * A known gap (rehearsal.md, luka 3, ADR-0075): the session year wins, so a session that
+     * still holds 2026 keeps showing 2026 in January. The phase of 2027 is not read.
+     */
+    public function test_session_year_of_the_old_year_stays_selected_in_january_known_gap(): void
+    {
+        $this->assertSame(2026, $this->resolveFor([2026, 2027], '2027-01-05', 2026));
+    }
+
     public function test_no_budgets_gives_null(): void
     {
         $this->assertNull($this->resolveFor([], '2026-06-15'));

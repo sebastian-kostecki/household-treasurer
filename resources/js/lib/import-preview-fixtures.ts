@@ -13,6 +13,7 @@ import type { Rhythm } from '../types/rhythm';
 import {
     emptySelection,
     type CategoryRow,
+    type ImportBudgetYearStates,
     type ImportRow,
     type RowSelection,
     type TermDepositRow,
@@ -167,6 +168,59 @@ export const importPreviewRows: ImportRow[] = [
     ownTransferPairNoLogoRow,
     refundRow,
 ];
+
+export const importPreviewBudgetYearStates: ImportBudgetYearStates = {
+    2025: 'missing',
+    2026: 'execution',
+    2027: 'draft',
+};
+
+export const yearTurnMissingRow = row(20, {
+    operation_date: '2025-12-30',
+    description: 'Zakupy z końca roku (brak Budżetu 2025)',
+    amount_minor_units: -8_900,
+});
+
+export const yearTurnExecutionRow = row(21, {
+    operation_date: '2026-12-29',
+    description: 'Zakupy przed przełomem roku (Budżet 2026 w realizacji)',
+    amount_minor_units: -12_400,
+});
+
+export const yearTurnDraftExpenseRow = row(22, {
+    operation_date: '2027-01-02',
+    description: 'Zakupy po przełomie roku (Budżet 2027 szkic)',
+    amount_minor_units: -6_500,
+});
+
+export const yearTurnDraftOwnTransferRow = row(23, {
+    operation_date: '2027-01-02',
+    description: 'Przelew na oszczędności w styczniu (Budżet 2027 szkic)',
+    amount_minor_units: -50_000,
+});
+
+export const yearTurnRows: ImportRow[] = [
+    yearTurnMissingRow,
+    yearTurnExecutionRow,
+    yearTurnDraftExpenseRow,
+    yearTurnDraftOwnTransferRow,
+];
+
+/** Selections of the year-turn rows: all selected, the expenses with a category. */
+export function yearTurnSelections(): Record<number, RowSelection> {
+    return Object.fromEntries(
+        yearTurnRows.map((turnRow) => [
+            turnRow.index,
+            {
+                ...emptySelection(turnRow),
+                selected: true,
+                type: turnRow.index === 23 ? 'own_transfer' : 'expense',
+                category_id: turnRow.index === 23 ? '' : 11,
+                other_account_id: turnRow.index === 23 ? 2 : '',
+            } satisfies RowSelection,
+        ]),
+    );
+}
 
 export const importPreviewMonthRemainingContext: MonthRemainingContext = {
     today: '2026-10-20',
