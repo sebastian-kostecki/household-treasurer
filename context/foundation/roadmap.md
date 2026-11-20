@@ -3,7 +3,7 @@ project: 'Household Treasurer'
 version: 5
 status: draft
 created: 2026-11-02
-updated: 2026-11-19
+updated: 2026-11-20
 prd_version: —
 main_goal: quality
 top_blocker: none
@@ -62,7 +62,7 @@ Cztery kamienie milowe powstały w dwa tygodnie, a aplikacja nie przeszła jeszc
 | S-42 | import-across-draft-year        | użytkownik importuje wyciąg z przełomu przy szkicu nowego roku i wie, co zrobić z wierszami nowego roku        | —             | MS-04    | done     |
 | S-43 | years-report-in-early-january   | użytkownik widzi w „Latach” i w roku do roku sensowny odczyt w pierwszych dniach stycznia                     | F-08, S-39    | MS-05    | done     |
 | S-44 | e2e-in-ci                       | użytkownik (właściciel repo) widzi czerwone CI, gdy zmiana psuje przepływ w przeglądarce                       | F-09          | MS-07    | done     |
-| S-45 | production-error-tracking       | użytkownik (właściciel) dostaje zgłoszenie wyjątku z produkcji ze stosem wywołań i kontekstem żądania          | —             | MS-08    | ready    |
+| S-45 | production-error-tracking       | użytkownik (właściciel) dostaje zgłoszenie wyjątku z produkcji ze stosem wywołań i kontekstem żądania          | —             | MS-08    | planning |
 | S-46 | docs-match-code                 | użytkownik i agent czytają słownik i ADR bez zdublowanych numerów i terminów, których nie ma w kodzie          | —             | MS-09    | done     |
 | S-47 | mcp-read-only-server            | użytkownik pyta Claude'a o stan budżetu i dopisuje gotówkę z telefonu                                          | F-08          | MS-11    | done |
 | S-48 | production-smoke-tests          | użytkownik (właściciel) sprawdza na produkcji, że wdrożone zmiany M-5 działają na jego prawdziwych danych      | S-47          | MS-12    | ready    |
@@ -208,7 +208,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Blockers:** —
 - **Unknowns:** — (rozstrzygnięte 2026-11-20 w `context/foundation/error-tracking.md`: Bugsink na halina175 z własnym Postgresem, SDK Sentry `sentry/sentry-laravel` ^4.31 i `@sentry/vue` ^11, alerty na ntfy tylko z tytułem, klasą wyjątku i linkiem; dane zostają na serwerze, 0 zł. Plan zaczyna od zgody na te zależności i pomiaru RAM na halina175, który decyduje o Bugsinku albo o wariancie bez dostawcy.)
 - **Risk:** Bez audytu najpierw tracker złapie tylko wyjątki, które dziś i tak lądują w logu; audyt pokazuje, gdzie kod je połyka. Wdrożony przed przełomem łapie błędy 1 stycznia, a nie tydzień później. Domyślne ustawienia SDK wysyłają treść żądania i propsy stron z kwotami, więc plan musi je wyłączyć (rejestr ryzyk w `error-tracking.md`).
-- **Status:** ready
+- **Status:** planning
 
 ### S-46: Dokumenty zgodne z kodem
 
