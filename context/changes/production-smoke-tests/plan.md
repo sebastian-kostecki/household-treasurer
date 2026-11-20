@@ -376,9 +376,9 @@ None: no schema or data change. The copy lives only in the worktree's own databa
 
 #### Automated
 
-- [x] 1.1 checks.md has four step tables with at least 15 rows, each with an expected result
-- [x] 1.2 README no longer says „Lata” counts each year „do 1.01”
-- [x] 1.3 Every UI string quoted in checks.md exists in lang/pl/, app/ or resources/js/
+- [x] 1.1 checks.md has four step tables with at least 15 rows, each with an expected result — 9a3e6e25
+- [x] 1.2 README no longer says „Lata” counts each year „do 1.01” — 9a3e6e25
+- [x] 1.3 Every UI string quoted in checks.md exists in lang/pl/, app/ or resources/js/ — 9a3e6e25
 
 #### Manual
 
