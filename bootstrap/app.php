@@ -14,6 +14,7 @@ use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Route;
 use League\OAuth2\Server\Exception\OAuthServerException;
 use Psr\Log\LogLevel;
 use Sentry\Laravel\Integration;
@@ -24,6 +25,10 @@ return Application::configure(basePath: dirname(__DIR__))
         web: __DIR__.'/../routes/web.php',
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
+        then: function (): void {
+            // Outside the `web` group on purpose (no session, CSRF or auth): guests' errors must arrive too.
+            Route::group([], base_path('routes/error-tracking.php'));
+        },
     )
     ->withMiddleware(function (Middleware $middleware): void {
         // Traefik reaches the app from the Docker proxy network and passes Cloudflare's

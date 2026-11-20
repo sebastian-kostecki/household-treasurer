@@ -6,6 +6,7 @@ import { KeyRound } from '@lucide/vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
+import { reportClientError } from '@/lib/error-tracking';
 import { dashboard } from '@/routes';
 
 type Props = {
@@ -50,6 +51,8 @@ const { verify, isLoading, error, isSupported } = usePasskeyVerify({
 
         router.visit(destination);
     },
+    // The component shows the message; the tracker gets the failure too.
+    onError: reportClientError,
 });
 </script>
 

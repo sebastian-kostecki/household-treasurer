@@ -775,10 +775,10 @@ Rehearse the year turn against a local Bugsink, then deploy in dependency order 
 
 #### Automated
 
-- [ ] 5.1 `npm test` passes, including `resources/js/lib/error-tracking.test.ts`
-- [ ] 5.2 `php artisan test --compact tests/Feature/ErrorTunnelTest.php` passes
-- [ ] 5.3 `npm run build` then `npm run types:check` pass
-- [ ] 5.4 Full gate passes on PostgreSQL plus `vendor/bin/sloppy ci`
+- [x] 5.1 `npm test` passes, including `resources/js/lib/error-tracking.test.ts`
+- [x] 5.2 `php artisan test --compact tests/Feature/ErrorTunnelTest.php` passes
+- [x] 5.3 `npm run build` then `npm run types:check` pass
+- [x] 5.4 Full gate passes on PostgreSQL plus `vendor/bin/sloppy ci`
 
 #### Manual
 
