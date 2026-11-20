@@ -9,7 +9,7 @@ main_goal: quality
 top_blocker: none
 milestone_id: first-full-cycle-on-production
 milestone_seq: 5
-milestone_status: open
+milestone_status: done
 ---
 
 # Roadmap: Household Treasurer
@@ -21,7 +21,7 @@ milestone_status: open
 
 ## Milestone
 
-**M-5: Pierwszy pełny cykl na produkcji** — Status: open
+**M-5: Pierwszy pełny cykl na produkcji** — Status: done
 
 - **Intent:** Pierwszy przełom roku na prawdziwych danych (2026→2027) przechodzi na produkcji bez ręcznych poprawek, a aplikacja ma siatkę jakości, która łapie błędy, zanim zrobi to użytkownik: E2E w CI, śledzenie błędów na produkcji, aktualny plan testów i dokumenty zgodne z kodem. Funkcja na następny kamień wynika z listy tarć zebranej w tym cyklu, nie z domysłu.
 - **Source materials:** `context/foundation/development-directions.md` (wiersze 2–6 „Na już”, rekomendacja „kamień jakości”, decyzja użytkownika z 2026-11-18 „A. Kamień jakości”) i `context/archive/2026-11-18-year-turn-rehearsal/rehearsal.md` (luki 1–5, obserwacje faz 1 i 3). Bez PRD.
@@ -251,18 +251,18 @@ Foundations below assume these are present and do NOT re-scaffold them.
 
 | Roadmap ID | Change ID                      | Suggested issue title                                                    | Ready for `/10x-plan` | Notes                                                                 |
 | ---------- | ------------------------------ | ------------------------------------------------------------------------ | --------------------- | --------------------------------------------------------------------- |
-| F-08       | app-day-decision               | ADR i słownik: jeden dzień aplikacji zamiast „dziś w UTC”                 | no                    | Zrobione (ADR-0103)  |
-| F-09       | test-plan-refresh              | Plan testów: odświeżenie po M-4 i próbie przełomu                         | yes                   | Run `/10x-test-plan --refresh`, nie `/10x-plan`                        |
-| S-39       | one-app-day                    | Przełom roku: ten sam dzień w menu, na Dashboardzie i w dialogach         | yes                    | Run `/10x-plan one-app-day`; gwiazda przewodnia, spis miejsc w ADR-0103                                                               |
-| S-40       | session-year-follows-year-turn | Przełom roku: rok w sesji przechodzi na nowy rok                          | yes                   | Run `/10x-plan session-year-follows-year-turn`; S-39 (`AppDay`) scalone |
-| S-41       | year-turn-notices              | Przełom roku: przypomnienia w „Wymaga uwagi” i w menu roku                | yes                   | Run `/10x-plan year-turn-notices`; S-39 scalone; MPL-1 z audytu obserwowalności zamknięty commitem 1659a87, zostają przypomnienia |
-| S-42       | import-across-draft-year       | Import: wyciąg z przełomu przy szkicu nowego roku                         | yes                   | Run `/10x-plan import-across-draft-year`                               |
-| S-43       | years-report-in-early-january  | Raporty: „Lata” i rok do roku na początku stycznia                        | yes                   | Run `/10x-plan years-report-in-early-january`; S-39 (`AppDay`) scalone |
-| S-44       | e2e-in-ci                      | CI: testy Playwright na pushu i PR                                        | yes                    | Run `/10x-plan e2e-in-ci`; bramki w test-plan.md (F-09)                                                               |
-| S-45       | production-error-tracking      | Produkcja: śledzenie błędów                                               | yes                   | Run `/10x-plan production-error-tracking`; dostawca: Bugsink (`context/foundation/error-tracking.md`); najpierw zgoda na SDK Sentry i pomiar RAM na halina175 |
-| S-46       | docs-match-code                | Dokumenty: numer ADR 0008 i terminy słownika bez kodu                     | yes                   | Run `/10x-plan docs-match-code`                                        |
-| S-47       | mcp-read-only-server           | Claude i budżet: serwer MCP z odczytem i wpisem gotówki                   | no                    | Zrobione: wdrożone 2026-11-19, archiwum `context/archive/2026-11-19-mcp-read-only-server/` |
-| S-48       | production-smoke-tests         | Produkcja: sprawdzenia zmian M-5 na własnych danych                       | yes                   | Część MCP zrobiona w S-47; zostają S-40, S-41, S-43 (zegar próby na kopii albo żywe daty) |
+| F-08       | app-day-decision               | ADR i słownik: jeden dzień aplikacji zamiast „dziś w UTC”                 | no | Zrobione (ADR-0103)  |
+| F-09       | test-plan-refresh              | Plan testów: odświeżenie po M-4 i próbie przełomu                         | no | Zrobione |
+| S-39       | one-app-day                    | Przełom roku: ten sam dzień w menu, na Dashboardzie i w dialogach         | no | Zrobione |
+| S-40       | session-year-follows-year-turn | Przełom roku: rok w sesji przechodzi na nowy rok                          | no | Zrobione |
+| S-41       | year-turn-notices              | Przełom roku: przypomnienia w „Wymaga uwagi” i w menu roku                | no | Zrobione |
+| S-42       | import-across-draft-year       | Import: wyciąg z przełomu przy szkicu nowego roku                         | no | Zrobione |
+| S-43       | years-report-in-early-january  | Raporty: „Lata” i rok do roku na początku stycznia                        | no | Zrobione |
+| S-44       | e2e-in-ci                      | CI: testy Playwright na pushu i PR                                        | no | Zrobione |
+| S-45       | production-error-tracking      | Produkcja: śledzenie błędów                                               | no | Zrobione |
+| S-46       | docs-match-code                | Dokumenty: numer ADR 0008 i terminy słownika bez kodu                     | no | Zrobione |
+| S-47       | mcp-read-only-server           | Claude i budżet: serwer MCP z odczytem i wpisem gotówki                   | no | Zrobione: wdrożone 2026-11-19, archiwum `context/archive/2026-11-19-mcp-read-only-server/` |
+| S-48       | production-smoke-tests         | Produkcja: sprawdzenia zmian M-5 na własnych danych                       | no | Zrobione |
 
 This table is the clean handoff to Jira/Linear or any MCP-backed backlog. Include one row for every `F-NN` and `S-NN`. It should be compact enough to copy into issues, but it must not duplicate the detailed roadmap body.
 
@@ -288,6 +288,7 @@ This table is the clean handoff to Jira/Linear or any MCP-backed backlog. Includ
 - **M-2: Raporty okresu i wydatki nieregularne** (`period-reports-and-irregular-expenses`) — abandoned 2026-11-08. Zastąpiony przez PRD v3 (`context/foundation/prd-v3.md`), który przebudował zakres: jedna lista kategorii zamiast powiązania 1:1, rytmy zamiast flag, raporty po grupach. Żaden z elementów F-02, S-11…S-17 nie był `done`; zmianę `period-report-by-category` usunięto w sesji shape 2026-11-07.
 - **M-3: Jedna lista kategorii, rytmy i raporty** (`category-list-rhythms-reports`) — closed 2026-11-12. Wszystkie elementy F-03…F-06 i S-18…S-33 mają status `done`; kod na produkcji, pary kategorii scalone (S-21), a pięć kroków głównego kryterium sukcesu PRD v3 użytkownik przeszedł na produkcji.
 - **M-4: Kategorie przez lata i widoki Atramentu** (`categories-across-years-and-atrament-views`) — closed 2026-11-15. Wszystkie elementy F-07 i S-34…S-38 mają status `done`; kod na produkcji jako v1.5.0 (`budget.kostecki.dev`), a użytkownik porównał kategorię przez lata 2020–2026 w „Latach” i doszedł z niej do panelu kategorii.
+- **M-5: Pierwszy pełny cykl na produkcji** (`first-full-cycle-on-production`) — closed 2026-11-20. Wszystkie elementy F-08, F-09 i S-39…S-48 mają status `done`; kod na produkcji jako v1.6.0, a S-48 sprawdził zmiany przełomu roku i konektor MCP na danych użytkownika. Dwa warunki „Done when” zależne od kalendarza zostają do potwierdzenia w użyciu (decyzja użytkownika 2026-11-20): plan stycznia 2027 zatwierdzony bez ręcznych poprawek po przełomie i lista tarć z grudnia i stycznia (MS-10), z której wynika wybór funkcji.
 
 ## Done
 
