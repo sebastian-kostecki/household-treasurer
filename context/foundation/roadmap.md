@@ -270,7 +270,8 @@ This table is the clean handoff to Jira/Linear or any MCP-backed backlog. Includ
 
 1. **Gdzie zapisujesz listę tarć (MS-10)?** Plik w repo, issue na GitHubie z etykietą czy notatka poza repo; od tego zależy, jak w styczniu z niej wybrać funkcję. — Owner: user. Block: roadmap-wide (warunek „Done when”), żaden wycinek.
 2. **Ostatnie wdrożenie przed przełomem.** Do kiedy wdrażać poprawki strumienia A, żeby 31 grudnia produkcja stała na sprawdzonej wersji, i czy powtórzyć próbę przełomu na kopii po tych poprawkach? — Owner: user. Block: no; dotyczy S-39, S-40, S-41, S-42, S-43.
-3. **Snapshot na VPS po próbie.** Plik `user:backup` z pełnymi danymi został w `storage/app/private/user-snapshots/` (rehearsal.md, „Sprzątanie”): usunąć czy świadomie zostawić? — Owner: user. Block: no; żaden wycinek.
+3. ~~**Snapshot na VPS po próbie.**~~ Rozstrzygnięte 2026-11-20: snapshot z próby usunięty (S-48, wiersz 2.6), sprawdzone na VPS.
+4. **Snapshoty z deployów bez retencji.** `scripts/deploy.sh` przed każdym wdrożeniem zapisuje `user:backup` każdego użytkownika w `storage/app/private/user-snapshots/` (pełne dane, około 3,5 MB na plik), a nic ich nie usuwa: 2026-11-20 było ich 5. Ile trzymać i czy przycinać je w `deploy.sh`? — Owner: user. Block: no; żaden wycinek.
 
 ## Parked
 
