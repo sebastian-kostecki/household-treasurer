@@ -78,6 +78,19 @@ class ErrorTunnelTest extends TestCase
         Http::assertNothingSent();
     }
 
+    public function test_a_declared_oversize_length_is_refused_before_the_body_is_read(): void
+    {
+        Http::fake();
+        $valid = $this->envelope(['event']);
+
+        $this->call('POST', route('error-tracking.tunnel'), [], [], [], [
+            'CONTENT_TYPE' => 'text/plain;charset=UTF-8',
+            'CONTENT_LENGTH' => 256 * 1024 + 1,
+        ], $valid)->assertStatus(413);
+
+        Http::assertNothingSent();
+    }
+
     public function test_any_item_other_than_event_is_refused_and_nothing_is_forwarded(): void
     {
         Http::fake();

@@ -20,7 +20,7 @@ final readonly class NtfyAlert
      * @param  string|null  $issueUrl  Already restricted to the Bugsink host
      *
      * @throws RequestException when ntfy answers with a non-2xx status
-     * @throws ConnectionException when ntfy cannot be reached
+     * @throws NtfyUnreachable when ntfy cannot be reached
      */
     public function send(string $ntfyUrl, string $reason, string $exceptionClass, ?string $issueUrl): void
     {
@@ -34,11 +34,16 @@ final readonly class NtfyAlert
             $headers['Click'] = $issueUrl;
         }
 
-        Http::withBody($reason.': '.$exceptionClass, 'text/plain')
-            ->withHeaders($headers)
-            ->connectTimeout((int) config('error-tracking.tunnel.connect_timeout_seconds'))
-            ->timeout((int) config('error-tracking.tunnel.timeout_seconds') * 2)
-            ->post($ntfyUrl)
-            ->throw();
+        try {
+            Http::withBody($reason.': '.$exceptionClass, 'text/plain')
+                ->withHeaders($headers)
+                ->connectTimeout((int) config('error-tracking.tunnel.connect_timeout_seconds'))
+                ->timeout((int) config('error-tracking.tunnel.timeout_seconds') * 2)
+                ->post($ntfyUrl)
+                ->throw();
+        } catch (ConnectionException) {
+            // The cURL message names the full URL, and the topic in it is the secret. Not chained as previous.
+            throw new NtfyUnreachable;
+        }
     }
 }

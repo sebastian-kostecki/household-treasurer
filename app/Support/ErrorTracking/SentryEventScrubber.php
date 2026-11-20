@@ -2,7 +2,9 @@
 
 namespace App\Support\ErrorTracking;
 
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Context;
+use PDOException;
 use Sentry\Event;
 use Sentry\EventHint;
 use Sentry\Stacktrace;
@@ -25,10 +27,18 @@ final class SentryEventScrubber
      */
     private const TAGGED_CONTEXT_KEYS = ['route', 'request_id', 'user_id', 'release'];
 
+    /**
+     * Exception classes whose message embeds bound values.
+     *
+     * @var list<class-string>
+     */
+    private const DATABASE_EXCEPTIONS = [QueryException::class, PDOException::class];
+
     public static function beforeSend(Event $event, ?EventHint $hint = null): Event
     {
         self::scrubRequest($event);
         self::scrubFrames($event);
+        self::redactDatabaseMessages($event);
         self::tagFromContext($event);
 
         return $event;
@@ -49,7 +59,9 @@ final class SentryEventScrubber
         }
 
         if (isset($request['url']) && is_string($request['url'])) {
-            $scrubbed['url'] = explode('?', $request['url'], 2)[0];
+            $url = explode('?', $request['url'], 2)[0];
+            // The relay route carries its secret in the path.
+            $scrubbed['url'] = preg_replace('#(/error-tracking/alerts/)[^/]+#', '$1{secret}', $url) ?? $url;
         }
 
         $event->setRequest($scrubbed);
@@ -61,6 +73,25 @@ final class SentryEventScrubber
 
         foreach ($event->getExceptions() as $exception) {
             self::stripVars($exception->getStacktrace());
+        }
+    }
+
+    /**
+     * A database exception message carries the SQL with its bound values (amounts, descriptions) and the
+     * driver's `DETAIL: Key (...)=(...)` line. Only the type and the SQLSTATE stay.
+     */
+    private static function redactDatabaseMessages(Event $event): void
+    {
+        foreach ($event->getExceptions() as $exception) {
+            if (! in_array($exception->getType(), self::DATABASE_EXCEPTIONS, true)) {
+                continue;
+            }
+
+            $sqlState = preg_match('/SQLSTATE\[([0-9A-Za-z]{1,5})\]/', $exception->getValue(), $match) === 1
+                ? $match[1]
+                : 'unknown';
+
+            $exception->setValue("SQLSTATE[{$sqlState}]: database error, details redacted");
         }
     }
 

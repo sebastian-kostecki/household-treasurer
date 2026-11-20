@@ -174,6 +174,21 @@ class ApproveMonthPlanTest extends TestCase
         ]);
     }
 
+    public function test_it_reports_a_refusal_without_ids_when_a_submitted_category_can_neither_be_found_nor_joined(): void
+    {
+        Exceptions::fake();
+        $budget = Budget::factory()->for(User::factory())->execution()->create(['year' => 2026]);
+        $food = BudgetLine::factory()->for($budget)->expense()->create();
+
+        $this->assertItemsError(fn () => $this->approve($budget, 11, [$food->category_id => 1, 999999 => 1]));
+
+        Exceptions::assertReported(fn (MonthPlanItemsRefused $refusal): bool => $refusal->context()['action'] === 'approve'
+            && $refusal->context()['budget_id'] === $budget->id
+            && $refusal->context()['missing_budget_line_ids'] === []
+            && $refusal->context()['unexpected_budget_line_ids'] === []);
+        $this->assertDatabaseCount('month_plans', 0);
+    }
+
     public function test_it_rejects_an_invalid_month_number(): void
     {
         $budget = Budget::factory()->for(User::factory())->execution()->create(['year' => 2026]);

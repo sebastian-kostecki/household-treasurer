@@ -2,6 +2,7 @@
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Context;
 use Illuminate\Support\Facades\Exceptions;
 use Illuminate\Support\Facades\Log;
 use Laravel\Passport\Passport;
@@ -213,4 +214,15 @@ test('a JSON-RPC error is logged with its code only', function () {
             'error_code' => $response->json('error.code'),
         ])
         ->and(json_encode($logged->getArrayCopy()))->not->toContain((string) $response->json('error.message'));
+});
+
+test('a request on the MCP group carries the route and the user id in the log context', function () {
+    $household = TreasurerFixture::household();
+    Passport::actingAs($household['user'], ['mcp:use']);
+
+    $this->postJson('/mcp', mcpRequest('tools/list'))->assertOk();
+
+    expect(Context::get('user_id'))->toBe($household['user']->id)
+        ->and(Context::get('route'))->toBeString()->not->toBe('')
+        ->and(Context::get('request_id'))->toBeString();
 });

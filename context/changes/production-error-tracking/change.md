@@ -1,7 +1,7 @@
 ---
 change_id: production-error-tracking
 title: Production error tracking
-status: implemented
+status: impl_reviewed
 created: 2026-11-20
 updated: 2026-11-20
 archived_at: null

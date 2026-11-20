@@ -3,6 +3,9 @@
 namespace Tests\Feature;
 
 use App\Support\ErrorTracking\NtfyAlert;
+use App\Support\ErrorTracking\NtfyUnreachable;
+use Illuminate\Foundation\Http\Middleware\TrimStrings;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Request;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\Exceptions;
@@ -96,6 +99,40 @@ class ErrorAlertRelayTest extends TestCase
         $this->relay(self::SECRET)->assertServerError();
 
         Exceptions::assertReported(RequestException::class);
+    }
+
+    public function test_an_unreachable_ntfy_is_reported_without_the_topic_url(): void
+    {
+        Exceptions::fake();
+        Http::fake([self::NTFY => fn () => throw new ConnectionException('cURL error 7: Failed to connect for url: '.self::NTFY)]);
+
+        $this->relay(self::SECRET)->assertServerError();
+
+        Exceptions::assertReported(fn (NtfyUnreachable $e): bool => ! str_contains($e->getMessage(), 'topic-for-tests')
+            && $e->getPrevious() === null);
+    }
+
+    public function test_a_token_with_a_trailing_newline_is_replaced_not_forwarded(): void
+    {
+        Http::fake([self::NTFY => Http::response('{}', 200)]);
+        // TrimStrings would cut the newline first; the pattern itself must refuse it too.
+        $this->withoutMiddleware(TrimStrings::class);
+
+        $this->relay(self::SECRET, ['alert_reason' => "NEW\n", 'calculated_type' => "App\\Boom\n"])->assertNoContent();
+
+        Http::assertSent(fn (Request $request): bool => $request->body() === 'ALERT: unknown');
+    }
+
+    public function test_an_issue_url_on_a_host_that_only_starts_like_the_prefix_gets_no_link(): void
+    {
+        Http::fake([self::NTFY => Http::response('{}', 200)]);
+        config(['error-tracking.alert_issue_url_prefix' => 'https://errors.example.test']);
+
+        $this->relay(self::SECRET, ['url' => 'https://errors.example.test.evil.tld/issues/1/'])->assertNoContent();
+        $this->relay(self::SECRET, ['url' => self::ISSUE.'?x=1'])->assertNoContent();
+
+        Http::assertSent(fn (Request $request): bool => ! $request->hasHeader('Click'));
+        Http::assertSent(fn (Request $request): bool => $request->header('Click') === [self::ISSUE.'?x=1']);
     }
 
     public function test_the_relay_is_limited_to_ten_requests_a_minute(): void

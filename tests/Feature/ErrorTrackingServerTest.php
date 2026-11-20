@@ -7,12 +7,15 @@ use App\Support\ErrorTracking\SentryEventScrubber;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Context;
 use Illuminate\Support\Facades\Route;
+use PDOException;
 use RuntimeException;
 use Sentry\Event;
+use Sentry\ExceptionDataBag;
 use Sentry\Frame;
 use Sentry\HttpClient\HttpClientInterface;
 use Sentry\HttpClient\Request;
@@ -124,6 +127,36 @@ class ErrorTrackingServerTest extends TestCase
         $this->assertSame([], $scrubbed->getStacktrace()->getFrames()[0]->getVars());
     }
 
+    public function test_the_scrubber_masks_the_relay_secret_in_the_request_path(): void
+    {
+        $event = Event::createEvent();
+        $event->setRequest(['method' => 'POST', 'url' => 'https://budget.kostecki.dev/error-tracking/alerts/s3cret-value-123?x=1']);
+
+        $scrubbed = SentryEventScrubber::beforeSend($event);
+
+        $this->assertSame('https://budget.kostecki.dev/error-tracking/alerts/{secret}', $scrubbed->getRequest()['url']);
+    }
+
+    public function test_the_scrubber_redacts_database_exception_messages_but_keeps_the_sqlstate(): void
+    {
+        $message = 'SQLSTATE[23505]: Unique violation: 7 ERROR: duplicate key DETAIL: Key (description)=(Prąd '
+            .self::SECRET_AMOUNT.') already exists. (Connection: pgsql, SQL: insert into t (amount) values ('
+            .self::SECRET_AMOUNT.'))';
+        $event = Event::createEvent();
+        $event->setExceptions([
+            new ExceptionDataBag(new QueryException('pgsql', 'insert into t (amount) values (?)', [self::SECRET_AMOUNT], new PDOException($message))),
+            new ExceptionDataBag(new RuntimeException('Failed: '.self::SECRET_AMOUNT)),
+        ]);
+        $event->getExceptions()[0]->setValue($message);
+
+        $scrubbed = SentryEventScrubber::beforeSend($event);
+
+        $database = $scrubbed->getExceptions()[0];
+        $this->assertSame('SQLSTATE[23505]: database error, details redacted', $database->getValue());
+        $this->assertStringNotContainsString(self::SECRET_AMOUNT, json_encode($database->getValue()));
+        $this->assertStringContainsString(self::SECRET_AMOUNT, $scrubbed->getExceptions()[1]->getValue());
+    }
+
     public function test_the_trace_would_carry_the_amount_without_the_scrubber(): void
     {
         $this->assertStringContainsString(self::SECRET_AMOUNT, json_encode($this->throwFromCollaborator()->getTrace()));
@@ -181,6 +214,7 @@ class ErrorTrackingServerTest extends TestCase
         $this->assertNull($config['traces_sample_rate']);
         $this->assertNull($config['profiles_sample_rate']);
         $this->assertFalse($config['breadcrumbs']['sql_bindings']);
+        $this->assertFalse($config['breadcrumbs']['logs']);
         $this->assertSame(
             [SentryEventScrubber::class, 'beforeSend'],
             $config['before_send'],

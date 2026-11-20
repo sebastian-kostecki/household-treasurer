@@ -43,7 +43,8 @@ return [
     ],
 
     'breadcrumbs' => [
-        'logs' => true,
+        // A log entry and its context become a breadcrumb, and the scrubber does not clean them.
+        'logs' => false,
         'cache' => false,
         'livewire' => false,
         'sql_queries' => true,

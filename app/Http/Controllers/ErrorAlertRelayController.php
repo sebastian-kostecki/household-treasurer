@@ -36,7 +36,7 @@ class ErrorAlertRelayController extends Controller
      */
     private function token(mixed $value, string $fallback): string
     {
-        if (is_string($value) && preg_match('/^[A-Za-z0-9_\\\\.:-]{1,128}$/', $value) === 1) {
+        if (is_string($value) && preg_match('/^[A-Za-z0-9_\\\\.:-]{1,128}$/D', $value) === 1) {
             return $value;
         }
 
@@ -48,9 +48,11 @@ class ErrorAlertRelayController extends Controller
      */
     private function issueUrl(mixed $url): ?string
     {
-        $prefix = (string) config('error-tracking.alert_issue_url_prefix');
+        // A prefix without a trailing slash would also match another host that starts with the same name.
+        $prefix = rtrim((string) config('error-tracking.alert_issue_url_prefix'), '/');
+        $prefix = $prefix === '' ? '' : $prefix.'/';
 
-        if ($prefix === '' || ! is_string($url) || ! str_starts_with($url, $prefix) || preg_match('/^[\x21-\x7E]+$/', $url) !== 1) {
+        if ($prefix === '' || ! is_string($url) || ! str_starts_with($url, $prefix) || preg_match('/^[\x21-\x7E]+$/D', $url) !== 1) {
             return null;
         }
 

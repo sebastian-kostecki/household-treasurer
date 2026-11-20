@@ -24,9 +24,17 @@ class ErrorTunnelController extends Controller
             abort(404);
         }
 
+        $maxBytes = (int) config('error-tracking.tunnel.max_body_bytes');
+
+        // A declared length is refused before the body is read into memory; the length check below
+        // still covers a body sent without Content-Length.
+        if ((int) $request->header('Content-Length') > $maxBytes) {
+            return response('', 413);
+        }
+
         $body = $request->getContent();
 
-        if (strlen($body) > (int) config('error-tracking.tunnel.max_body_bytes')) {
+        if (strlen($body) > $maxBytes) {
             return response('', 413);
         }
 

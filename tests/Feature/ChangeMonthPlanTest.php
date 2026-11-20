@@ -233,6 +233,20 @@ class ChangeMonthPlanTest extends TestCase
             && $refusal->context()['missing_budget_line_ids'] === []);
     }
 
+    public function test_it_reports_a_refusal_without_ids_when_a_submitted_category_can_neither_be_found_nor_joined(): void
+    {
+        Exceptions::fake();
+        $plan = $this->approvedPlan(12, [$this->food->id => 100]);
+
+        $this->assertItemsError(fn () => $this->change(12, [$this->food->category_id => 5, 999999 => 10]));
+
+        $this->assertItem($plan, $this->food, 100, 100);
+        Exceptions::assertReported(fn (MonthPlanItemsRefused $refusal): bool => $refusal->context()['action'] === 'change'
+            && $refusal->context()['month'] === 12
+            && $refusal->context()['missing_budget_line_ids'] === []
+            && $refusal->context()['unexpected_budget_line_ids'] === []);
+    }
+
     public function test_it_rejects_a_month_without_an_approved_plan(): void
     {
         $this->assertItemsError(fn () => $this->change(6, [$this->food->category_id => 1]));
