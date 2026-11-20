@@ -47,6 +47,17 @@ class ProductionErrorTrackingConfigTest extends TestCase
         $this->assertStringContainsString('php artisan sentry:test', $this->read('scripts/deploy.sh'));
     }
 
+    public function test_nginx_caps_the_error_tunnel_body_at_the_app_limit_in_its_own_php_location(): void
+    {
+        $nginx = $this->read('docker/8.5/nginx.conf');
+
+        $this->assertSame(1, preg_match('/location = \/error-tracking\/tunnel \{(?<block>[^}]*)\}/', $nginx, $match));
+        $this->assertStringContainsString('client_max_body_size 256k;', $match['block']);
+        $this->assertStringContainsString('fastcgi_pass unix:/run/php/php8.5-fpm.sock;', $match['block']);
+        $this->assertStringNotContainsString('try_files', $match['block']);
+        $this->assertSame(256 * 1024, config('error-tracking.tunnel.max_body_bytes'));
+    }
+
     private function read(string $path): string
     {
         return (string) file_get_contents(base_path($path));
