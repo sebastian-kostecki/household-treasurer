@@ -65,7 +65,7 @@ Cztery kamienie milowe powstały w dwa tygodnie, a aplikacja nie przeszła jeszc
 | S-45 | production-error-tracking       | użytkownik (właściciel) dostaje zgłoszenie wyjątku z produkcji ze stosem wywołań i kontekstem żądania          | —             | MS-08    | blocked  |
 | S-46 | docs-match-code                 | użytkownik i agent czytają słownik i ADR bez zdublowanych numerów i terminów, których nie ma w kodzie          | —             | MS-09    | done     |
 | S-47 | mcp-read-only-server            | użytkownik pyta Claude'a o stan budżetu i dopisuje gotówkę z telefonu                                          | F-08          | MS-11    | done |
-| S-48 | production-smoke-tests          | użytkownik (właściciel) sprawdza na produkcji, że wdrożone zmiany M-5 działają na jego prawdziwych danych      | S-47          | MS-12    | planning |
+| S-48 | production-smoke-tests          | użytkownik (właściciel) sprawdza na produkcji, że wdrożone zmiany M-5 działają na jego prawdziwych danych      | S-47          | MS-12    | in-progress |
 
 ## Streams
 
@@ -244,9 +244,9 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Prerequisites:** S-47 wdrożone na produkcję
 - **Parallel with:** —
 - **Blockers:** — (S-47 wdrożone 2026-11-19; sprawdzenia konektora z telefonu i claude.ai, wpis gotówki i `MCP_WRITE_ENABLED` potwierdzone na produkcji w planie S-47, kroki 4.4–4.6 i 6.3–6.5)
-- **Unknowns:** dokładny zakres listy sprawdzeń poza S-47 (które z S-40, S-41, S-43 sprawdzać na produkcji i czy na kopii danych, czy na żywych)
+- **Unknowns:** rozstrzygnięte w `context/changes/production-smoke-tests/plan.md`: zakres S-39–S-43; kopia danych teraz plus żywe daty (3–5.12, 30–31.12, 1–2.01); MCP tylko odczyt po wdrożeniu; wyniki w `context/changes/production-smoke-tests/checks.md`
 - **Risk:** testy na żywych danych zostawiają ślad w budżecie (wpis gotówkowy z `request_id`); sprawdzenia wykonuje człowiek, bo produkcji dotyka tylko on (`infrastructure.md`, „Approval”)
-- **Status:** planning
+- **Status:** in-progress
 
 ## Backlog Handoff
 
