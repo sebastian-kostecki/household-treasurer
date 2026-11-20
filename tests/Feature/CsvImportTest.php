@@ -21,6 +21,7 @@ use App\Support\CsvImport\CsvImportParser;
 use App\Support\CsvImport\ImportIdentityDigest;
 use App\Support\CsvImport\ImportMonthRemainingContext;
 use App\Support\CsvImport\ImportRowFields;
+use App\Support\CsvImport\ImportWriteRefused;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -726,6 +727,40 @@ CSV;
         $operation = FinancialOperation::query()->sole();
         $this->assertSame('2026-12-29', $operation->operation_date->toDateString());
         $this->assertSame(4550, $operation->amount_minor_units);
+    }
+
+    public function test_a_row_refused_at_write_time_is_reported_with_ids_and_the_same_message(): void
+    {
+        Exceptions::fake();
+        $this->travelTo('2027-01-02 09:00');
+
+        [$user, $account, , $expenseCategory] = $this->createImportFixture();
+        Budget::factory()->for($user)->create(['year' => 2027]);
+        $this->previewCsv($user, $account, "date,description,amount\n2026-12-29,Zakupy grudzień,45.50\n2027-01-02,Zakupy styczeń,30.00");
+
+        $this->actingAs($user)
+            ->from(route('operations.import.preview'))
+            ->post(route('operations.import.store'), [
+                'duplicate_warning_acknowledged' => true,
+                'rows' => $this->turnStatementRows($expenseCategory->category_id, [0, 1]),
+            ])
+            ->assertSessionHasErrors([
+                'rows' => __('Row :date: the :year budget is a draft. Start its execution to import income, expenses and refunds from :year.', ['date' => '02.01.2027', 'year' => 2027]),
+            ]);
+
+        Exceptions::assertReported(function (ImportWriteRefused $refusal) use ($account, $expenseCategory): bool {
+            $context = $refusal->context();
+
+            return $context['stage'] === 'row'
+                && $context['row_index'] === 1
+                && $context['row_type'] === 'expense'
+                && $context['account_id'] === $account->id
+                && $context['year'] === 2027
+                && $context['rule'] === ['category_id']
+                && $context['category_id'] === $expenseCategory->category_id
+                && ! str_contains(json_encode($context), 'Zakupy')
+                && ! str_contains(json_encode($context), '3000');
+        });
     }
 
     public function test_import_preview_marks_a_year_without_a_budget_as_missing_and_store_names_it(): void

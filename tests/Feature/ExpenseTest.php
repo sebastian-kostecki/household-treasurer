@@ -19,6 +19,7 @@ use App\Support\HandEntryMonthRemainingInputs;
 use App\Support\InvariantViolation;
 use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Exceptions;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
@@ -751,5 +752,25 @@ class ExpenseTest extends TestCase
         $this->assertSame([11 => 8000], $importContext()['execution_by_category_and_month'][$oneOff->id]);
         $this->assertSame($toSpendBefore, collect($entryToSpend())->firstWhere('id', $oneOff->id));
         $this->assertCount(1, array_filter($entryToSpend(), fn (array $entry): bool => $entry['id'] === $oneOff->id));
+    }
+
+    public function test_deleting_income_through_the_expense_route_is_a_reported_invariant_violation(): void
+    {
+        Exceptions::fake();
+
+        $user = User::factory()->create();
+        $operation = FinancialOperation::factory()->income()->for($user)->create();
+
+        $this->actingAs($user)
+            ->delete(route('expenses.destroy', $operation))
+            ->assertServerError();
+
+        Exceptions::assertReported(fn (InvariantViolation $violation): bool => $violation->context() === [
+            'user_id' => $user->id,
+            'financial_operation_id' => $operation->id,
+            'expected_type' => 'expense',
+            'actual_type' => 'income',
+        ]);
+        $this->assertModelExists($operation);
     }
 }

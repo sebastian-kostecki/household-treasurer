@@ -6,6 +6,7 @@ use App\Models\Budget;
 use App\Models\MonthPlan;
 use App\Models\MonthPlanItem;
 use App\Support\BudgetLineResolver;
+use App\Support\MonthPlanItemsRefused;
 use App\Support\PastMonthPlanRefused;
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -43,7 +44,7 @@ class ChangeMonthPlan
         }
 
         try {
-            return DB::transaction(function () use ($budget, $month, $amounts, $setAsideMinorUnits): MonthPlan {
+            return DB::transaction(function () use ($budget, $month, $amounts, $setAsideMinorUnits, $today): MonthPlan {
                 $plan = MonthPlan::query()
                     ->where('budget_id', $budget->id)
                     ->where('month', $month)
@@ -57,6 +58,8 @@ class ChangeMonthPlan
                 $partition = (new BudgetLineResolver)->partitionAmounts($budget, $amounts);
 
                 if ($partition === null) {
+                    report(new MonthPlanItemsRefused('change', $budget->id, $budget->year, $month, [], [], $today));
+
                     throw $this->invalid(__('The month plan items are invalid.'));
                 }
 
@@ -76,7 +79,11 @@ class ChangeMonthPlan
                     ->unique()
                     ->all();
 
-                if (array_diff(array_keys($amounts), $allowedIds) !== []) {
+                $unexpectedIds = array_values(array_diff(array_keys($amounts), $allowedIds));
+
+                if ($unexpectedIds !== []) {
+                    report(new MonthPlanItemsRefused('change', $budget->id, $budget->year, $month, [], $unexpectedIds, $today));
+
                     throw $this->invalid(__('The month plan items are invalid.'));
                 }
 

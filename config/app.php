@@ -97,6 +97,18 @@ return [
 
     'cipher' => 'AES-256-CBC',
 
+    /*
+    |--------------------------------------------------------------------------
+    | Release
+    |--------------------------------------------------------------------------
+    |
+    | The git SHA of the running image (`APP_RELEASE`, set by the production
+    | Dockerfile from `GIT_REVISION`). Null outside the image.
+    |
+    */
+
+    'release' => env('APP_RELEASE'),
+
     'key' => env('APP_KEY'),
 
     'previous_keys' => [

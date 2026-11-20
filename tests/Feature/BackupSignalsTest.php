@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Actions\BackupUserData;
 use App\Models\User;
+use App\Support\ApplicationDownForMaintenance;
 use App\Support\Backup\HealthyBackupWasFoundNotification;
 use App\Support\UserSnapshot\UserSnapshotException;
 use Carbon\CarbonImmutable;
@@ -121,7 +122,8 @@ class BackupSignalsTest extends TestCase
 
         $this->get('/up')->assertInternalServerError();
 
-        Exceptions::assertReported(fn (RuntimeException $exception): bool => $exception->getMessage() === 'The application is down for maintenance.');
+        // Named and deliberately unreported: every uptime ping during a deployment would reach the error tracker.
+        Exceptions::assertNotReported(ApplicationDownForMaintenance::class);
     }
 
     public function test_health_check_fails_when_the_database_does_not_answer(): void

@@ -6,6 +6,7 @@ use App\Models\OwnTransfer;
 use App\Models\User;
 use App\Support\CsvImport\ImportIdentityFactory;
 use App\Support\CsvImport\ImportPairCandidateDetector;
+use App\Support\CsvImport\ImportWriteRefused;
 use App\Support\CsvImport\OwnTransferImportSnapshots;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -55,18 +56,14 @@ class AttachImportPairOwnTransfer
             }
 
             if ($otherAccountId !== $identity['account_id']) {
-                throw ValidationException::withMessages([
-                    'rows' => __('The selected import pair candidate does not match the other account.'),
-                ]);
+                throw $this->refusal('other_account_mismatch', $importAccountId, $importRow, $ownTransferId, __('The selected import pair candidate does not match the other account.'));
             }
 
             if (
                 $importAccountId !== $transfer->source_account_id
                 && $importAccountId !== $transfer->destination_account_id
             ) {
-                throw ValidationException::withMessages([
-                    'rows' => __('The selected import pair candidate does not match this import account.'),
-                ]);
+                throw $this->refusal('import_account_mismatch', $importAccountId, $importRow, $ownTransferId, __('The selected import pair candidate does not match this import account.'));
             }
 
             $transfer->loadMissing(['sourceAccount', 'destinationAccount']);
@@ -82,17 +79,13 @@ class AttachImportPairOwnTransfer
             );
 
             if ($candidates === []) {
-                throw ValidationException::withMessages([
-                    'rows' => __('The selected import pair candidate no longer matches this row.'),
-                ]);
+                throw $this->refusal('row_no_longer_matches', $importAccountId, $importRow, $ownTransferId, __('The selected import pair candidate no longer matches this row.'));
             }
 
             $rawStatementDescription = $importRow['raw_statement_description'] ?? null;
 
             if ($rawStatementDescription === null) {
-                throw ValidationException::withMessages([
-                    'rows' => __('The selected import pair candidate no longer matches this row.'),
-                ]);
+                throw $this->refusal('raw_statement_description_missing', $importAccountId, $importRow, $ownTransferId, __('The selected import pair candidate no longer matches this row.'));
             }
 
             $updates = [
@@ -110,9 +103,7 @@ class AttachImportPairOwnTransfer
             ];
 
             if ($updates === []) {
-                throw ValidationException::withMessages([
-                    'rows' => __('The selected import pair candidate no longer matches this row.'),
-                ]);
+                throw $this->refusal('identity_updates_empty', $importAccountId, $importRow, $ownTransferId, __('The selected import pair candidate no longer matches this row.'));
             }
 
             if (
@@ -128,5 +119,23 @@ class AttachImportPairOwnTransfer
 
             return $transfer->refresh();
         });
+    }
+
+    /**
+     * Reports a refusal the import preview did not foresee, then returns the unchanged message.
+     *
+     * @param  array{operation_date: string}  $importRow
+     */
+    private function refusal(string $rule, int $importAccountId, array $importRow, int $ownTransferId, string $message): ValidationException
+    {
+        report(new ImportWriteRefused(
+            'own_transfer_pair',
+            [$rule],
+            $importAccountId,
+            (int) substr($importRow['operation_date'], 0, 4),
+            relatedIds: ['own_transfer_id' => $ownTransferId],
+        ));
+
+        return ValidationException::withMessages(['rows' => $message]);
     }
 }

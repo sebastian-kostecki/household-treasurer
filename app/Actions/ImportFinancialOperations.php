@@ -8,11 +8,12 @@ use App\Support\CsvImport\CapitalMovementImportValidator;
 use App\Support\CsvImport\CapitalMovementInterestImportValidator;
 use App\Support\CsvImport\FinancialOperationImportValidator;
 use App\Support\CsvImport\ImportIdentityFactory;
+use App\Support\CsvImport\ImportWriteRefused;
 use App\Support\CsvImport\OwnTransferImportMapper;
 use App\Support\CsvImport\OwnTransferImportSnapshots;
 use App\Support\CsvImport\OwnTransferImportValidator;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\ValidationException;
+use Illuminate\Support\MessageBag;
 
 class ImportFinancialOperations
 {
@@ -69,11 +70,7 @@ class ImportFinancialOperations
      */
     public function handle(User $user, int $accountId, array $rows): array
     {
-        if ($rows === []) {
-            throw ValidationException::withMessages([
-                'rows' => __('Select at least one row to import.'),
-            ]);
-        }
+        ImportWriteRefused::ensureRowsSelected($rows);
 
         return DB::transaction(function () use ($user, $accountId, $rows): array {
             $financialOperations = 0;
@@ -145,13 +142,9 @@ class ImportFinancialOperations
                         ),
                     ];
 
-                    $errors = $this->ownTransferValidator->validate($user, $validated);
+                    $errors = $this->ownTransferValidator->check($user, $validated);
 
-                    if ($errors !== []) {
-                        throw ValidationException::withMessages([
-                            'rows' => $errors[0],
-                        ]);
-                    }
+                    ImportWriteRefused::refuseFailed($row, $accountId, $errors, ['other_account_id' => $row['other_account_id']]);
 
                     $this->manageOwnTransfer->create($user, $validated);
                     $ownTransfers++;
@@ -168,11 +161,7 @@ class ImportFinancialOperations
                         $interestCategoryId,
                     );
 
-                    if ($interestErrors !== []) {
-                        throw ValidationException::withMessages([
-                            'rows' => $interestErrors[0],
-                        ]);
-                    }
+                    ImportWriteRefused::refuseFailed($row, $accountId, new MessageBag(['capital_movement_interest' => $interestErrors]), ['term_deposit_id' => $row['term_deposit_id'], 'interest_category_id' => $interestCategoryId]);
 
                     $splitAmounts = $this->capitalMovementInterestValidator->splitAmounts(
                         $row['amount_minor_units'],
@@ -204,13 +193,9 @@ class ImportFinancialOperations
                         ...$importIdentity,
                     ];
 
-                    $errors = $this->capitalMovementValidator->validate($user, $validated);
+                    $errors = $this->capitalMovementValidator->check($user, $validated);
 
-                    if ($errors !== []) {
-                        throw ValidationException::withMessages([
-                            'rows' => $errors[0],
-                        ]);
-                    }
+                    ImportWriteRefused::refuseFailed($row, $accountId, $errors, ['term_deposit_id' => $row['term_deposit_id']]);
 
                     $this->manageCapitalMovement->create($user, $validated);
                     $capitalMovements++;
@@ -227,17 +212,13 @@ class ImportFinancialOperations
                             ...$importIdentity,
                         ];
 
-                        $incomeErrors = $this->financialOperationValidator->validate(
+                        $incomeErrors = $this->financialOperationValidator->check(
                             $user,
                             'income',
                             $incomeValidated,
                         );
 
-                        if ($incomeErrors !== []) {
-                            throw ValidationException::withMessages([
-                                'rows' => $incomeErrors[0],
-                            ]);
-                        }
+                        ImportWriteRefused::refuseFailed($row, $accountId, $incomeErrors, ['term_deposit_id' => $row['term_deposit_id'], 'interest_category_id' => $interestCategoryId]);
 
                         $this->manageFinancialOperation->createIncome($user, $incomeValidated);
                         $financialOperations++;
@@ -269,13 +250,9 @@ class ImportFinancialOperations
                     ),
                 ];
 
-                $errors = $this->financialOperationValidator->validate($user, $row['type'], $validated);
+                $errors = $this->financialOperationValidator->check($user, $row['type'], $validated);
 
-                if ($errors !== []) {
-                    throw ValidationException::withMessages([
-                        'rows' => $errors[0],
-                    ]);
-                }
+                ImportWriteRefused::refuseFailed($row, $accountId, $errors, ['category_id' => $row['category_id']]);
 
                 if ($row['type'] === 'income') {
                     $this->manageFinancialOperation->createIncome($user, $validated);

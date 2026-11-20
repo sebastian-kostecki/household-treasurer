@@ -5,6 +5,7 @@ import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { reportClientError } from '@/lib/error-tracking';
 
 const emit = defineEmits<{
     success: [];
@@ -41,6 +42,8 @@ const { register, isLoading, error, isSupported } = usePasskeyRegister({
         showForm.value = false;
         emit('success');
     },
+    // The component shows the message; the tracker gets the failure too.
+    onError: reportClientError,
 });
 
 const handleSubmit = async (event: Event) => {

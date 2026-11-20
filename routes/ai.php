@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\AddRouteContext;
 use App\Http\Middleware\LogMcpCall;
 use App\Mcp\Servers\LocalTreasurerServer;
 use App\Mcp\Servers\TreasurerServer;
@@ -25,4 +26,4 @@ Mcp::local('treasurer', LocalTreasurerServer::class);
 Route::middleware('throttle:10,1')->group(fn () => Mcp::oauthRoutes());
 
 Mcp::web('/mcp', TreasurerServer::class)
-    ->middleware([LogMcpCall::class, 'auth:api', CheckToken::using('mcp:use'), 'throttle:mcp']);
+    ->middleware([LogMcpCall::class, 'auth:api', CheckToken::using('mcp:use'), 'throttle:mcp', AddRouteContext::class]);

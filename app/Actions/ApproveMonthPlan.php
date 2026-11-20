@@ -6,6 +6,7 @@ use App\Models\Budget;
 use App\Models\MonthPlan;
 use App\Models\MonthPlanItem;
 use App\Support\BudgetLineResolver;
+use App\Support\MonthPlanItemsRefused;
 use App\Support\MonthPlanProposal;
 use App\Support\MonthPlanReading;
 use App\Support\PastMonthPlanRefused;
@@ -38,7 +39,7 @@ class ApproveMonthPlan
 
                 $this->refuseUnapprovableMonth($proposal, $reading, $budget, $month, $today);
 
-                return $this->storePlan($budget, $month, $setAsideMinorUnits, $this->linesToApprove($budget, $amounts, $reading));
+                return $this->storePlan($budget, $month, $setAsideMinorUnits, $this->linesToApprove($budget, $month, $amounts, $reading, $today));
             });
         } catch (UniqueConstraintViolationException $exception) {
             throw $this->refusalForUniqueViolation($exception, $budget, $month);
@@ -68,11 +69,13 @@ class ApproveMonthPlan
      * @param  array<int, int>  $amounts  list category id => amount in minor units
      * @return array<int, int> budget line id => amount in minor units
      */
-    private function linesToApprove(Budget $budget, array $amounts, MonthPlanReading $reading): array
+    private function linesToApprove(Budget $budget, int $month, array $amounts, MonthPlanReading $reading, CarbonImmutable $today): array
     {
         $partition = (new BudgetLineResolver)->partitionAmounts($budget, $amounts);
 
         if ($partition === null) {
+            report(new MonthPlanItemsRefused('approve', $budget->id, $budget->year, $month, [], [], $today));
+
             throw $this->invalid(__('The month plan items are invalid.'));
         }
 
@@ -82,6 +85,16 @@ class ApproveMonthPlan
         sort($expectedIds);
 
         if ($submittedIds !== $expectedIds) {
+            report(new MonthPlanItemsRefused(
+                'approve',
+                $budget->id,
+                $budget->year,
+                $month,
+                array_values(array_diff($expectedIds, $submittedIds)),
+                array_values(array_diff($submittedIds, $expectedIds)),
+                $today,
+            ));
+
             throw $this->invalid(__('The month plan items are invalid.'));
         }
 

@@ -9,6 +9,7 @@ use App\Enums\FinancialOperationType;
 use App\Http\Requests\StoreExpenseRequest;
 use App\Http\Requests\UpdateExpenseRequest;
 use App\Models\FinancialOperation;
+use App\Support\InvariantViolation;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -71,7 +72,12 @@ class ExpenseController extends Controller
         $this->authorize('delete', $financialOperation);
 
         if ($financialOperation->type !== FinancialOperationType::Expense) {
-            abort(403);
+            throw new InvariantViolation('A delete of the wrong operation type reached the expense controller.', [
+                'user_id' => $request->user()->id,
+                'financial_operation_id' => $financialOperation->id,
+                'expected_type' => FinancialOperationType::Expense->value,
+                'actual_type' => $financialOperation->type->value,
+            ]);
         }
 
         $manageFinancialOperation->delete($financialOperation);
