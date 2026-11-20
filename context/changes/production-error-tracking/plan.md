@@ -763,9 +763,9 @@ Rehearse the year turn against a local Bugsink, then deploy in dependency order 
 
 #### Automated
 
-- [x] 4.1 `composer show sentry/sentry-laravel` reports 4.x ≥ 4.31
-- [x] 4.2 `php artisan test --compact tests/Feature/ErrorTrackingServerTest.php tests/Unit/ProductionErrorTrackingConfigTest.php` passes
-- [x] 4.3 Full gate passes on PostgreSQL plus `vendor/bin/sloppy ci`
+- [x] 4.1 `composer show sentry/sentry-laravel` reports 4.x ≥ 4.31 — 5cdb6c80
+- [x] 4.2 `php artisan test --compact tests/Feature/ErrorTrackingServerTest.php tests/Unit/ProductionErrorTrackingConfigTest.php` passes — 5cdb6c80
+- [x] 4.3 Full gate passes on PostgreSQL plus `vendor/bin/sloppy ci` — 5cdb6c80
 
 #### Manual
 
