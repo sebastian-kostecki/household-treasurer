@@ -6,6 +6,7 @@ use App\Models\Account;
 use App\Models\User;
 use App\Support\AppDay;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\MessageBag;
 
 class OwnTransferImportValidator
 {
@@ -21,6 +22,23 @@ class OwnTransferImportValidator
      * @return array<int, string>
      */
     public function validate(User $user, array $data, array $allowedArchivedAccountIds = []): array
+    {
+        return $this->check($user, $data, $allowedArchivedAccountIds)->all();
+    }
+
+    /**
+     * Same checks as validate(), keeping the failed field keys that all() flattens away.
+     *
+     * @param  array{
+     *     transfer_date: string,
+     *     amount_minor_units: int,
+     *     description: string,
+     *     source_account_id: int,
+     *     destination_account_id: int,
+     * }  $data
+     * @param  list<int>  $allowedArchivedAccountIds
+     */
+    public function check(User $user, array $data, array $allowedArchivedAccountIds = []): MessageBag
     {
         $validator = Validator::make($data, [
             'transfer_date' => ['required', 'date', 'before_or_equal:'.AppDay::today()->toDateString()],
@@ -81,6 +99,6 @@ class OwnTransferImportValidator
             }
         });
 
-        return $validator->errors()->all();
+        return $validator->errors();
     }
 }

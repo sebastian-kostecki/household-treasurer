@@ -44,6 +44,17 @@
         </x-inertia::head>
     </head>
     <body class="font-sans antialiased">
+        @if (config('sentry.dsn'))
+            {{-- Runtime config of the browser error tracker: the image is built against a throwaway .env. --}}
+            <div
+                id="error-tracking"
+                hidden
+                data-error-tracking-dsn="{{ config('sentry.dsn') }}"
+                data-error-tracking-release="{{ config('app.release') }}"
+                data-error-tracking-environment="{{ config('app.env') }}"
+                data-error-tracking-tunnel="{{ route('error-tracking.tunnel') }}"
+            ></div>
+        @endif
         <x-inertia::app />
     </body>
 </html>

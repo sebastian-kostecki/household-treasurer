@@ -62,7 +62,7 @@ Cztery kamienie milowe powstały w dwa tygodnie, a aplikacja nie przeszła jeszc
 | S-42 | import-across-draft-year        | użytkownik importuje wyciąg z przełomu przy szkicu nowego roku i wie, co zrobić z wierszami nowego roku        | —             | MS-04    | done     |
 | S-43 | years-report-in-early-january   | użytkownik widzi w „Latach” i w roku do roku sensowny odczyt w pierwszych dniach stycznia                     | F-08, S-39    | MS-05    | done     |
 | S-44 | e2e-in-ci                       | użytkownik (właściciel repo) widzi czerwone CI, gdy zmiana psuje przepływ w przeglądarce                       | F-09          | MS-07    | done     |
-| S-45 | production-error-tracking       | użytkownik (właściciel) dostaje zgłoszenie wyjątku z produkcji ze stosem wywołań i kontekstem żądania          | —             | MS-08    | ready    |
+| S-45 | production-error-tracking       | użytkownik (właściciel) dostaje zgłoszenie wyjątku z produkcji ze stosem wywołań i kontekstem żądania          | —             | MS-08    | done |
 | S-46 | docs-match-code                 | użytkownik i agent czytają słownik i ADR bez zdublowanych numerów i terminów, których nie ma w kodzie          | —             | MS-09    | done     |
 | S-47 | mcp-read-only-server            | użytkownik pyta Claude'a o stan budżetu i dopisuje gotówkę z telefonu                                          | F-08          | MS-11    | done |
 | S-48 | production-smoke-tests          | użytkownik (właściciel) sprawdza na produkcji, że wdrożone zmiany M-5 działają na jego prawdziwych danych      | S-47          | MS-12    | done |
@@ -208,7 +208,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Blockers:** —
 - **Unknowns:** — (rozstrzygnięte 2026-11-20 w `context/foundation/error-tracking.md`: Bugsink na halina175 z własnym Postgresem, SDK Sentry `sentry/sentry-laravel` ^4.31 i `@sentry/vue` ^11, alerty na ntfy tylko z tytułem, klasą wyjątku i linkiem; dane zostają na serwerze, 0 zł. Plan zaczyna od zgody na te zależności i pomiaru RAM na halina175, który decyduje o Bugsinku albo o wariancie bez dostawcy.)
 - **Risk:** Bez audytu najpierw tracker złapie tylko wyjątki, które dziś i tak lądują w logu; audyt pokazuje, gdzie kod je połyka. Wdrożony przed przełomem łapie błędy 1 stycznia, a nie tydzień później. Domyślne ustawienia SDK wysyłają treść żądania i propsy stron z kwotami, więc plan musi je wyłączyć (rejestr ryzyk w `error-tracking.md`).
-- **Status:** ready
+- **Status:** done
 
 ### S-46: Dokumenty zgodne z kodem
 
@@ -340,3 +340,4 @@ This table is the clean handoff to Jira/Linear or any MCP-backed backlog. Includ
 - **S-47: użytkownik pyta Claude'a (Claude Code, claude.ai, Desktop, telefon) o To Spend, plan i wykonanie, salda i ostatnie operacje oraz dopisuje wydatek gotówkowy z telefonu** — Archived 2026-11-19 → `context/archive/2026-11-19-mcp-read-only-server/`. Lesson: —.
 - **S-40: użytkownik, który w grudniu pracował w roku 2026, po przełomie otwiera aplikację w roku 2027 bez ręcznej zmiany roku, a test `_known_gap` luki 3 przechodzi jako zwykły test** — Archived 2026-11-19 → `context/archive/2026-11-19-session-year-follows-year-turn/`. Lesson: —.
 - **S-48: użytkownik (właściciel) po wdrożeniu zmian M-5 przechodzi na produkcji, na własnych danych, listę sprawdzeń: konektor MCP z telefonu i z claude.ai (To Spend równy Dashboardowi, wpis gotówki, przełącznik `MCP_WRITE_ENABLED`) oraz zmiany przełomu roku (S-40, S-41, S-43), i zapisuje wynik** — Archived 2026-11-20 → `context/archive/2026-11-20-production-smoke-tests/`. Lesson: —.
+- **S-45: użytkownik (właściciel) dostaje zgłoszenie wyjątku z produkcji ze stosem wywołań i kontekstem żądania, bez szukania go w pliku logu** — Archived 2026-11-20 → `context/archive/2026-11-20-production-error-tracking/`. Lesson: —.

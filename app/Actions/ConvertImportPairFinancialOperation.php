@@ -7,6 +7,7 @@ use App\Models\OwnTransfer;
 use App\Models\User;
 use App\Support\CsvImport\ImportIdentityFactory;
 use App\Support\CsvImport\ImportPairCandidateDetector;
+use App\Support\CsvImport\ImportWriteRefused;
 use App\Support\CsvImport\OwnTransferImportMapper;
 use App\Support\CsvImport\OwnTransferImportSnapshots;
 use App\Support\CsvImport\OwnTransferImportValidator;
@@ -55,9 +56,7 @@ class ConvertImportPairFinancialOperation
             }
 
             if ($otherAccountId !== $firstLeg->import_identity_account_id) {
-                throw ValidationException::withMessages([
-                    'rows' => __('The selected import pair candidate does not match the other account.'),
-                ]);
+                throw $this->refusal('other_account_mismatch', $importAccountId, $importRow, $firstLegId, __('The selected import pair candidate does not match the other account.'));
             }
 
             $candidates = $this->importPairCandidateDetector->matchCandidatesForRow(
@@ -71,9 +70,7 @@ class ConvertImportPairFinancialOperation
             );
 
             if ($candidates === []) {
-                throw ValidationException::withMessages([
-                    'rows' => __('The selected import pair candidate no longer matches this row.'),
-                ]);
+                throw $this->refusal('row_no_longer_matches', $importAccountId, $importRow, $firstLegId, __('The selected import pair candidate no longer matches this row.'));
             }
 
             $mapped = $this->ownTransferMapper->map(
@@ -119,6 +116,24 @@ class ConvertImportPairFinancialOperation
 
             return $this->manageOwnTransfer->create($user, $validated);
         });
+    }
+
+    /**
+     * Reports a refusal the import preview did not foresee, then returns the unchanged message.
+     *
+     * @param  array{operation_date: string}  $importRow
+     */
+    private function refusal(string $rule, int $importAccountId, array $importRow, int $financialOperationId, string $message): ValidationException
+    {
+        report(new ImportWriteRefused(
+            'financial_operation_pair',
+            [$rule],
+            $importAccountId,
+            (int) substr($importRow['operation_date'], 0, 4),
+            relatedIds: ['financial_operation_id' => $financialOperationId],
+        ));
+
+        return ValidationException::withMessages(['rows' => $message]);
     }
 
     /**

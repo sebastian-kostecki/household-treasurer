@@ -1,5 +1,6 @@
 <?php
 
+use App\Actions\ConvertImportPairFinancialOperation;
 use App\Enums\CategoryType;
 use App\Models\Account;
 use App\Models\Budget;
@@ -10,11 +11,14 @@ use App\Models\TermDeposit;
 use App\Models\User;
 use App\Support\AccountBalanceOnDate;
 use App\Support\CsvImport\CsvImportSession;
+use App\Support\CsvImport\ImportWriteRefused;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Exceptions;
 use Illuminate\Support\Facades\File;
 use Illuminate\Testing\TestResponse;
+use Illuminate\Validation\ValidationException;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
@@ -812,4 +816,55 @@ it('imports a fresh BNP export with every row, the hold included, and the balanc
     expect(DB::table('financial_operations')->count())->toBe(125)
         ->and($account->refresh()->current_balance_minor_units)->toBe(100000 + 30983)
         ->and($account->current_balance_minor_units)->toBe(AccountBalanceOnDate::for($account, now()));
+});
+
+it('reports an import pair refused at write time and keeps the user message', function (): void {
+    Exceptions::fake();
+
+    $user = User::factory()->create();
+    $checking = importIntegrityAccount($user, 'Checking', 100000);
+    $savings = importIntegrityAccount($user, 'Savings', 50000);
+    $unrelated = importIntegrityAccount($user, 'Unrelated', 0);
+    $budget = importIntegrityExecutionBudget($user, 2026);
+    $expenseLine = BudgetLine::factory()->for($budget)->expense()->create([
+        'planned_amount_minor_units' => 500000,
+        'execution_minor_units' => 0,
+    ]);
+
+    importIntegrityPreview($user, $checking, <<<'CSV'
+date,description,amount
+2026-03-15,Transfer to savings,-100.00
+CSV);
+    importIntegrityCommit($user, [
+        importIntegrityRow(0, 'expense', ['category_id' => $expenseLine->category_id]),
+    ])->assertRedirect(route('operations'));
+
+    $firstLeg = FinancialOperation::query()->sole();
+
+    $importRow = [
+        'operation_date' => '2026-03-16',
+        'description' => 'Transfer from checking',
+        'raw_statement_description' => 'Transfer from checking',
+        'amount_minor_units' => 10000,
+    ];
+
+    try {
+        app(ConvertImportPairFinancialOperation::class)->handle($user, $savings->id, $firstLeg->id, $importRow, $unrelated->id);
+        $this->fail('Expected the pair write to be refused.');
+    } catch (ValidationException $exception) {
+        expect($exception->errors())->toBe([
+            'rows' => [__('The selected import pair candidate does not match the other account.')],
+        ]);
+    }
+
+    Exceptions::assertReported(function (ImportWriteRefused $refusal) use ($savings, $firstLeg): bool {
+        $context = $refusal->context();
+
+        return $context['stage'] === 'financial_operation_pair'
+            && $context['rule'] === ['other_account_mismatch']
+            && $context['account_id'] === $savings->id
+            && $context['year'] === 2026
+            && $context['financial_operation_id'] === $firstLeg->id
+            && ! str_contains(json_encode($context), 'Transfer');
+    });
 });
