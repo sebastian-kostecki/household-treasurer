@@ -800,7 +800,7 @@ Rehearse the year turn against a local Bugsink, then deploy in dependency order 
 
 #### Automated
 
-- [ ] 7.1 Full gate passes on PostgreSQL plus `vendor/bin/sloppy ci` on the merged branch (after `npm run build`)
+- [x] 7.1 Full gate passes on PostgreSQL plus `vendor/bin/sloppy ci` on the merged branch (after `npm run build`) — 26d7d243
 
 #### Manual
 
