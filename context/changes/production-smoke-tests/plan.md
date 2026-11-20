@@ -406,7 +406,7 @@ None: no schema or data change. The copy lives only in the worktree's own databa
 
 #### Manual
 
-- [ ] 3.2 D2–D5 recorded in checks.md with the deploy date
+- [x] 3.2 D2–D5 recorded in checks.md with the deploy date
 
 ### Phase 4: Production in December
 

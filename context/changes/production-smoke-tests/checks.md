@@ -27,9 +27,9 @@ No personal data, counterparties or single amounts. Row counts and yes/no are al
 | --- | --- | --- | --- | --- | --- |
 | D1 | after deploy (agent) | `curl -I https://budget.kostecki.dev/up` | HTTP 200 | deploy | OK 2026-11-20: HTTP/2 200. |
 | D2 | after deploy (owner) | `git rev-parse --short HEAD` on the VPS; `git merge-base --is-ancestor f48b8363 HEAD && echo ok` | Prints `ok`: the deployed commit contains S-40. | S-40 | OK (odczyt agenta przez SSH, 2026-11-20): `HEAD` na VPS `7c60d458` (06:18 CET) zawiera `f48b8363` (`merge-base --is-ancestor` → ok); kontener `treasurer-app` z obrazem `prod` zbudowanym ok. 2 h wcześniej i działający. Właściciel potwierdza, że to wynik `deploy.sh` z tego commitu. |
-| D3 | after deploy (owner) | Dashboard; login screen | Dashboard shows today's date with the weekday and „budżet 2026 w realizacji”. Login screen shows „Rok budżetu”, „2026 · <%>” and November as the current month bar (no day). | S-39 | |
-| D4 | after deploy (owner) | claude.ai connector asked for To Spend | Equals the Dashboard value for the same `app_day`. | S-47 | |
-| D5 | after deploy (owner) | Year menu; „Lata” | 2026 is „bieżący” with no „od 1.01” mark; „Lata” opens on „Do <today>”. | S-41; S-43 | |
+| D3 | after deploy (owner) | Dashboard; login screen | Dashboard shows today's date with the weekday and „budżet 2026 w realizacji”. Login screen shows „Rok budżetu”, „2026 · <%>” and November as the current month bar (no day). | S-39 | OK (agent, 2026-11-20, publiczny ekran logowania w przeglądarce): „Rok budżetu”, „2026 · 88%”, `shell.today` = 2026-11-20. Właściciel potwierdził (2026-11-20): Dashboard z dniem tygodnia i „budżet 2026 w realizacji”. OK. |
+| D4 | after deploy (owner) | claude.ai connector asked for To Spend | Equals the Dashboard value for the same `app_day`. | S-47 | OK (agent, 2026-11-20): konektor MCP: `app_day` 2026-11-20, rok 2026 w realizacji, plan miesiąca zatwierdzony, To Spend odczytane. Właściciel potwierdził (2026-11-20): „Do wydania” na Dashboardzie równe wartości z konektora: tak. OK. |
+| D5 | after deploy (owner) | Year menu; „Lata” | 2026 is „bieżący” with no „od 1.01” mark; „Lata” opens on „Do <today>”. | S-41; S-43 | OK (właściciel, 2026-11-20): 2026 „bieżący” bez „od 1.01”, „Lata” otwiera „Do 20 listopada”. |
 
 Repeat D1, D3 and D4 after any later deploy before 31.12 as rows `D1b`, `D3b`, `D4b`.
 
