@@ -382,7 +382,7 @@ None: no schema or data change. The copy lives only in the worktree's own databa
 
 #### Manual
 
-- [ ] 1.4 The owner agrees with the expected results before Phase 2
+- [x] 1.4 The owner agrees with the expected results before Phase 2
 
 ### Phase 2: Rehearsal on a copy (November)
 
