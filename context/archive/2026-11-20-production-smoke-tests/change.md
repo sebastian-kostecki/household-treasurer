@@ -1,10 +1,10 @@
 ---
 change_id: production-smoke-tests
 title: Production smoke tests
-status: impl_reviewed
+status: archived
 created: 2026-11-20
 updated: 2026-11-20
-archived_at: null
+archived_at: 2026-11-20T08:29:25Z
 ---
 
 ## Notes

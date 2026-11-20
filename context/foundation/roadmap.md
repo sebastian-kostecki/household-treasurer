@@ -65,7 +65,7 @@ Cztery kamienie milowe powstały w dwa tygodnie, a aplikacja nie przeszła jeszc
 | S-45 | production-error-tracking       | użytkownik (właściciel) dostaje zgłoszenie wyjątku z produkcji ze stosem wywołań i kontekstem żądania          | —             | MS-08    | blocked  |
 | S-46 | docs-match-code                 | użytkownik i agent czytają słownik i ADR bez zdublowanych numerów i terminów, których nie ma w kodzie          | —             | MS-09    | done     |
 | S-47 | mcp-read-only-server            | użytkownik pyta Claude'a o stan budżetu i dopisuje gotówkę z telefonu                                          | F-08          | MS-11    | done |
-| S-48 | production-smoke-tests          | użytkownik (właściciel) sprawdza na produkcji, że wdrożone zmiany M-5 działają na jego prawdziwych danych      | S-47          | MS-12    | in-progress |
+| S-48 | production-smoke-tests          | użytkownik (właściciel) sprawdza na produkcji, że wdrożone zmiany M-5 działają na jego prawdziwych danych      | S-47          | MS-12    | done |
 
 ## Streams
 
@@ -246,7 +246,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Blockers:** — (S-47 wdrożone 2026-11-19; sprawdzenia konektora z telefonu i claude.ai, wpis gotówki i `MCP_WRITE_ENABLED` potwierdzone na produkcji w planie S-47, kroki 4.4–4.6 i 6.3–6.5)
 - **Unknowns:** rozstrzygnięte w `context/changes/production-smoke-tests/plan.md`: zakres S-39–S-43; kopia danych teraz plus żywe daty (3–5.12, 30–31.12, 1–2.01); MCP tylko odczyt po wdrożeniu; wyniki w `context/changes/production-smoke-tests/checks.md`
 - **Risk:** testy na żywych danych zostawiają ślad w budżecie (wpis gotówkowy z `request_id`); sprawdzenia wykonuje człowiek, bo produkcji dotyka tylko on (`infrastructure.md`, „Approval”)
-- **Status:** in-progress
+- **Status:** done
 
 ## Backlog Handoff
 
@@ -340,3 +340,4 @@ This table is the clean handoff to Jira/Linear or any MCP-backed backlog. Includ
 - **S-41: użytkownik widzi w grudniu w „Wymaga uwagi”, że plan grudnia czeka na zatwierdzenie i po północy nie da się go już zatwierdzić, czy Budżet następnego roku jest szkicem (Import nie przyjmie jego wierszy), a po uruchomieniu menu roku i Dashboard mówią, że Budżet czeka na rok kalendarzowy** — Archived 2026-11-19 → `context/archive/2026-11-19-year-turn-notices/`. Lesson: —.
 - **S-47: użytkownik pyta Claude'a (Claude Code, claude.ai, Desktop, telefon) o To Spend, plan i wykonanie, salda i ostatnie operacje oraz dopisuje wydatek gotówkowy z telefonu** — Archived 2026-11-19 → `context/archive/2026-11-19-mcp-read-only-server/`. Lesson: —.
 - **S-40: użytkownik, który w grudniu pracował w roku 2026, po przełomie otwiera aplikację w roku 2027 bez ręcznej zmiany roku, a test `_known_gap` luki 3 przechodzi jako zwykły test** — Archived 2026-11-19 → `context/archive/2026-11-19-session-year-follows-year-turn/`. Lesson: —.
+- **S-48: użytkownik (właściciel) po wdrożeniu zmian M-5 przechodzi na produkcji, na własnych danych, listę sprawdzeń: konektor MCP z telefonu i z claude.ai (To Spend równy Dashboardowi, wpis gotówki, przełącznik `MCP_WRITE_ENABLED`) oraz zmiany przełomu roku (S-40, S-41, S-43), i zapisuje wynik** — Archived 2026-11-20 → `context/archive/2026-11-20-production-smoke-tests/`. Lesson: —.
