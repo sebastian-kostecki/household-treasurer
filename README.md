@@ -327,7 +327,7 @@ Procedura N→N+1 (np. 2026→2027). Rok zmienia się o 00:00 czasu polskiego (A
 1. Do 31 grudnia N: zatwierdź plan grudnia N. Twardy termin to 31.12 23:59:59 czasu polskiego. Po nim niezatwierdzony grudzień jest „miniony bez zatwierdzonego planu”: nie ma propozycji i nie da się go zatwierdzić.
 2. 30–31 grudnia, po kroku 1: uruchom wykonanie Budżetu N+1 („Rozpocznij realizację” na ekranie Budżet; operacji nie można cofnąć). Dashboard i Raporty „Lata” nadal czytają rok N do północy.
 3. Od 1 stycznia: zaimportuj grudzień do końca (i styczeń). Wpis ręczny i Import odrzucają dochód, wydatek i zwrot z datą w roku N+1, dopóki jego Budżet nie jest w wykonaniu; przelew własny i ruch kapitału bez odsetek przechodzą.
-4. Zatwierdź plan stycznia: Propozycja kopiuje z grudnia kwoty pozycji bez rytmu, bieżących i opłat stałych, a dla równomiernych rocznych i Nieregularnych bierze roczny udział planu N+1.
+4. Zatwierdź plan stycznia: Propozycja kopiuje z planu grudnia kwoty pozycji bez rytmu i bieżących, opłacie stałej daje ostatnią płatność netto z grudnia (plan grudnia, gdy nic nie zapłacono), a dla równomiernych rocznych i Nieregularnych bierze roczny udział planu N+1.
 
 **Ostrzeżenie:** po kroku 2 aplikacja pozwala zatwierdzić styczeń jeszcze w grudniu. Nie rób tego: opłaty stałe stycznia czytają faktyczne płatności grudnia, które jeszcze nie wpłynęły.
 
@@ -341,11 +341,10 @@ Rok N wybrany w menu albo założony jako nowy Budżet w trakcie roku N od 00:00
 **Co sprawdzić 1–2 stycznia:**
 
 - Dashboard pokazuje datę i „budżet N+1 w realizacji” z blokiem wykonania;
-- Budżet otwiera się na N+1 bez ręcznej zmiany roku w menu;
+- Budżet i Plan miesiąca otwierają się na N+1 bez ręcznej zmiany roku w menu, nawet gdy w grudniu wybrano N, a znaczek „od 1.01” w menu roku znika;
 - Budżet N+1: „zebrane startowe” bez „prognozy”;
-- Propozycja stycznia ma kwoty z grudnia dla opłat stałych i pozycji bez rytmu;
-- Raport „Lata” (i zakładka „Lata” w Panelu kategorii) otwiera się przez cały styczeń na „Pełne lata”, z rokiem N+1 „w toku”; „Do 1 stycznia” / „Do 2 stycznia” jest o jedno kliknięcie dalej (ADR-0108); wyjątkiem jest pierwszy rok z budżetem;
-- Budżet i Plan miesiąca otwierają się na N+1, nawet gdy w grudniu wybrano N, a znaczek „od 1.01” w menu roku znika;
+- Propozycja stycznia: pozycje bez rytmu i bieżące mają kwoty z planu grudnia, opłaty stałe ostatnią płatność netto z grudnia;
+- Raport „Lata” otwiera się przez cały styczeń na „Pełne lata”, z rokiem N+1 „w toku”, a „Do 1 stycznia” / „Do 2 stycznia” jest o jedno kliknięcie dalej; zakładka „Lata” w Panelu kategorii też pokazuje „Pełne lata” (bez przełącznika zakresu); wyjątkiem jest pierwszy rok z budżetem (ADR-0108);
 - Import grudnia: operacje zapisują się w pozycjach Budżetu N, a styczniowe w Budżecie N+1.
 
 **Próba przed przełomem:** `docker compose exec -u sail laravel.test php artisan app:rehearsal-clock "2026-12-30 10:00"` ustawia „dziś” aplikacji (tylko `APP_ENV=local`, format `RRRR-MM-DD GG:MM` w UTC; dzień aplikacji wynika z tej chwili w czasie polskim); `--off` wyłącza. Komenda odmawia momentu starszego niż czas sesji (120 min), bo przeglądarka odrzuciłaby ciasteczka jako wygasłe. Póki zegar stoi, nieudane logowania się nie przedawniają (limit 5 na minutę). Przeglądarka bierze dzień z `shell.today`, więc osobnego zegara nie ustawiasz. Kopię danych weź jako snapshot użytkownika: `scripts/artisan.sh user:backup <id>` na VPS, odczyt przez `ssh … 'docker compose … exec -T app cat <plik>'`, potem `user:create`, `user:restore` i kroki jak w „Próba lokalna”. Każdy skok zegara o ponad 2 godziny do przodu wylogowuje, więc zaloguj się ponownie. Żeby zobaczyć samoczynną zmianę roku, wybierz rok N w menu przed 23:00 UTC 31.12; rok wybrany później (np. po ponownym logowaniu wymuszonym skokiem zegara) jest wyborem w roku N+1 i zostaje.

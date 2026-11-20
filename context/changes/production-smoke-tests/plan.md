@@ -105,7 +105,7 @@ The expected results come from the delivered behaviour of each slice; quote the 
 - **S-40:** 2026 chosen in the menu during 2026 gives way to 2027 from 00:00 Polish time (23:00 UTC), with no message, in Budget and Month Plan. 2023 chosen for browsing stays.
 - **S-41:**
   - Dashboard „Wymaga uwagi” card naming the approval deadline („zatwierdź do 31.12, 23:59”), only while December is a proposal and from 3.12 on;
-  - in December the draft-year card („Budżet w szkicu · Budżet 2027 · Import nie przyjmie wierszy z 2027”, opens Budget 2027), or, with no Budget 2027, the „Brak budżetu · Budżet 2027” card, which opens „Dodaj rok 2027”. The missing variant exists only in December; in January there is no card for a missing year;
+  - in December the draft-year card („Budżet w szkicu · Budżet 2027 · Import nie przyjmie wierszy z 2027”, opens Budget 2027), or, with no Budget 2027, the „Brak budżetu · Budżet 2027” card, which opens the „Nowy budżet” dialog for 2027 (corrected after C7: „Dodaj rok 2027” is the year-menu item). The missing variant exists only in December; in January there is no card for a missing year;
   - after starting 2027, the „od 1.01” mark in the year menu and „budżet 2026 w realizacji · budżet 2027 od 1 stycznia” on the Dashboard.
 - **S-42:**
   - with 2027 a draft, the January rows carry the note „Budżet 2027 jest szkicem…” with „Przejdź do Budżetu 2027”, and a ticked January expense, income or refund blocks „Zatwierdź import”; unticking saves December;
@@ -123,7 +123,7 @@ The C-steps follow the clock order below:
 | C4 | 2026-12-31 23:05 | S-40 switch, S-39 day/year, S-41 3.7, „Lata” and YoY on 1.01 |
 | C5 | 2027-01-02 09:00 | Import 29.12–02.01 with 2027 started |
 | C6 | 2027-01-02 09:00 | after `user:reset-data` + `user:restore`: S-42 draft path and the current-year draft card |
-| C7 | 2026-12-03 09:00 | after `user:reset-data` + `user:restore` and deleting the 2027 draft: „Brak budżetu · Budżet 2027” opens „Dodaj rok 2027” (S-41 2.6) |
+| C7 | 2026-12-03 09:00 | after `user:reset-data` + `user:restore` and deleting the 2027 draft: „Brak budżetu · Budżet 2027” opens the „Nowy budżet” dialog for 2027 (S-41 2.6) |
 
 The S1 steps mirror the README list „Co sprawdzić 1–2 stycznia”.
 
@@ -325,7 +325,7 @@ The owner checks the year turn on live data, and the agent writes the MS-12 verd
   - Budget 2027 shows „zebrane startowe” without „prognoza”.
 - **S4** (2.01):
   - import the statement covering 29.12–02.01: December operations land in 2026 lines, January ones in 2027 lines;
-  - the January proposal copies December amounts for fixed charges and items without a rhythm;
+  - the January proposal gives a Fixed Charge December's last net payment (December's plan if nothing was paid), an item without a rhythm or a current one December's plan, an even annual or irregular one the annual share (`MonthPlanProposal::proposedAmount`); record the count per rhythm;
   - approve January.
 - **Verdict**: "M-5 works on production without manual fixes", or a list of failures with fix change ids.
 
@@ -388,9 +388,9 @@ None: no schema or data change. The copy lives only in the worktree's own databa
 
 #### Automated
 
-- [x] 2.1 Rehearsal clock is off after cleanup
-- [x] 2.2 Database preview_production_smoke_tests is dropped
-- [x] 2.3 storage/app/restore-trial/ holds no snapshot or CSV file
+- [x] 2.1 Rehearsal clock is off after cleanup — 2cd875e4
+- [x] 2.2 Database preview_production_smoke_tests is dropped — 2cd875e4
+- [x] 2.3 storage/app/restore-trial/ holds no snapshot or CSV file — 2cd875e4
 
 #### Manual
 
@@ -402,7 +402,7 @@ None: no schema or data change. The copy lives only in the worktree's own databa
 
 #### Automated
 
-- [x] 3.1 /up returns 200 on production
+- [x] 3.1 /up returns 200 on production — 563294fc
 
 #### Manual
 
