@@ -736,9 +736,9 @@ Rehearse the year turn against a local Bugsink, then deploy in dependency order 
 
 #### Automated
 
-- [x] 2.1 Touched feature tests pass on PostgreSQL (worktree command, `testing_production_error_tracking`): `CsvImportTest`, `ApproveMonthPlanTest`, `ChangeMonthPlanTest`, `ExpenseTest`, `IncomeTest`
-- [x] 2.2 `php artisan boost:index-rules` leaves `.ai/rules/index.md` consistent
-- [x] 2.3 Full gate passes on PostgreSQL plus `vendor/bin/sloppy ci`
+- [x] 2.1 Touched feature tests pass on PostgreSQL (worktree command, `testing_production_error_tracking`): `CsvImportTest`, `ApproveMonthPlanTest`, `ChangeMonthPlanTest`, `ExpenseTest`, `IncomeTest` — 43f21991
+- [x] 2.2 `php artisan boost:index-rules` leaves `.ai/rules/index.md` consistent — 43f21991
+- [x] 2.3 Full gate passes on PostgreSQL plus `vendor/bin/sloppy ci` — 43f21991
 
 #### Manual
 
