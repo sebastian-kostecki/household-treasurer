@@ -748,9 +748,9 @@ Rehearse the year turn against a local Bugsink, then deploy in dependency order 
 
 #### Automated
 
-- [ ] 3.1 `docker compose -f stacks/bugsink/docker-compose.yml config` and `docker compose -f docker-compose.yml config` validate (run locally in `kostecki-dev-infra`)
-- [ ] 3.2 `bash -n scripts/deploy-bugsink.sh scripts/uptime-check.sh` passes
-- [ ] 3.3 PR to `master` is open with the stack, networks, script, Dependabot entry, uptime line and docs
+- [x] 3.1 `docker compose -f stacks/bugsink/docker-compose.yml config` and `docker compose -f docker-compose.yml config` validate (run locally in `kostecki-dev-infra`)
+- [x] 3.2 `bash -n scripts/deploy-bugsink.sh scripts/uptime-check.sh` passes
+- [x] 3.3 PR to `master` is open with the stack, networks, script, Dependabot entry, uptime line and docs
 
 #### Manual
 
