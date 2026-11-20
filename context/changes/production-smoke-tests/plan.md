@@ -396,13 +396,13 @@ None: no schema or data change. The copy lives only in the worktree's own databa
 
 - [x] 2.4 Every C-step has a result; S-40 2.9/2.10 (C3–C4), S-41 2.6 (C1, C7) and 3.7 (C4) covered
 - [x] 2.5 Every failure has a fix change id in checks.md
-- [ ] 2.6 The owner confirms the snapshot is deleted from the VPS
+- [x] 2.6 The owner confirms the snapshot is deleted from the VPS
 
 ### Phase 3: Production after the M-5 deploy
 
 #### Automated
 
-- [ ] 3.1 /up returns 200 on production
+- [x] 3.1 /up returns 200 on production
 
 #### Manual
 

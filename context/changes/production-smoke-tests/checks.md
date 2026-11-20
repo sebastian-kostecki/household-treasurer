@@ -6,7 +6,7 @@ No personal data, counterparties or single amounts. Row counts and yes/no are al
 
 - Code commit: _(fill in: short SHA of `development`/`main` used for the copy)_
 - Snapshot: _(fill in: `user:backup` time UTC, snapshot version, SHA-256 matches on both sides: yes/no)_
-- Deployed commit on production: _(fill in at D2)_
+- Deployed commit on production: `7c60d458` (VPS HEAD, 2026-11-20 06:18 CET), contains S-40.
 - Browser: `playwright-cli`, Europe/Warszawa. Any clock jump of more than 2 h forward logs out: log in again.
 
 ## Phase 2 — copy, rehearsal clock (UTC), run in this order
@@ -25,8 +25,8 @@ No personal data, counterparties or single amounts. Row counts and yes/no are al
 
 | Krok | Kiedy (data) | Co sprawdzić | Oczekiwany wynik | Pokrywa | Wynik |
 | --- | --- | --- | --- | --- | --- |
-| D1 | after deploy (agent) | `curl -I https://budget.kostecki.dev/up` | HTTP 200 | deploy | |
-| D2 | after deploy (owner) | `git rev-parse --short HEAD` on the VPS; `git merge-base --is-ancestor f48b8363 HEAD && echo ok` | Prints `ok`: the deployed commit contains S-40. | S-40 | |
+| D1 | after deploy (agent) | `curl -I https://budget.kostecki.dev/up` | HTTP 200 | deploy | OK 2026-11-20: HTTP/2 200. |
+| D2 | after deploy (owner) | `git rev-parse --short HEAD` on the VPS; `git merge-base --is-ancestor f48b8363 HEAD && echo ok` | Prints `ok`: the deployed commit contains S-40. | S-40 | OK (odczyt agenta przez SSH, 2026-11-20): `HEAD` na VPS `7c60d458` (06:18 CET) zawiera `f48b8363` (`merge-base --is-ancestor` → ok); kontener `treasurer-app` z obrazem `prod` zbudowanym ok. 2 h wcześniej i działający. Właściciel potwierdza, że to wynik `deploy.sh` z tego commitu. |
 | D3 | after deploy (owner) | Dashboard; login screen | Dashboard shows today's date with the weekday and „budżet 2026 w realizacji”. Login screen shows „Rok budżetu”, „2026 · <%>” and November as the current month bar (no day). | S-39 | |
 | D4 | after deploy (owner) | claude.ai connector asked for To Spend | Equals the Dashboard value for the same `app_day`. | S-47 | |
 | D5 | after deploy (owner) | Year menu; „Lata” | 2026 is „bieżący” with no „od 1.01” mark; „Lata” opens on „Do <today>”. | S-41; S-43 | |
