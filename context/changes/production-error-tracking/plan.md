@@ -43,7 +43,7 @@ Roadmap S-45: the owner gets a report of a production exception with its stack t
 - A Vue render error, an unhandled promise rejection, an Inertia network error, and a 2FA or passkey failure reach Bugsink through a same-origin tunnel route. The route also works for guests on the login, 2FA and passkey screens.
 - A new, regressed or unmuted Bugsink issue sends one ntfy message. It carries the fixed title, the alert reason, the exception class and a link to the issue, and never the exception message.
 - Bugsink runs on halina175 as `stacks/bugsink` behind Cloudflare Access, with fixed memory limits. Its UI host is watched by an `access-errors` uptime check.
-- After every deploy, `sentry:test` appears in Bugsink and on ntfy.
+- After every deploy, `sentry:test` appears in Bugsink with the new release. It reaches ntfy only when its issue is new or was resolved first, because Bugsink alerts only on new, regressed and unmuted issues.
 - Verification: the Progress rows below, the local rehearsal of 2027-01-01 00:30, and the post-deploy production check.
 
 ### Key Discoveries:
@@ -81,7 +81,7 @@ The SDK is inert whenever `SENTRY_LARAVEL_DSN` is empty, so local, CI and test r
 ## Critical Implementation Details
 
 - **Ordering in `withExceptions`.** `Integration::handles($exceptions)` must be the first reporting registration, and nothing may call `->stop()`. The tracker then receives an exception even when the log write fails (PLB-1), and the log keeps its copy. The `sentry` log channel must not be added to `LOG_STACK`, or every exception would be sent twice.
-- **Maintenance mode.** Lifting `HttpException` from `internalDontReport` would report every 503 served during `artisan down` in each deploy. The `/up` maintenance failure (`ApplicationHealth`) would also fire on every uptime ping during a deploy. Both stay unreported while the app is down for maintenance. A stuck maintenance mode is already caught by the `site-*` uptime checks.
+- **Maintenance mode.** Lifting `HttpException` from `internalDontReport` would report every 503 served during `artisan down` in each deploy. The `/up` maintenance failure (`ApplicationHealth`) would also fire on every uptime ping during a deploy. Only these two stay unreported while the app is down for maintenance. Everything else is still reported: `deploy.sh` runs `backup:run` and `migrate --force` in maintenance (`:72`, `:75`), and the nightly backups run `evenInMaintenanceMode`. A stuck maintenance mode is already caught by the `site-*` uptime checks.
 - **Privacy defaults are permissive.**
   - In sentry-php, `max_request_body_size` defaults to `medium`.
   - A partial `data_collection` array flips every omitted key to permissive.
@@ -101,12 +101,13 @@ Provider-independent changes that decide what gets reported and with which conte
 
 #### 1. Exception reporting policy
 
-**File**: `bootstrap/app.php`
+**Files**: `bootstrap/app.php`, `app/Support/ApplicationHealth.php`, `app/Support/ApplicationDownForMaintenance.php` (new)
 
 **Intent**: Report server-error `HttpException`s and the owner's `AuthorizationException`s, which Laravel ignores today. Keep the noisy classes quiet. Leave a slot so that Phase 4 can register the tracker before every other reporting callback.
 
 **Contract**: In `withExceptions`:
-- `stopIgnoring(HttpException::class)`, plus `dontReportWhen` for `HttpException` with status < 500, and for any exception raised while `app()->isDownForMaintenance()` (503s and the `/up` maintenance failure).
+- `stopIgnoring(HttpException::class)`, plus `dontReportWhen` for `HttpException` with status < 500.
+- `dontReportWhen` the app is down for maintenance **and** the exception is an `HttpException` with status 503 or the new `App\Support\ApplicationDownForMaintenance`. `ApplicationHealth` throws that named exception instead of its `RuntimeException`. Every other exception in maintenance (migrations, backups, queue, scheduler) is still reported.
 - `stopIgnoring(AuthorizationException::class)`, plus `dontReportWhen` there is no authenticated user, and `level(AuthorizationException::class, LogLevel::WARNING)`.
 - `throttle()` returning `Limit::perMinute(1)->by(<exception class>|<route name>)` for `AuthorizationException` only.
 
@@ -114,17 +115,27 @@ Provider-independent changes that decide what gets reported and with which conte
 
 #### 2. Request context middleware
 
-**File**: `app/Http/Middleware/AddRequestContext.php` (new), registered in `bootstrap/app.php` as global middleware (so `/mcp` and the routes outside `web` get it too)
+**Files**:
+- `app/Http/Middleware/AddRequestContext.php` (new): global middleware in `bootstrap/app.php`, so `/mcp` and the routes outside `web` get it too.
+- `app/Http/Middleware/AddRouteContext.php` (new): appended to the `web` group, so it runs after `StartSession`, and added to the MCP route group in `routes/ai.php` after its auth middleware.
 
 **Intent**: Every log entry and tracker event carries the route name, a request id, the user id and the release (PLB-4). The request id is returned to the client so a report can be matched to a request.
 
-**Contract**: `Context::add` with keys:
-- `route` (route name, or the path pattern when unnamed)
-- `request_id` (a fresh UUID; the incoming `X-Request-Id` is ignored)
-- `user_id` (int or null; never the e-mail)
-- `release` (`config('app.release')`)
+Global middleware runs before routing (`Kernel::sendRequestThroughRouter`, `vendor/laravel/framework/src/Illuminate/Foundation/Http/Kernel.php:172-175`) and before the session starts. At that point `$request->route()` and `Auth::id()` are null, and after `$next` the exception has already been reported. That is why the keys are split between the two middleware.
 
-The response gets an `X-Request-Id` header. No request input, amounts or descriptions go into the context. Laravel Context is dehydrated into queued jobs automatically.
+**Contract**:
+- `AddRequestContext`, before `$next`, calls `Context::add` with:
+  - `request_id` (a fresh UUID; the incoming `X-Request-Id` is ignored)
+  - `release` (`config('app.release')`)
+
+  The response gets an `X-Request-Id` header.
+- `AddRouteContext`, before `$next`, calls `Context::add` with:
+  - `route` (route name, or the path pattern when unnamed)
+  - `user_id` (int or null; never the e-mail)
+
+  On MCP, check that `Auth::id()` resolves through the Passport guard inside that group.
+- No request input, amounts or descriptions go into the context.
+- Laravel Context is dehydrated into queued jobs automatically.
 
 #### 3. Release identity in the image
 
@@ -141,9 +152,9 @@ The response gets an `X-Request-Id` header. No request input, amounts or descrip
 
 **Files**: `.env.prod.example`, `docker/8.5/php.ini`
 
-**Intent**: Logs rotate and also go to stderr, so a non-writable `laravel.log` no longer means silence (PLB-1, BKP-8). Exception frames stop carrying argument values, which could hold amounts.
+**Intent**: Logs rotate and also go to stderr, so a non-writable `laravel.log` no longer means silence (PLB-1, BKP-8). The owner's 403 warnings reach the log, which drops them today at `LOG_LEVEL=error`. Exception frames stop carrying argument values, which could hold amounts.
 
-**Contract**: `.env.prod.example`: `LOG_STACK=daily,stderr`. `php.ini`: `zend.exception_ignore_args = On`. The real `.env.prod` changes in Phase 7.
+**Contract**: `.env.prod.example`: `LOG_STACK=daily,stderr`, `LOG_LEVEL=warning`. `php.ini`: `zend.exception_ignore_args = On`. The real `.env.prod` changes in Phase 7.
 
 #### 5. Tests
 
@@ -153,10 +164,11 @@ The response gets an `X-Request-Id` header. No request input, amounts or descrip
 
 **Contract**:
 - **Reported:** `abort(500)` and `abort(503)` outside maintenance; an `AuthorizationException` for a signed-in user.
-- **Not reported:** `abort(403)`, `abort(404)`, a `ValidationException`, a 503 in maintenance mode, a guest `AuthorizationException`.
+- **Reported in maintenance:** an artisan command that throws while the app is down for maintenance.
+- **Not reported:** `abort(403)`, `abort(404)`, a `ValidationException`, a 503 and the `/up` `ApplicationDownForMaintenance` in maintenance mode, a guest `AuthorizationException`.
 - **Throttle:** a second `AuthorizationException` on the same route within a minute is throttled.
-- **Context:** the reported exception's log context contains `route`, `request_id`, `user_id` and `release`, and the response has `X-Request-Id`.
-- **Static file test:** `php.ini` has `zend.exception_ignore_args = On`, `.env.prod.example` has `LOG_STACK=daily,stderr`, and `Dockerfile.prod` sets `APP_RELEASE` from `GIT_REVISION` after the ARG.
+- **Context:** an exception thrown in a named `web` route by a signed-in user carries non-null `route` and `user_id`, plus `request_id` and `release`, in its log context. The response has `X-Request-Id`.
+- **Static file test:** `php.ini` has `zend.exception_ignore_args = On`, `.env.prod.example` has `LOG_STACK=daily,stderr` and `LOG_LEVEL=warning`, and `Dockerfile.prod` sets `APP_RELEASE` from `GIT_REVISION` after the ARG.
 
 ### Success Criteria:
 
@@ -295,11 +307,12 @@ The owner measures halina175 and decides go or no-go. On go, the agent writes th
 **Contract**:
 - **`bugsink` service:**
   - image `bugsink/bugsink:2.6` (pinned minor), `container_name: bugsink`, `mem_limit: 512m`;
-  - networks `proxy-bugsink` and `errors-treasurer`;
+  - networks `proxy-bugsink`, `errors-treasurer` and the stack-private `bugsink-internal` (to reach `bugsink-pgsql`);
   - Traefik labels for `errors.kostecki.dev` with `app-security@file`, as for Backrest.
 - **Bugsink environment:**
   - `SECRET_KEY`, the admin credentials;
   - `SINGLE_USER=True`, `PHONEHOME=False`, `BEHIND_HTTPS_PROXY=True`, `BASE_URL=https://errors.kostecki.dev`;
+  - `ALLOWED_HOSTS=errors.kostecki.dev,bugsink`. Without it Bugsink derives the hosts from `BASE_URL` only, and answers 400 (DisallowedHost) to ingest at `bugsink:8000` (`bugsink/conf_utils.py`, Bugsink 2.6). The variable replaces the derived list, so the public host stays in it;
   - `MAX_EVENT_AGE_DAYS` (90), `ALERTS_WEBHOOK_DENY_NON_GLOBAL=False`, `SNAPPEA_NUM_WORKERS=1`;
   - gunicorn workers pinned to 1–2 if Bugsink exposes a setting (check its docs; otherwise record the observed count).
 - **`bugsink-pgsql` service:** the Postgres image from Bugsink's official compose sample (`postgres:17-alpine` at research time), `mem_limit: 256m`, a named volume, on a stack-private network only.
@@ -326,7 +339,7 @@ The owner measures halina175 and decides go or no-go. On go, the agent writes th
 - **DNS and Access:** a `docs/bugsink.md` section with an `errors` A record, Proxied, Full (strict), and a Cloudflare Access application for the whole host (One-time PIN, as for `backup.`).
 - **Project:**
   - the project is named `domowy-skarbnik`;
-  - the DSN uses the internal host `http://<key>@bugsink:8000/<project>`;
+  - the DSN uses the internal host `http://<key>@bugsink:8000/<project>`, which `ALLOWED_HOSTS` must list;
   - the webhook targets the app relay URL from Phase 6 over `errors-treasurer`, and is configured in Phase 7.
 - **Upgrade and rollback:** pin the tag, then `up -d`.
 - **Architecture:** `ARCHITECTURE.md` lists the new stack and networks.
@@ -376,7 +389,10 @@ Install and wire `sentry/sentry-laravel` with a private configuration, register 
 - **Privacy:** `send_default_pii` false, `max_request_body_size` `'never'`, no partial `data_collection` array.
 - **Breadcrumbs and tracing:** SQL breadcrumbs without bindings; `traces_sample_rate` and `profiles_sample_rate` null.
 - **Transport:** `http_connect_timeout` 1, `http_timeout` 2.
-- **`before_send`** drops `request.data`, `request.cookies`, `request.headers` and `request.query_string`. It keeps the method and the URL path, and sets tags `route`, `request_id`, `user_id` and `release` from Laravel Context.
+- **`before_send`** is a static callable `[App\Support\ErrorTracking\SentryEventScrubber::class, 'beforeSend']`, never a Closure: a Closure in config breaks `config:cache`, which `deploy.sh:84` runs. It:
+  - drops `request.data`, `request.cookies`, `request.headers` and `request.query_string`, and keeps the method and the URL path;
+  - removes `vars` from every stack frame, so the privacy of arguments does not rest only on `zend.exception_ignore_args`;
+  - sets tags `route`, `request_id`, `user_id` and `release` from Laravel Context.
 
   Check with `search-docs` / the sentry-laravel docs whether 4.31 already attaches Laravel Context, so the tags are not duplicated.
 
@@ -397,7 +413,8 @@ Install and wire `sentry/sentry-laravel` with a private configuration, register 
 **Contract**:
 - The `app` service joins the external network `errors-treasurer`, keeping `treasurer-internal` and `proxy-treasurer`.
 - `.env.prod.example` lists `SENTRY_LARAVEL_DSN=` with a comment pointing to `kostecki-dev-infra/docs/bugsink.md`.
-- After the cache steps, `deploy.sh` runs `artisan sentry:test` when the DSN is set and prints "Check Bugsink and ntfy".
+- After the cache steps, `deploy.sh` runs `artisan sentry:test` when the DSN is set and prints "Check Bugsink".
+- `sentry:test` sends the same exception every time, so Bugsink groups it into one issue. ntfy fires only on its first run or after the issue is resolved. The command builds its own client and skips our `before_send`, so it proves the path, not the privacy settings. The Phase 4 tests prove those.
 - Extend the static file test from Phase 1: compose joins `errors-treasurer` as external.
 
 #### 4. ADR
@@ -419,10 +436,11 @@ Install and wire `sentry/sentry-laravel` with a private configuration, register 
 - **HTTP request:** a POST with a body containing `1234,56` hits a route that throws. Assert that:
   - an `event` envelope has the exception class and the `route`, `request_id`, `user_id` and `release` tags;
   - it has no request body, cookies or query string;
-  - the frames carry no `vars`;
+  - the frames carry no `vars`, with `zend.exception_ignore_args` set to `0` in the test, so the scrubber is what removes them;
   - the body value does not appear anywhere in the payload.
 - **Artisan:** an artisan command that throws sends an event.
-- **Config pin:** a test pins `send_default_pii`, `max_request_body_size`, the timeouts and the absence of `data_collection`.
+- **Queue:** a queued job dispatched from a request throws on the worker. Its event carries the `request_id` dehydrated from the dispatching request.
+- **Config pin:** a test pins `send_default_pii`, `max_request_body_size`, the timeouts and the absence of `data_collection`. It also checks that no value in `config('sentry')` is a Closure.
 
 ### Success Criteria:
 
@@ -611,7 +629,7 @@ Rehearse the year turn against a local Bugsink, then deploy in dependency order 
 
 **Contract**:
 - `infrastructure.md` gets the line proposed at the end of `error-tracking.md`, and the error-tracking open item is marked closed.
-- The README lists the new `.env.prod` keys: `SENTRY_LARAVEL_DSN`, `ERROR_ALERT_SECRET`, `ERROR_ALERT_NTFY_URL`, `LOG_STACK`.
+- The README lists the new `.env.prod` keys: `SENTRY_LARAVEL_DSN`, `ERROR_ALERT_SECRET`, `ERROR_ALERT_NTFY_URL`, `LOG_STACK`, `LOG_LEVEL`.
 - The roadmap status follows the change lifecycle.
 
 #### 3. Production deploy (owner)
@@ -625,9 +643,10 @@ Rehearse the year turn against a local Bugsink, then deploy in dependency order 
    - `ERROR_ALERT_SECRET` (random, at least 32 characters)
    - `ERROR_ALERT_NTFY_URL` (same topic as `BACKUP_ALERT_URL`)
    - `LOG_STACK=daily,stderr`
-3. `development` → `main` release PR and `scripts/deploy.sh`.
+   - `LOG_LEVEL=warning`
+3. `development` → `main` release PR and `scripts/deploy.sh`. Its `sentry:test` creates the test issue before any webhook exists.
 4. In Bugsink, set the project webhook to `http://<app container name>/error-tracking/alerts/<secret>` over `errors-treasurer`.
-5. Rerun `scripts/artisan.sh sentry:test`.
+5. In Bugsink, resolve the `sentry:test` issue, then rerun `scripts/artisan.sh sentry:test`. The regression fires the webhook and proves the ntfy path.
 
 ### Success Criteria:
 
@@ -638,7 +657,7 @@ Rehearse the year turn against a local Bugsink, then deploy in dependency order 
 #### Manual Verification:
 
 - Local rehearsal at 2027-01-01 00:30: `PastMonthPlanRefused`, `ImportWriteRefused` (year 2027) and a guest browser error each appear in the local Bugsink, and each new issue produced one ntfy message
-- Production: `sentry:test` after deploy appears in Bugsink with the deployed short SHA as release, and on ntfy as "Domowy Skarbnik: nowy błąd" with a working link
+- Production: `sentry:test` after deploy appears in Bugsink with the deployed short SHA as release. After resolving its issue, the rerun arrives on ntfy as "Domowy Skarbnik: nowy błąd" with a working link
 - Production: `access-errors` is green in Healthchecks.io
 - Production: a week later, `docker stats --no-stream` shows Bugsink within its limits and the app's memory unchanged
 
@@ -656,7 +675,7 @@ Rehearse the year turn against a local Bugsink, then deploy in dependency order 
 - **Reporting policy:** 5xx outside maintenance, 403 warnings for the owner with a throttle, silence for 4xx, validation and maintenance.
 - **Context and release:** on log entries and on events.
 - **Report-then-refuse:** import rows and pairs, month plan items, and `InvariantViolation` on a type mismatch. Run on PostgreSQL.
-- **Server events:** captured envelopes carry no request data, cookies or frame vars.
+- **Server events:** captured envelopes from HTTP, artisan and the queue carry no request data, cookies or frame vars.
 - **Tunnel:** accepts, rejects, throttles, and works for guests.
 - **Relay:** forwards only the allowed fields, refuses a wrong secret, and reports an ntfy failure.
 
@@ -665,7 +684,7 @@ Rehearse the year turn against a local Bugsink, then deploy in dependency order 
 1. Run the Phase 3 compose locally and point the worktree preview at it.
 2. Trigger a server exception, an `ImportWriteRefused`, an owner 403 and a guest browser error. Inspect each issue in Bugsink for absent body, props and amounts.
 3. Rehearse 2027-01-01 00:30 with `app:rehearsal-clock`.
-4. After the production deploy, check `sentry:test` in Bugsink and on ntfy, and the `access-errors` check.
+4. After the production deploy, check `sentry:test` in Bugsink, resolve its issue and rerun it to check ntfy, and check `access-errors`.
 
 ## Performance Considerations
 
@@ -706,8 +725,8 @@ Rehearse the year turn against a local Bugsink, then deploy in dependency order 
 
 #### Automated
 
-- [ ] 1.1 Policy, context and static config tests pass: `php artisan test --compact tests/Feature/ExceptionReportingPolicyTest.php tests/Feature/RequestContextTest.php tests/Unit/ProductionErrorTrackingConfigTest.php`
-- [ ] 1.2 Full gate passes on PostgreSQL in the worktree (`composer ci:check` via the worktree command in AGENTS.md, database `testing_production_error_tracking`) plus `vendor/bin/sloppy ci`
+- [x] 1.1 Policy, context and static config tests pass: `php artisan test --compact tests/Feature/ExceptionReportingPolicyTest.php tests/Feature/RequestContextTest.php tests/Unit/ProductionErrorTrackingConfigTest.php`
+- [x] 1.2 Full gate passes on PostgreSQL in the worktree (`composer ci:check` via the worktree command in AGENTS.md, database `testing_production_error_tracking`) plus `vendor/bin/sloppy ci`
 
 #### Manual
 
@@ -786,6 +805,6 @@ Rehearse the year turn against a local Bugsink, then deploy in dependency order 
 #### Manual
 
 - [ ] 7.2 Local rehearsal at 2027-01-01 00:30: `PastMonthPlanRefused`, `ImportWriteRefused` (year 2027) and a guest browser error each appear in Bugsink with one ntfy message per new issue
-- [ ] 7.3 Production: `sentry:test` after deploy appears in Bugsink with the deployed short SHA as release and on ntfy with a working link
+- [ ] 7.3 Production: `sentry:test` after deploy appears in Bugsink with the deployed short SHA as release; after resolving its issue, the rerun arrives on ntfy with a working link
 - [ ] 7.4 Production: `access-errors` is green in Healthchecks.io
 - [ ] 7.5 Production: a week later, `docker stats --no-stream` shows Bugsink within its limits and the app's memory unchanged

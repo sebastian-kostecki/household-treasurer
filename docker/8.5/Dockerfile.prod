@@ -151,4 +151,5 @@ ENTRYPOINT ["start-container"]
 # would lose its layer cache. LABEL only changes metadata.
 ARG GIT_REVISION=
 ARG DEPLOYED_AT=
+ENV APP_RELEASE=$GIT_REVISION
 LABEL org.opencontainers.image.revision=$GIT_REVISION household-treasurer.deployed-at=$DEPLOYED_AT
