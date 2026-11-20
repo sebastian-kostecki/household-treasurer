@@ -33,6 +33,7 @@ class BudgetTest extends TestCase
 
     public function test_user_can_create_draft_budget_for_a_year_without_one(): void
     {
+        $this->travelTo('2026-06-15');
         $user = User::factory()->create();
 
         $response = $this->actingAs($user)->post(route('budgets.store'), [
@@ -41,6 +42,8 @@ class BudgetTest extends TestCase
 
         $response
             ->assertSessionHasNoErrors()
+            ->assertSessionHas('budget_year', 2026)
+            ->assertSessionHas('budget_year_chosen_in', 2026)
             ->assertRedirect(route('budget'));
 
         $this->assertDatabaseHas('budgets', [
@@ -336,6 +339,33 @@ class BudgetTest extends TestCase
         $this->assertDatabaseCount('budget_lines', 0);
     }
 
+    public function test_deleting_the_budget_of_the_session_year_forgets_the_choice(): void
+    {
+        $user = User::factory()->create();
+        $budget = Budget::factory()->for($user)->create(['year' => 2026]);
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026, 'budget_year_chosen_in' => 2026])
+            ->delete(route('budgets.destroy', $budget))
+            ->assertSessionHasNoErrors()
+            ->assertSessionMissing('budget_year')
+            ->assertSessionMissing('budget_year_chosen_in');
+    }
+
+    public function test_deleting_the_budget_of_another_year_keeps_the_choice(): void
+    {
+        $user = User::factory()->create();
+        Budget::factory()->for($user)->create(['year' => 2025]);
+        $draft = Budget::factory()->for($user)->create(['year' => 2027]);
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2025, 'budget_year_chosen_in' => 2026])
+            ->delete(route('budgets.destroy', $draft))
+            ->assertSessionHasNoErrors()
+            ->assertSessionHas('budget_year', 2025)
+            ->assertSessionHas('budget_year_chosen_in', 2026);
+    }
+
     public function test_budget_page_lists_categories_for_selected_year(): void
     {
         $user = User::factory()->create();
@@ -383,6 +413,7 @@ class BudgetTest extends TestCase
 
     public function test_user_can_select_budget_year_in_shell(): void
     {
+        $this->travelTo('2026-06-15');
         $user = User::factory()->create();
         Budget::factory()->for($user)->create(['year' => 2025]);
         Budget::factory()->for($user)->create(['year' => 2026]);
@@ -390,6 +421,8 @@ class BudgetTest extends TestCase
         $this->actingAs($user)
             ->post(route('budget.select-year'), ['year' => 2025])
             ->assertSessionHasNoErrors()
+            ->assertSessionHas('budget_year', 2025)
+            ->assertSessionHas('budget_year_chosen_in', 2026)
             ->assertRedirect(route('budget'));
 
         $this->actingAs($user)
