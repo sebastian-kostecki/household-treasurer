@@ -62,7 +62,7 @@ Cztery kamienie milowe powstały w dwa tygodnie, a aplikacja nie przeszła jeszc
 | S-42 | import-across-draft-year        | użytkownik importuje wyciąg z przełomu przy szkicu nowego roku i wie, co zrobić z wierszami nowego roku        | —             | MS-04    | done     |
 | S-43 | years-report-in-early-january   | użytkownik widzi w „Latach” i w roku do roku sensowny odczyt w pierwszych dniach stycznia                     | F-08, S-39    | MS-05    | done     |
 | S-44 | e2e-in-ci                       | użytkownik (właściciel repo) widzi czerwone CI, gdy zmiana psuje przepływ w przeglądarce                       | F-09          | MS-07    | done     |
-| S-45 | production-error-tracking       | użytkownik (właściciel) dostaje zgłoszenie wyjątku z produkcji ze stosem wywołań i kontekstem żądania          | —             | MS-08    | blocked  |
+| S-45 | production-error-tracking       | użytkownik (właściciel) dostaje zgłoszenie wyjątku z produkcji ze stosem wywołań i kontekstem żądania          | —             | MS-08    | ready    |
 | S-46 | docs-match-code                 | użytkownik i agent czytają słownik i ADR bez zdublowanych numerów i terminów, których nie ma w kodzie          | —             | MS-09    | done     |
 | S-47 | mcp-read-only-server            | użytkownik pyta Claude'a o stan budżetu i dopisuje gotówkę z telefonu                                          | F-08          | MS-11    | done |
 | S-48 | production-smoke-tests          | użytkownik (właściciel) sprawdza na produkcji, że wdrożone zmiany M-5 działają na jego prawdziwych danych      | S-47          | MS-12    | ready    |
@@ -75,7 +75,7 @@ Navigation aid — groups items that share a Prerequisites chain. Canonical orde
 | ------ | --------------------- | ------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
 | A      | Przełom roku          | `F-08` → `S-39` → `S-40` · `S-41` · `S-43`; `S-42`       | Przy celu „jakość” najpierw decyzja o dniu; `S-40`, `S-41`, `S-43` idą równolegle po `S-39`, który wprowadza `AppDay` (ADR-0103); `S-42` nie czeka na nic. |
 | B      | Siatka testów         | `F-09` → `S-44`                                         | Odświeżony plan wybiera przepływy-bramki; E2E w CI chroni wdrożenia poprawek strumienia A.                                    |
-| C      | Porządek produkcji    | `S-45` · `S-46`                                         | Dwa samodzielne wycinki; `S-45` czeka na wybór dostawcy, `S-46` może iść od razu.                                             |
+| C      | Porządek produkcji    | `S-45` · `S-46`                                         | Dwa samodzielne wycinki; `S-45` ma dostawcę (Bugsink, `error-tracking.md`), `S-46` może iść od razu.                          |
 | D      | Claude i budżet       | `F-08` → `S-47` → `S-48`                                | Serwer MCP (ADR-0110); po fazie 1 (wspólne czytniki) idzie równolegle z `S-40` i `S-41`; na produkcję przed ok. 15 grudnia 2026; `S-48` zamyka milestone testami na produkcji. |
 
 ## Baseline
@@ -206,10 +206,9 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Prerequisites:** —
 - **Parallel with:** F-08, F-09, S-39, S-40, S-41, S-42, S-43, S-44, S-46
 - **Blockers:** —
-- **Unknowns:**
-  - Który dostawca (usługa zewnętrzna, własny serwer czy e-mail z aplikacji) i za jaką cenę? Nowa zależność wymaga zgody (AGENTS.md). Ścieżka: `/10x-observability-audit` → `/10x-infra-research`. — Owner: user. Block: yes.
-- **Risk:** Bez audytu najpierw tracker złapie tylko wyjątki, które dziś i tak lądują w logu; audyt pokazuje, gdzie kod je połyka. Wdrożony przed przełomem łapie błędy 1 stycznia, a nie tydzień później.
-- **Status:** blocked
+- **Unknowns:** — (rozstrzygnięte 2026-11-20 w `context/foundation/error-tracking.md`: Bugsink na halina175 z własnym Postgresem, SDK Sentry `sentry/sentry-laravel` ^4.31 i `@sentry/vue` ^11, alerty na ntfy tylko z tytułem, klasą wyjątku i linkiem; dane zostają na serwerze, 0 zł. Plan zaczyna od zgody na te zależności i pomiaru RAM na halina175, który decyduje o Bugsinku albo o wariancie bez dostawcy.)
+- **Risk:** Bez audytu najpierw tracker złapie tylko wyjątki, które dziś i tak lądują w logu; audyt pokazuje, gdzie kod je połyka. Wdrożony przed przełomem łapie błędy 1 stycznia, a nie tydzień później. Domyślne ustawienia SDK wysyłają treść żądania i propsy stron z kwotami, więc plan musi je wyłączyć (rejestr ryzyk w `error-tracking.md`).
+- **Status:** ready
 
 ### S-46: Dokumenty zgodne z kodem
 
@@ -260,7 +259,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 | S-42       | import-across-draft-year       | Import: wyciąg z przełomu przy szkicu nowego roku                         | yes                   | Run `/10x-plan import-across-draft-year`                               |
 | S-43       | years-report-in-early-january  | Raporty: „Lata” i rok do roku na początku stycznia                        | yes                   | Run `/10x-plan years-report-in-early-january`; S-39 (`AppDay`) scalone |
 | S-44       | e2e-in-ci                      | CI: testy Playwright na pushu i PR                                        | yes                    | Run `/10x-plan e2e-in-ci`; bramki w test-plan.md (F-09)                                                               |
-| S-45       | production-error-tracking      | Produkcja: śledzenie błędów                                               | no                    | Audyt zrobiony (`context/audits/observability/2026-11-19_import-operations-year-turn-backups.md`); teraz `/10x-infra-research`       |
+| S-45       | production-error-tracking      | Produkcja: śledzenie błędów                                               | yes                   | Run `/10x-plan production-error-tracking`; dostawca: Bugsink (`context/foundation/error-tracking.md`); najpierw zgoda na SDK Sentry i pomiar RAM na halina175 |
 | S-46       | docs-match-code                | Dokumenty: numer ADR 0008 i terminy słownika bez kodu                     | yes                   | Run `/10x-plan docs-match-code`                                        |
 | S-47       | mcp-read-only-server           | Claude i budżet: serwer MCP z odczytem i wpisem gotówki                   | no                    | Zrobione: wdrożone 2026-11-19, archiwum `context/archive/2026-11-19-mcp-read-only-server/` |
 | S-48       | production-smoke-tests         | Produkcja: sprawdzenia zmian M-5 na własnych danych                       | yes                   | Część MCP zrobiona w S-47; zostają S-40, S-41, S-43 (zegar próby na kopii albo żywe daty) |
