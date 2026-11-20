@@ -16,6 +16,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use League\OAuth2\Server\Exception\OAuthServerException;
 use Psr\Log\LogLevel;
+use Sentry\Laravel\Integration;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -84,6 +85,8 @@ return Application::configure(basePath: dirname(__DIR__))
             ->emailOutputOnFailure(config('backup.notifications.mail.to'));
     })
     ->withExceptions(function (Exceptions $exceptions): void {
+        Integration::handles($exceptions);
+
         // Reporting callbacks must be registered above the policy below, and none may stop the
         // chain (`->stop()`), so the log keeps its copy of everything the tracker receives.
 

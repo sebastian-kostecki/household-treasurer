@@ -85,6 +85,17 @@ $COMPOSE exec -T app php artisan config:cache
 $COMPOSE exec -T app php artisan route:cache
 $COMPOSE exec -T app php artisan view:cache
 
+# The deployment is finished here, so an unreachable tracker only warns and never fails it.
+# `sentry:test` sends the same event every time: it proves the path, ntfy fires only for a new issue.
+if grep -Eq '^SENTRY_LARAVEL_DSN=.+' .env.prod; then
+    echo "==> Sending a test event to the error tracker..."
+    if $COMPOSE exec -T app php artisan sentry:test; then
+        echo "==> Check Bugsink: the test event must appear with release ${GIT_REVISION}."
+    else
+        echo "WARNING: sentry:test failed. Check Bugsink and the errors-treasurer network." >&2
+    fi
+fi
+
 production_remove_old_image_tags 3 "$PREVIOUS_PROD_IMAGE_ID"
 
 echo "==> Done. Check https://budget.kostecki.dev/up"

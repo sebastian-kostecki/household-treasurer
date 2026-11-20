@@ -29,6 +29,9 @@ services:
             # Shared only with Traefik (kostecki-dev-infra), no internet; the app reaches the
             # internet (mail) through its own network above.
             - proxy-treasurer
+            # Shared only with Bugsink (kostecki-dev-infra stacks/bugsink): the SDK posts events to
+            # http://<key>@bugsink:8000/1 over it. The infra root compose creates the network.
+            - errors-treasurer
         depends_on:
             pgsql:
                 condition: service_healthy
@@ -81,6 +84,8 @@ networks:
     treasurer-internal:
         driver: bridge
     proxy-treasurer:
+        external: true
+    errors-treasurer:
         external: true
 
 volumes:
