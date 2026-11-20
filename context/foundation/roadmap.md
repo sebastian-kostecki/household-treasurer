@@ -3,7 +3,7 @@ project: 'Household Treasurer'
 version: 5
 status: draft
 created: 2026-11-02
-updated: 2026-11-19
+updated: 2026-11-20
 prd_version: —
 main_goal: quality
 top_blocker: none
@@ -65,7 +65,7 @@ Cztery kamienie milowe powstały w dwa tygodnie, a aplikacja nie przeszła jeszc
 | S-45 | production-error-tracking       | użytkownik (właściciel) dostaje zgłoszenie wyjątku z produkcji ze stosem wywołań i kontekstem żądania          | —             | MS-08    | blocked  |
 | S-46 | docs-match-code                 | użytkownik i agent czytają słownik i ADR bez zdublowanych numerów i terminów, których nie ma w kodzie          | —             | MS-09    | done     |
 | S-47 | mcp-read-only-server            | użytkownik pyta Claude'a o stan budżetu i dopisuje gotówkę z telefonu                                          | F-08          | MS-11    | done |
-| S-48 | production-smoke-tests          | użytkownik (właściciel) sprawdza na produkcji, że wdrożone zmiany M-5 działają na jego prawdziwych danych      | S-47          | MS-12    | proposed |
+| S-48 | production-smoke-tests          | użytkownik (właściciel) sprawdza na produkcji, że wdrożone zmiany M-5 działają na jego prawdziwych danych      | S-47          | MS-12    | planning |
 
 ## Streams
 
@@ -243,10 +243,10 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **PRD refs:** MS-12
 - **Prerequisites:** S-47 wdrożone na produkcję
 - **Parallel with:** —
-- **Blockers:** wdrożenie S-47 (klucze Passport w `.env.prod`, reguły Cloudflare, `scripts/deploy.sh`)
+- **Blockers:** — (S-47 wdrożone 2026-11-19; sprawdzenia konektora z telefonu i claude.ai, wpis gotówki i `MCP_WRITE_ENABLED` potwierdzone na produkcji w planie S-47, kroki 4.4–4.6 i 6.3–6.5)
 - **Unknowns:** dokładny zakres listy sprawdzeń poza S-47 (które z S-40, S-41, S-43 sprawdzać na produkcji i czy na kopii danych, czy na żywych)
 - **Risk:** testy na żywych danych zostawiają ślad w budżecie (wpis gotówkowy z `request_id`); sprawdzenia wykonuje człowiek, bo produkcji dotyka tylko on (`infrastructure.md`, „Approval”)
-- **Status:** proposed
+- **Status:** planning
 
 ## Backlog Handoff
 
@@ -263,7 +263,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 | S-45       | production-error-tracking      | Produkcja: śledzenie błędów                                               | no                    | Audyt zrobiony (`context/audits/observability/2026-11-19_import-operations-year-turn-backups.md`); teraz `/10x-infra-research`       |
 | S-46       | docs-match-code                | Dokumenty: numer ADR 0008 i terminy słownika bez kodu                     | yes                   | Run `/10x-plan docs-match-code`                                        |
 | S-47       | mcp-read-only-server           | Claude i budżet: serwer MCP z odczytem i wpisem gotówki                   | no                    | Zrobione: wdrożone 2026-11-19, archiwum `context/archive/2026-11-19-mcp-read-only-server/` |
-| S-48       | production-smoke-tests         | Produkcja: sprawdzenia zmian M-5 na własnych danych                       | no                    | S-47 wdrożone 2026-11-19; czeka jeszcze na S-40, jeśli ma wejść do listy |
+| S-48       | production-smoke-tests         | Produkcja: sprawdzenia zmian M-5 na własnych danych                       | yes                   | Część MCP zrobiona w S-47; zostają S-40, S-41, S-43 (zegar próby na kopii albo żywe daty) |
 
 This table is the clean handoff to Jira/Linear or any MCP-backed backlog. Include one row for every `F-NN` and `S-NN`. It should be compact enough to copy into issues, but it must not duplicate the detailed roadmap body.
 
