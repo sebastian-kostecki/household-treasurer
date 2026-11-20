@@ -789,8 +789,8 @@ Rehearse the year turn against a local Bugsink, then deploy in dependency order 
 
 #### Automated
 
-- [ ] 6.1 `php artisan test --compact tests/Feature/ErrorAlertRelayTest.php` passes
-- [ ] 6.2 Full gate passes on PostgreSQL plus `vendor/bin/sloppy ci`
+- [x] 6.1 `php artisan test --compact tests/Feature/ErrorAlertRelayTest.php` passes
+- [x] 6.2 Full gate passes on PostgreSQL plus `vendor/bin/sloppy ci`
 
 #### Manual
 

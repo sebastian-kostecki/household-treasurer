@@ -49,6 +49,7 @@ class AppServiceProvider extends ServiceProvider
         $this->configurePassport();
         $this->configureMcpRateLimit();
         $this->configureErrorTunnelRateLimit();
+        $this->configureErrorAlertRateLimit();
     }
 
     /**
@@ -85,6 +86,16 @@ class AppServiceProvider extends ServiceProvider
     {
         RateLimiter::for('error-tunnel', fn (Request $request): Limit => Limit::perMinute(
             (int) config('error-tracking.tunnel.requests_per_minute'),
+        )->by((string) $request->ip()));
+    }
+
+    /**
+     * Bugsink's webhook relay is reachable with a URL secret only; the limiter caps guessing (10 a minute per IP).
+     */
+    protected function configureErrorAlertRateLimit(): void
+    {
+        RateLimiter::for('error-alerts', fn (Request $request): Limit => Limit::perMinute(
+            (int) config('error-tracking.alert_requests_per_minute'),
         )->by((string) $request->ip()));
     }
 
