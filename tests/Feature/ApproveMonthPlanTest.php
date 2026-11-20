@@ -10,6 +10,7 @@ use App\Models\MonthPlan;
 use App\Models\User;
 use App\Support\CategoryRhythms;
 use App\Support\IrregularCollected;
+use App\Support\MonthPlanItemsRefused;
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\UniqueConstraintViolationException;
@@ -151,6 +152,26 @@ class ApproveMonthPlanTest extends TestCase
 
         $this->assertItemsError(fn () => $this->approve($budget, 10, [$food->category_id => 1]));
         $this->assertDatabaseCount('month_plans', 0);
+    }
+
+    public function test_it_reports_the_ids_that_differ_when_the_submitted_items_do_not_match_the_proposal(): void
+    {
+        Exceptions::fake();
+        $budget = Budget::factory()->for(User::factory())->execution()->create(['year' => 2026]);
+        $food = BudgetLine::factory()->for($budget)->expense()->create();
+        $rent = BudgetLine::factory()->for($budget)->expense()->create();
+
+        $this->assertItemsError(fn () => $this->approve($budget, 11, [$food->category_id => 1]));
+
+        Exceptions::assertReported(fn (MonthPlanItemsRefused $refusal): bool => $refusal->context() === [
+            'action' => 'approve',
+            'budget_id' => $budget->id,
+            'budget_year' => 2026,
+            'month' => 11,
+            'missing_budget_line_ids' => [$rent->id],
+            'unexpected_budget_line_ids' => [],
+            'server_today' => '2026-11-10',
+        ]);
     }
 
     public function test_it_rejects_an_invalid_month_number(): void

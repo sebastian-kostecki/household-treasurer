@@ -725,8 +725,8 @@ Rehearse the year turn against a local Bugsink, then deploy in dependency order 
 
 #### Automated
 
-- [x] 1.1 Policy, context and static config tests pass: `php artisan test --compact tests/Feature/ExceptionReportingPolicyTest.php tests/Feature/RequestContextTest.php tests/Unit/ProductionErrorTrackingConfigTest.php`
-- [x] 1.2 Full gate passes on PostgreSQL in the worktree (`composer ci:check` via the worktree command in AGENTS.md, database `testing_production_error_tracking`) plus `vendor/bin/sloppy ci`
+- [x] 1.1 Policy, context and static config tests pass: `php artisan test --compact tests/Feature/ExceptionReportingPolicyTest.php tests/Feature/RequestContextTest.php tests/Unit/ProductionErrorTrackingConfigTest.php` — 5c55184b
+- [x] 1.2 Full gate passes on PostgreSQL in the worktree (`composer ci:check` via the worktree command in AGENTS.md, database `testing_production_error_tracking`) plus `vendor/bin/sloppy ci` — 5c55184b
 
 #### Manual
 
@@ -736,9 +736,9 @@ Rehearse the year turn against a local Bugsink, then deploy in dependency order 
 
 #### Automated
 
-- [ ] 2.1 Touched feature tests pass on PostgreSQL (worktree command, `testing_production_error_tracking`): `CsvImportTest`, `ApproveMonthPlanTest`, `ChangeMonthPlanTest`, `ExpenseTest`, `IncomeTest`
-- [ ] 2.2 `php artisan boost:index-rules` leaves `.ai/rules/index.md` consistent
-- [ ] 2.3 Full gate passes on PostgreSQL plus `vendor/bin/sloppy ci`
+- [x] 2.1 Touched feature tests pass on PostgreSQL (worktree command, `testing_production_error_tracking`): `CsvImportTest`, `ApproveMonthPlanTest`, `ChangeMonthPlanTest`, `ExpenseTest`, `IncomeTest`
+- [x] 2.2 `php artisan boost:index-rules` leaves `.ai/rules/index.md` consistent
+- [x] 2.3 Full gate passes on PostgreSQL plus `vendor/bin/sloppy ci`
 
 #### Manual
 

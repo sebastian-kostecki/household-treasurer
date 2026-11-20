@@ -15,6 +15,7 @@ use App\Support\AppDay;
 use App\Support\CategoryRhythms;
 use App\Support\InvariantViolation;
 use App\Support\IrregularCollected;
+use App\Support\MonthPlanItemsRefused;
 use App\Support\MonthPlanProposal;
 use App\Support\PastMonthPlanRefused;
 use Illuminate\Database\UniqueConstraintViolationException;
@@ -214,6 +215,22 @@ class ChangeMonthPlanTest extends TestCase
         Exceptions::assertReported(fn (PastMonthPlanRefused $refusal): bool => $refusal->context()['action'] === 'change'
             && $refusal->context()['month'] === 5
             && $refusal->context()['server_today'] === '2026-06-15');
+    }
+
+    public function test_it_reports_the_budget_line_ids_the_plan_does_not_allow(): void
+    {
+        Exceptions::fake();
+        $this->approvedPlan(12, [$this->food->id => 100]);
+        $holiday = BudgetLine::factory()->for($this->budget)->expense()->create();
+        $holiday->category->update(['archived_at' => now()]);
+
+        $this->assertItemsError(fn () => $this->change(12, [$this->food->category_id => 5, $holiday->category_id => 10]));
+
+        Exceptions::assertReported(fn (MonthPlanItemsRefused $refusal): bool => $refusal->context()['action'] === 'change'
+            && $refusal->context()['budget_id'] === $this->budget->id
+            && $refusal->context()['month'] === 12
+            && $refusal->context()['unexpected_budget_line_ids'] === [$holiday->id]
+            && $refusal->context()['missing_budget_line_ids'] === []);
     }
 
     public function test_it_rejects_a_month_without_an_approved_plan(): void

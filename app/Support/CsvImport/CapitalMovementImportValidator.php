@@ -7,6 +7,7 @@ use App\Models\TermDeposit;
 use App\Models\User;
 use App\Support\AppDay;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\MessageBag;
 
 class CapitalMovementImportValidator
 {
@@ -21,6 +22,22 @@ class CapitalMovementImportValidator
      * @return array<int, string>
      */
     public function validate(User $user, array $data): array
+    {
+        return $this->check($user, $data)->all();
+    }
+
+    /**
+     * Same checks as validate(), keeping the failed field keys that all() flattens away.
+     *
+     * @param  array{
+     *     account_id: int,
+     *     term_deposit_id: int,
+     *     movement_date: string,
+     *     amount_minor_units: int,
+     *     description: string,
+     * }  $data
+     */
+    public function check(User $user, array $data): MessageBag
     {
         $validator = Validator::make($data, [
             'movement_date' => ['required', 'date', 'before_or_equal:'.AppDay::today()->toDateString()],
@@ -82,6 +99,6 @@ class CapitalMovementImportValidator
             }
         });
 
-        return $validator->errors()->all();
+        return $validator->errors();
     }
 }

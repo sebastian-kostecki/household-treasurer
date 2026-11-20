@@ -32,6 +32,22 @@ class FinancialOperationImportValidator
      */
     public function validate(User $user, string $type, array $data): array
     {
+        return $this->check($user, $type, $data)->all();
+    }
+
+    /**
+     * Same checks as validate(), keeping the failed field keys that all() flattens away.
+     *
+     * @param  array{
+     *     operation_date: string,
+     *     amount_minor_units: int,
+     *     description: string,
+     *     account_id: int,
+     *     category_id: int,
+     * }  $data
+     */
+    public function check(User $user, string $type, array $data): MessageBag
+    {
         $validator = Validator::make($data, $this->rules($user, $type));
 
         $validator->after(function ($validator) use ($user, $type, $data): void {
@@ -42,7 +58,7 @@ class FinancialOperationImportValidator
             $this->checkRow($validator->errors(), $user, $type, $data);
         });
 
-        return $validator->errors()->all();
+        return $validator->errors();
     }
 
     /**
