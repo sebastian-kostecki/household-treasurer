@@ -1,10 +1,10 @@
 ---
 change_id: production-error-tracking
 title: Production error tracking
-status: impl_reviewed
+status: archived
 created: 2026-11-20
 updated: 2026-11-20
-archived_at: null
+archived_at: 2026-11-20T12:52:26Z
 ---
 
 ## Notes
