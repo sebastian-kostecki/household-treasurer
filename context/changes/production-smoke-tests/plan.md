@@ -388,9 +388,9 @@ None: no schema or data change. The copy lives only in the worktree's own databa
 
 #### Automated
 
-- [ ] 2.1 Rehearsal clock is off after cleanup
-- [ ] 2.2 Database preview_production_smoke_tests is dropped
-- [ ] 2.3 storage/app/restore-trial/ holds no snapshot or CSV file
+- [x] 2.1 Rehearsal clock is off after cleanup
+- [x] 2.2 Database preview_production_smoke_tests is dropped
+- [x] 2.3 storage/app/restore-trial/ holds no snapshot or CSV file
 
 #### Manual
 
