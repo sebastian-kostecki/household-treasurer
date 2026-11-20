@@ -17,7 +17,7 @@ Every step and its result go into one `checks.md` file. This change stays open u
 - **MCP part of S-48 already confirmed.** The S-47 plan confirmed it on production on 2026-11-19 (`context/archive/2026-11-19-mcp-read-only-server/plan.md`, rows 4.4–4.6 and 6.3–6.5): connector on claude.ai, Desktop and phone; To Spend equals Dashboard; one cash entry; `MCP_WRITE_ENABLED` switch; "Needs approval".
 - **The rehearsal clock is local only.** Both guards check `isLocal()`:
   - `app:rehearsal-clock` (`app/Console/Commands/RehearsalClockCommand.php:24-28`);
-  - the per-request hook (`app/Support/RehearsalClock.php:127-138`, called from `AppServiceProvider.php:86`).
+  - `RehearsalClock::apply()` (`app/Support/RehearsalClock.php:24-35`, guard at `:26`), called at boot from `AppServiceProvider.php:86`, so in every process. The clock is the file `storage/app/private/rehearsal-clock` of the checkout that serves the app.
   - Since ADR-0103 the browser takes the day from `shell.today` (`app/Support/ShellState.php:45`), so faking the server clock is enough.
   - A clock jump of more than 2 h forward logs the user out (the session lifetime is 120 min).
 - **The 2026-11-18 rehearsal is the template.** `context/archive/2026-11-18-year-turn-rehearsal/rehearsal.md`:
@@ -65,9 +65,10 @@ A checklist first, then the evidence in calendar order.
 
 **Timing & lifecycle.** Phases 4 and 5 are bound to the calendar:
 
-- 1–2.12 for the draft-year card;
+- 3–5.12 for the draft-year card and the December deadline card (the deadline card appears only from day 3, `DashboardNotices.php:241`);
 - 30–31.12 for approving December and starting 2027;
-- 2026 chosen in the year menu before 23:00 UTC on 31.12 (00:00 Polish time);
+- 2026 chosen in the year menu at 23:00–23:59 Polish time on 31.12 (before 23:00 UTC), in a tab that stays open;
+- S2 checked in that same tab by about 01:30 Polish time on 1.01, without logging out. The session year lives only in the session (`SelectedBudgetYear.php:37-45`), and the session expires after 120 min idle. A later check runs in a new session that defaults to 2027 whether or not S-40 works, so its result reads "nie dowodzi (nowa sesja)" and points to C4;
 - 1–2.01 for the rest.
 
 A missed window cannot be repeated on production that year; the step's result then reads "missed" and points to the copy evidence from Phase 2.
@@ -98,14 +99,14 @@ Write `checks.md` with every step, its date or clock, what to look at and the ex
 - **„Sprzątanie”** list.
 - **„Werdykt MS-12”** section, left to fill.
 
-The expected results come from the delivered behaviour of each slice; quote the UI copy from the code, not from the plans:
+The expected results come from the delivered behaviour of each slice; quote the UI copy from the code (`lang/pl/ui.php`, `lang/pl/validation.php`), not from the plans. Several strings are templates (`'Do :day :month'`, `'Dodaj rok :year'`, `'zatwierdź do :date, 23:59'`); `checks.md` gives the rendered text:
 
-- **S-39:** menu, Dashboard and the operation dialog's default date show the same day and year around the Polish midnight; a future date is refused with „Data nie może być w przyszłości.”.
+- **S-39:** menu, Dashboard and the operation dialog's default date show the same day and year around the Polish midnight; a future date is refused with „Data nie może być w przyszłości.”. The Dashboard date includes the weekday („piątek, 1 stycznia 2027 · budżet 2027 w realizacji”).
 - **S-40:** 2026 chosen in the menu during 2026 gives way to 2027 from 00:00 Polish time (23:00 UTC), with no message, in Budget and Month Plan. 2023 chosen for browsing stays.
 - **S-41:**
-  - Dashboard „Wymaga uwagi” card naming the approval deadline („zatwierdź do 31.12, 23:59”);
-  - from 1.12 the draft-year card („Budżet w szkicu · Budżet 2027 · Import nie przyjmie wierszy z 2027”, opens Budget 2027), or the missing-year variant, which opens „Dodaj rok”;
-  - after starting 2027, the „od 1.01” mark in the year menu and „budżet 2027 od 1 stycznia” on the Dashboard.
+  - Dashboard „Wymaga uwagi” card naming the approval deadline („zatwierdź do 31.12, 23:59”), only while December is a proposal and from 3.12 on;
+  - in December the draft-year card („Budżet w szkicu · Budżet 2027 · Import nie przyjmie wierszy z 2027”, opens Budget 2027), or, with no Budget 2027, the „Brak budżetu · Budżet 2027” card, which opens „Dodaj rok 2027”. The missing variant exists only in December; in January there is no card for a missing year;
+  - after starting 2027, the „od 1.01” mark in the year menu and „budżet 2026 w realizacji · budżet 2027 od 1 stycznia” on the Dashboard.
 - **S-42:**
   - with 2027 a draft, the January rows carry the note „Budżet 2027 jest szkicem…” with „Przejdź do Budżetu 2027”, and a ticked January expense, income or refund blocks „Zatwierdź import”; unticking saves December;
   - with 2027 started, December operations land in 2026 Budget lines and January ones in 2027 lines.
@@ -116,12 +117,13 @@ The C-steps follow the clock order below:
 
 | Krok | Zegar (UTC) | Co sprawdzić |
 | --- | --- | --- |
-| C1 | 2026-12-01 09:00 | S-41 draft-year card |
+| C1 | 2026-12-03 09:00 | S-41 draft-year card (opens Budget 2027) and December deadline card |
 | C2 | 2026-12-30 10:00 | approve December, start 2027, „od 1.01”, Dashboard still 2026 |
 | C3 | 2026-12-31 22:30 | relogin after the jump, choose 2026; a second browser session chooses 2023 |
 | C4 | 2026-12-31 23:05 | S-40 switch, S-39 day/year, S-41 3.7, „Lata” and YoY on 1.01 |
 | C5 | 2027-01-02 09:00 | Import 29.12–02.01 with 2027 started |
-| C6 | 2027-01-02 09:00 | after `user:reset-data` + `user:restore`: S-42 draft path and S-41 2.6 |
+| C6 | 2027-01-02 09:00 | after `user:reset-data` + `user:restore`: S-42 draft path and the current-year draft card |
+| C7 | 2026-12-03 09:00 | after `user:reset-data` + `user:restore` and deleting the 2027 draft: „Brak budżetu · Budżet 2027” opens „Dodaj rok 2027” (S-41 2.6) |
 
 The S1 steps mirror the README list „Co sprawdzić 1–2 stycznia”.
 
@@ -152,7 +154,7 @@ The S1 steps mirror the README list „Co sprawdzić 1–2 stycznia”.
 
 - `checks.md` exists with the four step tables and every row has a non-empty „Oczekiwany wynik”: `grep -c '^| [CDGS][0-9]' context/changes/production-smoke-tests/checks.md` is at least 15
 - README no longer says „Lata” counts each year „do 1.01”: `grep -n 'liczony „do 1.01”' README.md` returns nothing
-- Every UI string quoted in `checks.md` exists in `app/` or `resources/js/` (checked one by one with `grep -rn`)
+- Every UI string quoted in `checks.md` exists in `lang/pl/`, `app/` or `resources/js/`, a templated one as its template (checked one by one with `grep -rn`)
 
 #### Manual Verification:
 
@@ -182,7 +184,7 @@ Replay December and the year turn on a fresh copy of the owner's production data
 2. The owner also supplies a fresh mBank CSV export from an account that exists in the restored data. The agent shifts its dates to 29.12.2026–02.01.2027.
 3. The agent creates `preview_production_smoke_tests`, migrates it, runs `user:create` for a rehearsal user and `user:restore --force`, and serves the worktree per `worktree-preview.md`. Before C1 the agent proves which database answers.
 
-#### 2. Clock steps C1–C6
+#### 2. Clock steps C1–C7
 
 **File**: `context/changes/production-smoke-tests/checks.md` (C-table „Wynik” column)
 
@@ -194,6 +196,7 @@ Replay December and the year turn on a fresh copy of the owner's production data
 - Log in again after every jump of more than 2 h.
 - C3 must choose 2026 before the clock passes 23:00 UTC.
 - C6 starts from `user:reset-data` + `user:restore` of the same snapshot.
+- C7 sets the clock back to 2026-12-03 09:00 (the command limits only against the real now), runs `user:reset-data` + `user:restore` again, and deletes the 2027 draft on the copy (`BudgetPolicy::delete` allows drafts).
 - A failure is written as "nie" with what was seen instead. It stops the phase only if a later step depends on it.
 
 #### 3. Cleanup
@@ -215,13 +218,13 @@ Replay December and the year turn on a fresh copy of the owner's production data
 
 #### Automated Verification:
 
-- After cleanup the clock is off: `php artisan app:rehearsal-clock` prints „zegar próby wyłączony”
+- After cleanup the clock is off: `artisan app:rehearsal-clock` run in the `sail-8.5/app` image (the `docker run` command from AGENTS.md "Commands", worktree mounted) prints „zegar próby wyłączony”
 - The preview database is gone: `docker exec household-treasurer-pgsql-1 psql -U sail -d postgres -tc "select 1 from pg_database where datname='preview_production_smoke_tests'"` returns nothing
 - `storage/app/restore-trial/` holds no snapshot or CSV file
 
 #### Manual Verification:
 
-- Every C-step has a result. S-40 2.9 and 2.10 are confirmed at C3–C4, and S-41 2.6 and 3.7 at C4 and C6.
+- Every C-step has a result. S-40 2.9 and 2.10 are confirmed at C3–C4, S-41 2.6 at C1 and C7, and S-41 3.7 at C4.
 - Every failure has a fix change opened, and its id is written in `checks.md`
 - The owner confirms the snapshot is deleted from the VPS
 
@@ -246,8 +249,8 @@ Confirm that production runs the M-5 code and that its read paths still agree.
 **Contract**:
 
 - **D1** (agent): `curl -I https://budget.kostecki.dev/up` returns 200.
-- **D2** (owner): records the commit `deploy.sh` deployed; it must contain `f48b8363` (S-40).
-- **D3** (owner): the Dashboard shows today's date and „budżet 2026 w realizacji”; the login screen shows the same day.
+- **D2** (owner): records the commit `deploy.sh` deployed (`git rev-parse --short HEAD` on the VPS); it must contain `f48b8363` (S-40): `git merge-base --is-ancestor f48b8363 HEAD && echo ok`.
+- **D3** (owner): the Dashboard shows today's date with the weekday and „budżet 2026 w realizacji”; the login screen shows „Rok budżetu”, „2026 · <%>” and November as the current month bar (it shows no day).
 - **D4** (owner): the claude.ai connector, asked for To Spend, answers the Dashboard's value for the same `app_day`.
 - **D5** (owner): the year menu shows 2026 as current with no „od 1.01” mark; „Lata” opens on „Do <today>”.
 
@@ -263,7 +266,7 @@ Repeat D1, D3 and D4 after any later deploy before 31.12, as extra rows `D1b`…
 
 - D2–D5 recorded in `checks.md` with the deploy date
 
-**Implementation Note**: Pause until 1 December.
+**Implementation Note**: Pause until 3 December.
 
 ---
 
@@ -283,16 +286,16 @@ The owner checks the S-41 notices and prepares the S-40 live check on the real d
 
 **Contract**:
 
-- **G1** (1–2.12): the draft-year card for 2027 is present and opens Budget 2027. If December is unapproved, the December card names „zatwierdź do 31.12, 23:59”.
-- **G2** (30–31.12): approve December (the December card disappears). Start 2027. The year menu shows the „od 1.01” mark, the Dashboard says „budżet 2027 od 1 stycznia” and still reads 2026, and the draft-year card is gone.
-- **G3** (31.12, before 00:00 Polish time): choose 2026 in the year menu, open Budget, and do not approve January.
+- **G1** (3–5.12): the draft-year card for 2027 is present and opens Budget 2027. If December is unapproved, the December card names „zatwierdź do 31.12, 23:59”.
+- **G2** (30–31.12): approve December (the December card disappears). Start 2027. The year menu shows the „od 1.01” mark, the Dashboard says „budżet 2026 w realizacji · budżet 2027 od 1 stycznia”, and the draft-year card is gone.
+- **G3** (31.12, 23:00–23:59 Polish time): choose 2026 in the year menu, open Budget, and do not approve January. Leave the tab open and record the time of the choice.
 
 ### Success Criteria:
 
 #### Manual Verification:
 
 - G1–G3 recorded in `checks.md` with their dates
-- 2026 is chosen in the session before 23:00 UTC on 31.12
+- 2026 is chosen in the session at 23:00–23:59 Polish time on 31.12, with the time recorded
 
 **Implementation Note**: Pause until 1 January.
 
@@ -314,8 +317,8 @@ The owner checks the year turn on live data, and the agent writes the MS-12 verd
 
 **Contract**:
 
-- **S1** (1.01, from 00:00 Polish time if awake, otherwise first thing in the morning): the menu, the Dashboard („1 stycznia 2027 · budżet 2027 w realizacji”) and the operation dialog's default date agree on 1 January 2027.
-- **S2**: in the session from G3, Budget and Month Plan open on 2027 with no message.
+- **S1** (1.01, from 00:00 Polish time if awake, otherwise first thing in the morning): the menu, the Dashboard („piątek, 1 stycznia 2027 · budżet 2027 w realizacji”) and the operation dialog's default date agree on 1 January 2027.
+- **S2** (1.01, 00:00 to about 01:30 Polish time, in the G3 tab without logging out): Budget and Month Plan open on 2027 with no message. Record the time. If it is checked later or after a new login, the result reads "nie dowodzi (nowa sesja)" and points to C4.
 - **S3**:
   - „Lata” opens on „Pełne lata” with 2027 „w toku”; the Category Panel's „Lata” tab does the same;
   - year-over-year shows 1.01.2027 against 1.01.2026;
@@ -341,9 +344,9 @@ No new automated tests. The behaviour of S-39–S-43 is already covered by their
 
 ### Manual Testing Steps:
 
-1. Phase 2: C1–C6 on the copy with the rehearsal clock, in clock order.
+1. Phase 2: C1–C6 on the copy with the rehearsal clock, in clock order, then C7 with the clock set back.
 2. Phase 3: D1–D5 after the deploy, repeated after any later deploy.
-3. Phase 4: G1 on 1–2.12, G2–G3 on 30–31.12.
+3. Phase 4: G1 on 3–5.12, G2–G3 on 30–31.12.
 4. Phase 5: S1–S4 on 1–2.01, then the verdict.
 
 ## Migration Notes
@@ -375,7 +378,7 @@ None: no schema or data change. The copy lives only in the worktree's own databa
 
 - [ ] 1.1 checks.md has four step tables with at least 15 rows, each with an expected result
 - [ ] 1.2 README no longer says „Lata” counts each year „do 1.01”
-- [ ] 1.3 Every UI string quoted in checks.md exists in app/ or resources/js/
+- [ ] 1.3 Every UI string quoted in checks.md exists in lang/pl/, app/ or resources/js/
 
 #### Manual
 
@@ -391,7 +394,7 @@ None: no schema or data change. The copy lives only in the worktree's own databa
 
 #### Manual
 
-- [ ] 2.4 Every C-step has a result; S-40 2.9/2.10 and S-41 2.6/3.7 covered
+- [ ] 2.4 Every C-step has a result; S-40 2.9/2.10 (C3–C4), S-41 2.6 (C1, C7) and 3.7 (C4) covered
 - [ ] 2.5 Every failure has a fix change id in checks.md
 - [ ] 2.6 The owner confirms the snapshot is deleted from the VPS
 
@@ -410,7 +413,7 @@ None: no schema or data change. The copy lives only in the worktree's own databa
 #### Manual
 
 - [ ] 4.1 G1–G3 recorded in checks.md with their dates
-- [ ] 4.2 2026 chosen in the session before 23:00 UTC on 31.12
+- [ ] 4.2 2026 chosen in the session at 23:00–23:59 Polish time on 31.12
 
 ### Phase 5: Production on 1–2 January 2027
 

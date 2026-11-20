@@ -1,7 +1,7 @@
 ---
 change_id: production-smoke-tests
 title: Production smoke tests
-status: planned
+status: plan_reviewed
 created: 2026-11-20
 updated: 2026-11-20
 archived_at: null

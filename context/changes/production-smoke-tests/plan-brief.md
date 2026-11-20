@@ -6,7 +6,7 @@
 
 After the M-5 deploy, the owner checks on production, on his own data, that the M-5 changes work, and records the result (roadmap S-48, MS-12). The M-5 changes are the year-turn fixes S-39–S-43 and the MCP server.
 
-The year-turn changes show only on certain days (1.12, 30–31.12, 1–2.01), and the rehearsal clock refuses to run outside `local`. So the checks are spread over time and start with a rehearsal on a copy, while a fix can still ship before 31.12.
+The year-turn changes show only on certain days (3.12, 30–31.12, 1–2.01), and the rehearsal clock refuses to run outside `local`. So the checks are spread over time and start with a rehearsal on a copy, while a fix can still ship before 31.12.
 
 ## Starting Point
 
@@ -65,10 +65,10 @@ Only the owner touches production (`infrastructure.md:96`); the agent only calls
 | Phase | What it delivers | Key risk |
 | --- | --- | --- |
 | 1. Checklist and README | `checks.md` with C/D/G/S steps and expected results; README and roadmap aligned | An expected result copied from a plan instead of the code |
-| 2. Rehearsal on a copy (November) | C1–C6 on the owner's data with the clock; archived clock rows closed; cleanup incl. VPS snapshot | Choosing 2026 after 23:00 UTC hides the S-40 switch; production data left behind |
+| 2. Rehearsal on a copy (November) | C1–C7 on the owner's data with the clock; archived clock rows closed; cleanup incl. VPS snapshot | Choosing 2026 after 23:00 UTC hides the S-40 switch; production data left behind |
 | 3. Production after deploy | `/up`, the deployed commit includes S-40, Dashboard and connector agree | The deploy may not have happened yet; Phase 3 waits for it |
-| 4. Production in December | Draft-year card, December approved, 2027 started with „od 1.01”, 2026 chosen before midnight | A missed window cannot be repeated on production this year |
-| 5. Production on 1–2 January | Day/year, session year, „Pełne lata”, YoY, Import across the turn, MS-12 verdict | A failure on 1.01 is found after December can no longer be approved |
+| 4. Production in December | Draft-year card and deadline card from 3.12, December approved, 2027 started with „od 1.01”, 2026 chosen before midnight | A missed window cannot be repeated on production this year |
+| 5. Production on 1–2 January | Day/year, session year (checked by 01:30 in the G3 tab), „Pełne lata”, YoY, Import across the turn, MS-12 verdict | A failure on 1.01 is found after December can no longer be approved |
 
 **Prerequisites:**
 
@@ -78,7 +78,7 @@ Only the owner touches production (`infrastructure.md:96`); the agent only calls
 **Estimated effort:**
 
 - about one session for Phases 1–2;
-- about 10–20 minutes of the owner's time on each of 1.12, 30–31.12 and 1–2.01;
+- about 10–20 minutes of the owner's time on each of 3.12, 30–31.12 and 1–2.01 (and about 00:00–01:30 on 1.01 for S2);
 - the change stays open until 2 January 2027.
 
 ## Open Risks & Assumptions
