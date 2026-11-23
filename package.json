@@ -17,7 +17,7 @@
         "@inertiajs/vite": "^3.11.0",
         "@inertiajs/vue3": "^3.11.0",
         "@laravel/passkeys": "^0.4.1",
-        "@lucide/vue": "^1.72.0",
+        "@lucide/vue": "^1.75.0",
         "@sentry/vue": "^11",
         "@unovis/ts": "1.8.1",
         "@unovis/vue": "1.8.1",
