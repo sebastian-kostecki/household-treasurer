@@ -5,8 +5,8 @@
 **Household Treasurer — a yearly household budget with plan vs actual, liquidity across accounts and term deposits, and bank statement import.**
 
 [![Live](https://img.shields.io/website?url=https%3A%2F%2Fbudget.kostecki.dev%2Fup&style=for-the-badge&label=budget.kostecki.dev&up_message=online&down_message=offline)](https://budget.kostecki.dev)
-[![Release](https://img.shields.io/github/v/release/sebastian-kostecki/household-treasurer?style=for-the-badge&logo=github)](../../releases/latest)
-[![CI](https://img.shields.io/github/actions/workflow/status/sebastian-kostecki/household-treasurer/tests.yml?branch=main&style=for-the-badge&label=CI&logo=githubactions&logoColor=white)](../../actions/workflows/tests.yml)
+[![Release](https://img.shields.io/github/v/release/sebastian-kostecki/household-treasurer?style=for-the-badge&logo=github)](https://github.com/sebastian-kostecki/household-treasurer/releases/latest)
+[![CI](https://img.shields.io/github/actions/workflow/status/sebastian-kostecki/household-treasurer/tests.yml?branch=main&style=for-the-badge&label=CI&logo=githubactions&logoColor=white)](https://github.com/sebastian-kostecki/household-treasurer/actions/workflows/tests.yml)
 [![Changelog](https://img.shields.io/badge/Changelog-Keep_a_Changelog-E05735?style=for-the-badge)](CHANGELOG.md)
 
 [![PHP 8.5](https://img.shields.io/badge/PHP_8.5-777BB4?style=for-the-badge&logo=php&logoColor=white)](https://www.php.net/)
@@ -18,7 +18,7 @@
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
 [![MCP](https://img.shields.io/badge/MCP_server-191919?style=for-the-badge&logo=anthropic&logoColor=white)](#mcp-server-for-claude)
 
-[Live app](https://budget.kostecki.dev) · [Changelog](CHANGELOG.md) · [Operations runbook](context/foundation/operations.md) · [Report a bug](../../issues/new)
+[Live app](https://budget.kostecki.dev) · [Changelog](CHANGELOG.md) · [Operations runbook](context/foundation/operations.md) · [Report a bug](https://github.com/sebastian-kostecki/household-treasurer/issues/new)
 
 **English** · [Polski](README.pl.md)
 

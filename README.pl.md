@@ -5,8 +5,8 @@
 **Roczny budżet domowy: plan kontra wykonanie, płynność na kontach i lokatach oraz import wyciągów bankowych.**
 
 [![Live](https://img.shields.io/website?url=https%3A%2F%2Fbudget.kostecki.dev%2Fup&style=for-the-badge&label=budget.kostecki.dev&up_message=online&down_message=offline)](https://budget.kostecki.dev)
-[![Release](https://img.shields.io/github/v/release/sebastian-kostecki/household-treasurer?style=for-the-badge&logo=github)](../../releases/latest)
-[![CI](https://img.shields.io/github/actions/workflow/status/sebastian-kostecki/household-treasurer/tests.yml?branch=main&style=for-the-badge&label=CI&logo=githubactions&logoColor=white)](../../actions/workflows/tests.yml)
+[![Release](https://img.shields.io/github/v/release/sebastian-kostecki/household-treasurer?style=for-the-badge&logo=github)](https://github.com/sebastian-kostecki/household-treasurer/releases/latest)
+[![CI](https://img.shields.io/github/actions/workflow/status/sebastian-kostecki/household-treasurer/tests.yml?branch=main&style=for-the-badge&label=CI&logo=githubactions&logoColor=white)](https://github.com/sebastian-kostecki/household-treasurer/actions/workflows/tests.yml)
 [![Changelog](https://img.shields.io/badge/Changelog-Keep_a_Changelog-E05735?style=for-the-badge)](CHANGELOG.md)
 
 [![PHP 8.5](https://img.shields.io/badge/PHP_8.5-777BB4?style=for-the-badge&logo=php&logoColor=white)](https://www.php.net/)
@@ -18,7 +18,7 @@
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
 [![MCP](https://img.shields.io/badge/Serwer_MCP-191919?style=for-the-badge&logo=anthropic&logoColor=white)](#serwer-mcp-dla-claude)
 
-[Aplikacja](https://budget.kostecki.dev) · [Changelog](CHANGELOG.md) · [Runbook produkcji](context/foundation/operations.md) · [Zgłoś błąd](../../issues/new)
+[Aplikacja](https://budget.kostecki.dev) · [Changelog](CHANGELOG.md) · [Runbook produkcji](context/foundation/operations.md) · [Zgłoś błąd](https://github.com/sebastian-kostecki/household-treasurer/issues/new)
 
 [English](README.md) · **Polski**
 
