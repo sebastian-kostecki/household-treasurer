@@ -15,7 +15,7 @@ Single-user household budget and liquidity tracker: Laravel 13, Inertia 3, Vue 3
 
 ## Commands
 
-Setup and everyday commands: `README.md` ("Uruchomienie", "Testy i jakość"). Run them through Sail; say so in your report if you used the host CLI.
+Setup and everyday commands: `README.md` ("Getting started", "Testing and quality"; Polish version `README.pl.md`). Production deployment, backups and rollback: `context/foundation/operations.md`. Run commands through Sail; say so in your report if you used the host CLI.
 
 - Gate: `composer ci:check` (steps in `composer.json` → `scripts`) plus `vendor/bin/sloppy ci` on the host (CI runs it as its own step). After PHP changes: `vendor/bin/pint --dirty --format agent`.
 - PostgreSQL tests, main checkout: `docker compose exec -u sail -e DB_CONNECTION=pgsql -e DB_HOST=pgsql -e DB_DATABASE=testing laravel.test php artisan test --compact <path>`

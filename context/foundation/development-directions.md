@@ -66,7 +66,7 @@ Kolejność to rekomendacja agenta. Wiersze 1–6 to terminy i zabezpieczenia; z
 
 | #   | Co                                               | Po co                                                                                      | Koszt            | Status  |
 | --- | ------------------------------------------------ | ------------------------------------------------------------------------------------------ | ---------------- | ------- |
-| 1   | Próba przełomu roku 2026→2027 na kopii produkcji | pierwszy przełom na prawdziwych danych: szkic 2027 w wykonanie, „zebrane” na nowy rok, plan stycznia z grudnia; termin 31 grudnia | mały             | zrobione (year-turn-rehearsal); procedura w README „Przełom roku” |
+| 1   | Próba przełomu roku 2026→2027 na kopii produkcji | pierwszy przełom na prawdziwych danych: szkic 2027 w wykonanie, „zebrane” na nowy rok, plan stycznia z grudnia; termin 31 grudnia | mały             | zrobione (year-turn-rehearsal); procedura „Przełom roku” w [operations.md](operations.md) |
 | 2   | Odświeżenie planu testów                         | plan z 6 listopada nie odpowiada stanowi repo                                              | mały             | w roadmapie (M-5, F-09) |
 | 3   | E2E w CI                                         | testy istnieją, CI ich nie uruchamia                                                       | mały             | w roadmapie (M-5, S-44) |
 | 4   | Śledzenie błędów na produkcji                    | dziś tylko log plikowy                                                                     | mały do średniego | w roadmapie (M-5, S-45) |
@@ -81,7 +81,7 @@ Kolejność to rekomendacja agenta. Wiersze 1–6 to terminy i zabezpieczenia; z
 | 13  | Oprocentowanie lokat                             | stopa na lokacie, prognoza odsetek, kalendarz zapadalności                                 | mały             | otwarte |
 | 14  | Kreator końca miesiąca                           | uzgodnij salda → Import → podsumowanie → plan następnego; klocki istnieją, brakuje ścieżki  | mały             | otwarte |
 | 15  | Tygodniowy e-mail                                | „do wydania”, tempo, rachunki czekające                                                    | mały             | otwarte |
-| 16  | Approving January while it is still December     | `StartBudgetExecution` has no date guard, so January of the new year can be approved on 30–31 December and reads incomplete fixed charges; today only the README „Przełom roku” warns (candidate from year-turn-notices, ADR-0109) | mały             | otwarte |
+| 16  | Approving January while it is still December     | `StartBudgetExecution` has no date guard, so January of the new year can be approved on 30–31 December and reads incomplete fixed charges; today only „Przełom roku” in [operations.md](operations.md) warns (candidate from year-turn-notices, ADR-0109) | mały             | otwarte |
 
 Luki potwierdzone w próbie przełomu (kandydaci na osobne zmiany, szczegóły w `context/archive/2026-11-18-year-turn-rehearsal/rehearsal.md`): menu roku i domyślne daty dialogów używają czasu przeglądarki (1 stycznia 00:00–01:00 PL), rok w sesji zostaje 2026 po przełomie, Raport „Lata” liczy 1 stycznia tylko jeden dzień poprzednich lat, Import przy szkicu roku nie mówi, że trzeba uruchomić jego Budżet. Status: w roadmapie (M-5, F-08 i S-39…S-43).
 

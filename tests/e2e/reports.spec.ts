@@ -8,7 +8,7 @@
 // need rows create their own operations and a group and delete them at the end
 // through the UI, also when an assertion fails.
 // The year-over-year test and the „Lata” test need the mock of the previous
-// year in the E2E database (`demo:seed-previous-year`, see README, section
+// year in the E2E database (`demo:seed-previous-year`, see README.pl.md, section
 // „Uruchomienie”): the UI creates only a draft of the next year, so the tests
 // do not create a Budget in progress themselves.
 import { test, expect, type Locator, type Page } from '@playwright/test';

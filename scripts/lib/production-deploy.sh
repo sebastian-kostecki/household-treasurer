@@ -44,7 +44,7 @@ production_user_ids() {
 # mode. Each assignment from a command substitution stands on its own line, so a failing
 # `docker compose` or psql stops the deployment (set -e) instead of reading as empty.
 # Only an absent app container counts as a first deployment; a stopped one stops the
-# deployment unless DEPLOY_WITHOUT_USER_SNAPSHOTS=1 (README, "Wdrożenie").
+# deployment unless DEPLOY_WITHOUT_USER_SNAPSHOTS=1 (context/foundation/operations.md, "Wdrożenie i przywracanie").
 # Sets MAINTENANCE_STARTED=1 when it put the application in maintenance mode.
 production_prepare_running_instance() {
     local running_app any_app user_ids user_id snapshot_count=0
@@ -110,6 +110,6 @@ production_report_failure() {
 
     if [[ ${status} -ne 0 && "${MAINTENANCE_STARTED:-0}" == "1" ]]; then
         echo "ERROR: Deployment failed. The application STAYS in maintenance mode." >&2
-        echo "Do not run scripts/deploy.sh again before reading README.md → \"Wdrożenie i przywracanie\" (rollback of S-18)." >&2
+        echo "Do not run scripts/deploy.sh again before reading context/foundation/operations.md → \"Wdrożenie i przywracanie\" (rollback of S-18)." >&2
     fi
 }

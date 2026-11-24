@@ -122,7 +122,7 @@ if [[ -n "${UNKNOWN_MIGRATIONS}" ]]; then
     printf '  %s\n' ${UNKNOWN_MIGRATIONS} >&2
     echo "Roll them back first, with the code that has them (still running now):" >&2
     echo "  scripts/artisan.sh migrate:rollback --force" >&2
-    echo "Check in its output that exactly the migrations above were rolled back (order: README.md, \"Wdrożenie i przywracanie\"), then run this script again." >&2
+    echo "Check in its output that exactly the migrations above were rolled back (order: context/foundation/operations.md, \"Wdrożenie i przywracanie\"), then run this script again." >&2
     exit 1
 fi
 

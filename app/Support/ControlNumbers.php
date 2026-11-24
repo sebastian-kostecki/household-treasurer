@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Schema;
 
 /**
  * Control numbers that `scripts/deploy.sh` compares before and after a data migration
- * (ADR-0064, PRD v3 "Migracja danych", README "Liczby kontrolne").
+ * (ADR-0064, PRD v3 "Migracja danych", context/foundation/operations.md "Liczby kontrolne").
  *
  * The reading uses the query builder only and works on both shapes of the schema: before
  * S-18 the yearly record is `categories` (`financial_operations.category_id`), after it
