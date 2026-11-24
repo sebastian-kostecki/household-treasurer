@@ -31,7 +31,7 @@ use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
 /**
- * The turn of 2026 into 2027 as one scenario, read together with the README section "Przełom roku".
+ * The turn of 2026 into 2027 as one scenario, read together with the "Przełom roku" section of context/foundation/operations.md.
  * Nothing happens by itself at midnight: the year changes at midnight in Poland (ADR-0103), and two gates are
  * opened by hand (approving the Month Plan, starting the Budget execution).
  */
@@ -203,7 +203,7 @@ class YearTurnTest extends TestCase
     }
 
     /**
-     * A known trap, not a product expectation: the README warns against it. January never waits
+     * A known trap, not a product expectation: the year-turn runbook (context/foundation/operations.md) warns against it. January never waits
      * for December, so once 2027 runs it can be approved in December and its Fixed Charges then
      * read the December payments that have not arrived yet.
      */
