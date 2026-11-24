@@ -64,13 +64,13 @@ The interface is in Polish and the currency is PLN. Accounts are created by an a
 
 ## Tech stack
 
-| Layer | Technology |
-| --- | --- |
-| Backend | PHP 8.5 (code stays compatible with 8.4.1), Laravel 13, Fortify, Passport (OAuth for MCP), Laravel MCP |
-| Frontend | Vue 3, TypeScript, Inertia 3, Tailwind CSS 4, shadcn-vue, Wayfinder, Vite+ (`vp`) |
-| Database | PostgreSQL in CI and production; SQLite only as the default for quick local tests |
-| Quality | Pest 5, Larastan, Laravel Pint, [Sloppy](https://github.com/heyosseus/sloppy), Vitest, Playwright E2E gates |
-| Operations | Docker Compose on a VPS behind Traefik, Spatie Laravel Backup, self-hosted Bugsink for errors |
+| Layer      | Technology                                                                                                  |
+| ---------- | ----------------------------------------------------------------------------------------------------------- |
+| Backend    | PHP 8.5 (code stays compatible with 8.4.1), Laravel 13, Fortify, Passport (OAuth for MCP), Laravel MCP      |
+| Frontend   | Vue 3, TypeScript, Inertia 3, Tailwind CSS 4, shadcn-vue, Wayfinder, Vite+ (`vp`)                           |
+| Database   | PostgreSQL in CI and production; SQLite only as the default for quick local tests                           |
+| Quality    | Pest 5, Larastan, Laravel Pint, [Sloppy](https://github.com/heyosseus/sloppy), Vitest, Playwright E2E gates |
+| Operations | Docker Compose on a VPS behind Traefik, Spatie Laravel Backup, self-hosted Bugsink for errors               |
 
 Decisions behind the stack: [`context/foundation/tech-stack.md`](context/foundation/tech-stack.md) and the [ADRs](context/foundation/adr/).
 
@@ -153,19 +153,19 @@ CI also runs [Sloppy](https://github.com/heyosseus/sloppy) (`vendor/bin/sloppy c
 
 ## Admin commands
 
-| Command | What it does |
-| --- | --- |
-| `user:create` | Creates a login account |
-| `user:backup {user}` | JSON snapshot of the user's domain data (version 13) |
-| `user:restore {user} {path}` | Restores a snapshot onto an existing user |
-| `user:reset-data {user}` | Clears the domain data; the login account stays |
-| `demo:seed-household {user}` | Demo data |
-| `demo:seed-previous-year {user}` | Previous-year mock derived from the current year (local only; `--remove` deletes it) |
-| `backup:restore {path}` | Restores a whole-instance (Spatie) backup, not `user:restore`; see [Wdrożenie i przywracanie](context/foundation/operations.md#wdrożenie-i-przywracanie) |
-| `app:control-numbers` | Control numbers (`--output` saves, `--compare` compares); see [Liczby kontrolne](context/foundation/operations.md#liczby-kontrolne) |
-| `app:rehearsal-clock {moment?}` | Rehearsal clock (local only): sets the app's "today"; `--off` turns it off; see [Przełom roku](context/foundation/operations.md#przełom-roku) |
-| `budget:load-sheet {user} {path}` | Loads a year from the old spreadsheet (`--dry-run` previews); see [Wczytanie arkusza](context/foundation/operations.md#wczytanie-arkusza-lata-20192025) |
-| `budget:unload-sheet {user} {year}` | Removes a loaded year; see [Wczytanie arkusza](context/foundation/operations.md#wczytanie-arkusza-lata-20192025) |
+| Command                             | What it does                                                                                                                                                  |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `user:create`                       | Creates a login account                                                                                                                                       |
+| `user:backup {user}`                | JSON snapshot of the user's domain data (version 13)                                                                                                          |
+| `user:restore {user} {path}`        | Restores a snapshot onto an existing user                                                                                                                     |
+| `user:reset-data {user}`            | Clears the domain data; the login account stays                                                                                                               |
+| `demo:seed-household {user}`        | Demo data                                                                                                                                                     |
+| `demo:seed-previous-year {user}`    | Previous-year mock derived from the current year (local only; `--remove` deletes it)                                                                          |
+| `backup:restore {path}`             | Restores a whole-instance (Spatie) backup, not `user:restore`; see [Wdrożenie i przywracanie](context/foundation/operations.md#wdrożenie-i-przywracanie)      |
+| `app:control-numbers`               | Control numbers (`--output` saves, `--compare` compares); see [Liczby kontrolne](context/foundation/operations.md#liczby-kontrolne)                           |
+| `app:rehearsal-clock {moment?}`     | Rehearsal clock (local only): sets the app's "today"; `--off` turns it off; see [Przełom roku](context/foundation/operations.md#przełom-roku)                 |
+| `budget:load-sheet {user} {path}`   | Loads a year from the old spreadsheet (`--dry-run` previews); see [Wczytanie arkusza](context/foundation/operations.md#wczytanie-arkusza-lata-20192025)       |
+| `budget:unload-sheet {user} {year}` | Removes a loaded year; see [Wczytanie arkusza](context/foundation/operations.md#wczytanie-arkusza-lata-20192025)                                              |
 | `import:suggestion-accuracy {user}` | Accuracy of import suggestions (read-only); see [Pomiar trafności podpowiedzi Importu](context/foundation/operations.md#pomiar-trafności-podpowiedzi-importu) |
 
 `{user}` is an e-mail address or an ID. Snapshots land in `storage/app/private/user-snapshots/`.
@@ -198,18 +198,18 @@ The full runbook (in Polish) — deployment steps, rollback, restore, migration 
 
 The project follows the 10x convention: `context/foundation/` holds living documents, `context/changes/` the changes in progress and `context/archive/` the closed ones.
 
-| Document | What it is for |
-| --- | --- |
-| [`glossary.md`](context/foundation/glossary.md) | Domain glossary (the language of the code and the agents) |
-| [`prd-mvp.md`](context/foundation/prd-mvp.md), [`mvp.md`](context/foundation/mvp.md) | Product requirements and the short MVP scope |
-| [`prd.md`](context/foundation/prd.md), `prd-v2.md` | PRDs of later changes (month plan, reports) |
-| [`roadmap.md`](context/foundation/roadmap.md) | Roadmap |
-| [`tech-stack.md`](context/foundation/tech-stack.md) | Technology decisions |
-| [`adr/`](context/foundation/adr/) | Architecture decision records |
-| [`design-system.md`](context/foundation/design-system.md) | Design system (Atrament): tokens, surfaces, typography |
-| [`test-plan.md`](context/foundation/test-plan.md) | Test plan |
-| [`operations.md`](context/foundation/operations.md) | Production runbook |
-| [`AGENTS.md`](AGENTS.md) | Rules for AI agents; `.ai/rules/` holds per-path rules |
+| Document                                                                             | What it is for                                            |
+| ------------------------------------------------------------------------------------ | --------------------------------------------------------- |
+| [`glossary.md`](context/foundation/glossary.md)                                      | Domain glossary (the language of the code and the agents) |
+| [`prd-mvp.md`](context/foundation/prd-mvp.md), [`mvp.md`](context/foundation/mvp.md) | Product requirements and the short MVP scope              |
+| [`prd.md`](context/foundation/prd.md), `prd-v2.md`                                   | PRDs of later changes (month plan, reports)               |
+| [`roadmap.md`](context/foundation/roadmap.md)                                        | Roadmap                                                   |
+| [`tech-stack.md`](context/foundation/tech-stack.md)                                  | Technology decisions                                      |
+| [`adr/`](context/foundation/adr/)                                                    | Architecture decision records                             |
+| [`design-system.md`](context/foundation/design-system.md)                            | Design system (Atrament): tokens, surfaces, typography    |
+| [`test-plan.md`](context/foundation/test-plan.md)                                    | Test plan                                                 |
+| [`operations.md`](context/foundation/operations.md)                                  | Production runbook                                        |
+| [`AGENTS.md`](AGENTS.md)                                                             | Rules for AI agents; `.ai/rules/` holds per-path rules    |
 
 The glossary is the source of names: avoid the synonyms it rules out.
 
